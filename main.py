@@ -226,7 +226,7 @@ if __name__ == "__main__":
     for _ in range(parameters.pop_size):
         pops_new.append(ddpg.Actor(parameters))
 
-    print(pops_new[0])
+    print(pops_new[0].state_dict())
 
     ray.init(include_webui=False, ignore_reinit_error=True)
     workers = [Worker.remote(parameters)
