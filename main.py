@@ -145,10 +145,9 @@ class Worker(object):
 
     def do_rollout(self, params, store_transition=True):
         fitness = 0
-        if params:
-            self.policy.load_state_dict(params)
+        # if params:
+        self.policy.load_state_dict(params)
             # self.policy.set_weights(params)
-
         # todo: rollout in remote functions
         for _ in range(self.args.num_evals):
             fitness += self._rollout()
@@ -217,13 +216,16 @@ if __name__ == "__main__":
     torch.manual_seed(parameters.seed)
     np.random.seed(parameters.seed)
     random.seed(parameters.seed)
-
     evolver = utils_ne.SSNE(parameters)
+
+    pops_new = []
+    for _ in range(parameters.pop_size):
+        pops_new.append(ddpg.Actor(parameters))
 
     ray.init(include_webui=False, ignore_reinit_error=True)
     workers = [Worker.remote(parameters)
                for _ in range(num_workers)]
-    pops_new = [None for _ in range(num_workers)]
+    # pops_new = [None for _ in range(num_workers)]
     print("num_evals,", parameters.num_evals)
     # print(pops_new)
     time_start = time.time()
