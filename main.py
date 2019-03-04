@@ -124,10 +124,6 @@ class OUNoise:
 @ray.remote(num_gpus=0.2)
 class Worker(object):
     def __init__(self, args):
-        torch.manual_seed(parameters.seed)
-        np.random.seed(parameters.seed)
-        random.seed(parameters.seed)
-
         self.env = utils.NormalizedActions(gym.make(env_tag))
         self.env.seed(args.seed)
         self.args = args
@@ -223,7 +219,7 @@ if __name__ == "__main__":
     np.random.seed(parameters.seed)
     random.seed(parameters.seed)
     evolver = utils_ne.SSNE(parameters)
-    print("random,",random.randint(0,10))
+    # print("random,",random.randint(0,10))
 
     pops_new = []
     for _ in range(parameters.pop_size):
@@ -242,6 +238,7 @@ if __name__ == "__main__":
         results = ray.get(rollout_ids)
         all_fitness, pops, num_frames = process_results(results)
         print("maximum score,", max(all_fitness))
+        print(all_fitness)
         print("all num_frames,", sum(num_frames))
         time_evaluate = time.time()-time_start
         time_middle = time.time()
