@@ -3,8 +3,6 @@ import gym,os, time, sys, random
 import argparse
 import logging
 import ray
-
-import mod_neuro_evo as utils_ne
 import copy
 from core import ddpg as ddpg
 from core import replay_memory
@@ -12,6 +10,7 @@ import torch
 from torch.optim import Adam
 import torch.nn as nn
 from core import mod_utils as utils
+from core import mod_neuro_evo as utils_ne
 
 
 
