@@ -3,7 +3,7 @@ import gym,os, time, sys, random
 import argparse
 import logging
 import ray
-from policy import ActorPolicy
+
 import mod_neuro_evo as utils_ne
 import copy
 from core import ddpg as ddpg
