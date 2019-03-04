@@ -217,6 +217,7 @@ if __name__ == "__main__":
     np.random.seed(parameters.seed)
     random.seed(parameters.seed)
     evolver = utils_ne.SSNE(parameters)
+    print("random,",random.randint())
 
     pops_new = []
     for _ in range(parameters.pop_size):
