@@ -160,7 +160,7 @@ class Worker(object):
 
         while not done:
             if store_transition: self.num_frames += 1; self.gen_frames += 1
-            action = self.pop.forward(state)
+            action = self.policy.forward(state)
             action.clamp(-1, 1)
             action = utils.to_numpy(action.cpu())
             if is_action_noise: action += self.ounoise.noise()
