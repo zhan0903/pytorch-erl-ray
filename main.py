@@ -238,7 +238,13 @@ if __name__ == "__main__":
 
         # evolver process
         evolver = utils_ne.SSNE(parameters)
-        elite_index = evolver.epoch(pops_new, all_fitness)
+        new_pops = []
+        for pop in pops_new:
+            new_pop = ddpg.Actor(parameters)
+            new_pop.load_state_dict(pop)
+            new_pops.append(new_pop)
+
+        elite_index = evolver.epoch(new_pops, all_fitness)
         # print("elite_index,", elite_index)
         time_evolve = time.time()-time_middle
         # print("time for evolve,", time_evolve)
