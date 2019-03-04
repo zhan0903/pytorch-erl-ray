@@ -158,7 +158,7 @@ class Worker(object):
         # fitness_pg = self._rollout()
         # print("evalute, pg fitness,", fitness, fitness_pg)
 
-        return fitness/self.args.num_evals, self.policy.state_dict().cpu(), self.num_frames
+        return fitness/self.args.num_evals, self.policy.cpu().state_dict(), self.num_frames
 
     def _rollout(self, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -253,6 +253,7 @@ if __name__ == "__main__":
             print("maximum score,", max(all_fitness))
             print("all num_frames,", sum(num_frames))
             print("time,",time.time()-time_start)
+        exit(0)
 
 
 
