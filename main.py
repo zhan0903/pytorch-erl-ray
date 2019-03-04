@@ -249,13 +249,13 @@ if __name__ == "__main__":
         # pops_new = copy.deepcopy(pops)
         # evolver process
         # evolver = utils_ne.SSNE(parameters)
-        new_pops = []
+        pops_new = []
         for pop in pops:
             new_pop = ddpg.Actor(parameters)
             new_pop.load_state_dict(pop)
-            new_pops.append(new_pop)
+            pops_new.append(new_pop)
 
-        elite_index = evolver.epoch(new_pops, all_fitness)
+        # elite_index = evolver.epoch(new_pops, all_fitness)
         # print("elite_index,", elite_index)
         time_evolve = time.time()-time_middle
         print("time for evolve,", time_evolve)
@@ -264,7 +264,7 @@ if __name__ == "__main__":
             print("maximum score,", max(all_fitness))
             print("all num_frames,", sum(num_frames))
             print("time,",time.time()-time_start)
-        exit(0)
+        # exit(0)
 
 
 
