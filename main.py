@@ -233,7 +233,7 @@ if __name__ == "__main__":
         # print("all num_frames,", sum(num_frames))
         time_evaluate = time.time()-time_start
         time_middle = time.time()
-        # print("time for evalutation,",time_evaluate)
+        print("time for evalutation,",time_evaluate)
         pops_new = copy.deepcopy(pops)
 
         # evolver process
