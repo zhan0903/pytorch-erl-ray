@@ -144,8 +144,7 @@ class Worker(object):
         self.replay_buffer.push(state, action, next_state, reward, done)
 
     def do_rollout(self, params, store_transition=True):
-        print("random,", random.randint(0, 10))
-
+        # print("random,", random.randint(0, 10))
         fitness = 0
         # if params:
         self.policy.load_state_dict(params)
@@ -226,7 +225,7 @@ if __name__ == "__main__":
     for _ in range(parameters.pop_size):
         pops_new.append(ddpg.Actor(parameters))
 
-    print(pops_new[1].state_dict())
+    # print(pops_new[1].state_dict())
 
     ray.init(include_webui=False, ignore_reinit_error=True)
     workers = [Worker.remote(parameters)
