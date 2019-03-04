@@ -2,7 +2,7 @@ import numpy as np
 import gym,os, time, sys, random
 import argparse
 import logging
-import ray, utils
+import ray
 from policy import ActorPolicy
 import mod_neuro_evo as utils_ne
 import copy
