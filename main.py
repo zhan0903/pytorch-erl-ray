@@ -132,6 +132,16 @@ class Worker(object):
         self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size//args.pop_size)
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
 
+    def add_experience(self, state, action, next_state, reward, done):
+        reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
+        if self.args.is_cuda: reward = reward.cuda()
+        if self.args.use_done_mask:
+            done = utils.to_tensor(np.array([done]).astype('uint8')).unsqueeze(0)
+            if self.args.is_cuda: done = done.cuda()
+        action = utils.to_tensor(action)
+        if self.args.is_cuda: action = action.cuda()
+        self.replay_buffer.push(state, action, next_state, reward, done)
+
     def do_rollout(self, params, store_transition=True):
         fitness = 0
         if params:
