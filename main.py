@@ -121,7 +121,7 @@ class OUNoise:
         return self.state * self.scale
 
 
-@ray.remote(num_gpus=0.1)
+@ray.remote(num_gpus=0.2)
 class Worker(object):
     def __init__(self, args):
         self.env = utils.NormalizedActions(gym.make(env_tag))
