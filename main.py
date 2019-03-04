@@ -65,7 +65,7 @@ class Parameters:
         else: self.num_frames = 2000000
 
         #USE CUDA
-        self.is_cuda = False; self.is_memory_cuda = True
+        self.is_cuda = True; self.is_memory_cuda = True
 
         #Sunchronization Period
         if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
@@ -158,7 +158,7 @@ class Worker(object):
         # fitness_pg = self._rollout()
         # print("evalute, pg fitness,", fitness, fitness_pg)
 
-        return fitness/self.args.num_evals, self.policy.state_dict(), self.num_frames
+        return fitness/self.args.num_evals, self.policy.state_dict().cpu(), self.num_frames
 
     def _rollout(self, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -247,7 +247,7 @@ if __name__ == "__main__":
         elite_index = evolver.epoch(new_pops, all_fitness)
         # print("elite_index,", elite_index)
         time_evolve = time.time()-time_middle
-        # print("time for evolve,", time_evolve)
+        print("time for evolve,", time_evolve)
 
         if sum(num_frames) % 44000 == 0:
             print("maximum score,", max(all_fitness))
