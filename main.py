@@ -125,6 +125,7 @@ class OUNoise:
 class Worker(object):
     def __init__(self, args):
         self.env = utils.NormalizedActions(gym.make(env_tag))
+        self.env.seed(args.seed)
         self.args = args
         self.ounoise = OUNoise(args.action_dim)
         # self.sess = make_session(single_threaded=True)
@@ -212,7 +213,7 @@ if __name__ == "__main__":
     parameters.state_dim = env.observation_space.shape[0]
     parameters.input_size = env.observation_space.shape[0]
 
-    env.seed(parameters.seed)
+    # env.seed(parameters.seed)
     torch.manual_seed(parameters.seed)
     np.random.seed(parameters.seed)
     random.seed(parameters.seed)
