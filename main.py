@@ -8,6 +8,9 @@ import mod_neuro_evo as utils_ne
 import copy
 from core import ddpg as ddpg
 from core import replay_memory
+import torch
+from torch.optim import Adam
+import torch.nn as nn
 
 
 
@@ -127,7 +130,7 @@ class Worker(object):
         # self.sess = make_session(single_threaded=True)
         self.policy = ddpg.Actor(args)
         self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size//args.pop_size)
-        self.num_frames = 0
+        self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
 
     def do_rollout(self, params, store_transition=True):
         fitness = 0
@@ -142,10 +145,10 @@ class Worker(object):
         # print("evaluate fitness,", fitness/self.args.num_evals)
 
         # self.policy.learn()
-        fitness_pg = self._rollout()
+        # fitness_pg = self._rollout()
         # print("evalute, pg fitness,", fitness, fitness_pg)
 
-        return fitness/self.args.num_evals, self.policy.get_weights(), self.num_frames
+        return fitness/self.args.num_evals, self.policy.state_dict(), self.num_frames
 
     def _rollout(self, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -157,9 +160,6 @@ class Worker(object):
 
         while not done:
             if store_transition: self.num_frames += 1; self.gen_frames += 1
-            # if render and is_render: self.env.render()
-            # print(state)
-            # exit(0)
             action = self.pop.forward(state)
             action.clamp(-1, 1)
             action = utils.to_numpy(action.cpu())
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     parameters.input_size = env.observation_space.shape[0]
 
     env.seed(parameters.seed)
-    tf.set_random_seed(parameters.seed)
+    torch.manual_seed(parameters.seed)
     np.random.seed(parameters.seed)
     random.seed(parameters.seed)
 
