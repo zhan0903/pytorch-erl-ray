@@ -231,8 +231,8 @@ if __name__ == "__main__":
         rollout_ids = [worker.do_rollout.remote(pop_params) for worker, pop_params in zip(workers,pops_new)]
         results = ray.get(rollout_ids)
         all_fitness, pops, num_frames = process_results(results)
-        # print("maximum score,", max(all_fitness))
-        # print("all num_frames,", sum(num_frames))
+        print("maximum score,", max(all_fitness))
+        print("all num_frames,", sum(num_frames))
         time_evaluate = time.time()-time_start
         time_middle = time.time()
         print("time for evalutation,", time_evaluate)
