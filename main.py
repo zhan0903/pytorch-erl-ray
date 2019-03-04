@@ -217,6 +217,8 @@ if __name__ == "__main__":
     np.random.seed(parameters.seed)
     random.seed(parameters.seed)
 
+    evolver = utils_ne.SSNE(parameters)
+
     ray.init(include_webui=False, ignore_reinit_error=True)
     workers = [Worker.remote(parameters)
                for _ in range(num_workers)]
@@ -233,13 +235,12 @@ if __name__ == "__main__":
         # print("all num_frames,", sum(num_frames))
         time_evaluate = time.time()-time_start
         time_middle = time.time()
-        print("time for evalutation,",time_evaluate)
-        pops_new = copy.deepcopy(pops)
-
+        print("time for evalutation,", time_evaluate)
+        # pops_new = copy.deepcopy(pops)
         # evolver process
-        evolver = utils_ne.SSNE(parameters)
+        # evolver = utils_ne.SSNE(parameters)
         new_pops = []
-        for pop in pops_new:
+        for pop in pops:
             new_pop = ddpg.Actor(parameters)
             new_pop.load_state_dict(pop)
             new_pops.append(new_pop)
