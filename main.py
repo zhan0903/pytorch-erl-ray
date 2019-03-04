@@ -231,7 +231,7 @@ if __name__ == "__main__":
     time_start = time.time()
     while True:
         # parallel pg process
-        rollout_ids = [worker.do_rollout.remote(pop_params) for worker, pop_params in zip(workers,pops_new)]
+        rollout_ids = [worker.do_rollout.remote(pop_params.state_dict()) for worker, pop_params in zip(workers,pops_new)]
         results = ray.get(rollout_ids)
         all_fitness, pops, num_frames = process_results(results)
         print("maximum score,", max(all_fitness))
