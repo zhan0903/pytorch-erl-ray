@@ -149,6 +149,7 @@ class Worker(object):
         fitness = 0
         # if params:
         self.policy.load_state_dict(params)
+
             # self.policy.set_weights(params)
         # todo: rollout in remote functions
         for _ in range(self.args.num_evals):
@@ -224,6 +225,8 @@ if __name__ == "__main__":
     pops_new = []
     for _ in range(parameters.pop_size):
         pops_new.append(ddpg.Actor(parameters))
+
+    print(pops_new[0])
 
     ray.init(include_webui=False, ignore_reinit_error=True)
     workers = [Worker.remote(parameters)
