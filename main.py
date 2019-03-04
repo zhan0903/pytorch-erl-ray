@@ -144,6 +144,8 @@ class Worker(object):
         self.replay_buffer.push(state, action, next_state, reward, done)
 
     def do_rollout(self, params, store_transition=True):
+        print("random,", random.randint(0, 10))
+
         fitness = 0
         # if params:
         self.policy.load_state_dict(params)
