@@ -184,6 +184,7 @@ class Worker(object):
         while not done:
             if store_transition: self.num_frames += 1; self.gen_frames += 1
             action = self.policy.forward(state)
+            print("action,",action)
             action.clamp(-1, 1)
             action = utils.to_numpy(action.cpu())
             if is_action_noise: action += self.ounoise.noise()
@@ -280,7 +281,7 @@ if __name__ == "__main__":
         if sum(num_frames) % 40000 == 0:
             test_score_id = workers[0].do_test.remote(pops_new[champ_index].state_dict())
             test_score = ray.get(test_score_id)
-            print("test score,",test_score,"#Frames:",sum(num_frames), "Time:",(time.time()-time_start))
+            print("#Max score:", best_train_fitness,"#Test score,",test_score,"#Frames:",sum(num_frames), "Time:",(time.time()-time_start))
         # # exit(0)
         # if test:
         #     test = False
