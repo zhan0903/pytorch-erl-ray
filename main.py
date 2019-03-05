@@ -184,7 +184,6 @@ class Worker(object):
         while not done:
             if store_transition: self.num_frames += 1; self.gen_frames += 1
             action = self.policy.forward(state)
-            print("action,",action)
             action.clamp(-1, 1)
             action = utils.to_numpy(action.cpu())
             if is_action_noise: action += self.ounoise.noise()
@@ -197,6 +196,8 @@ class Worker(object):
             total_reward += reward
 
             if store_transition: self.add_experience(state, action, next_state, reward, done)
+            print("action,",action)
+
             state = next_state
         if store_transition: self.num_games += 1
         # print("come here,total_reward:",total_reward)
