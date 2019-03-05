@@ -259,7 +259,7 @@ if __name__ == "__main__":
         best_train_fitness = max(all_fitness)
         champ_index = all_fitness.index(max(all_fitness))
 
-        test_score_id = workers[0].do_test.remote(pops_new[champ_index].state_dict())
+        # test_score_id = workers[0].do_test.remote(pops_new[champ_index].state_dict())
 
         # print("time for evalutation,", time_evaluate)
         # pops_new = copy.deepcopy(pops)
@@ -276,11 +276,11 @@ if __name__ == "__main__":
         # time_evolve = time.time()-time_middle
         # print("time for evolve,", time_evolve)
         # if sum(num_frames) % 44000 == 0:
-        test_score = ray.get(test_score_id)
-        print("test score,",test_score)
-        print("maximum score,", max(all_fitness))
-        print("all num_frames,", sum(num_frames))
-        print("time,",time.time()-time_start)
+        # test_score = ray.get(test_score_id)
+        if sum(num_frames) % 40000 == 0:
+            test_score_id = workers[0].do_test.remote(pops_new[champ_index].state_dict())
+            test_score = ray.get(test_score_id)
+            print("test score,",test_score,"#Frames:",sum(num_frames), "Time:",(time.time()-time_start))
         # # exit(0)
         # if test:
         #     test = False
