@@ -147,7 +147,7 @@ class Worker(object):
         # print("random,", random.randint(0, 10))
         fitness = 0
         # if params:
-        self.policy.load_state_dict(params)
+        self.policy.load_state_dict(params).cuda()
 
             # self.policy.set_weights(params)
         # todo: rollout in remote functions
