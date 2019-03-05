@@ -225,7 +225,7 @@ if __name__ == "__main__":
     for _ in range(parameters.pop_size):
         pops_new.append(ddpg.Actor(parameters))
 
-    print(pops_new[1].state_dict())
+    # print(pops_new[1].state_dict())
 
     ray.init(include_webui=False, ignore_reinit_error=True)
     workers = [Worker.remote(parameters)
@@ -234,8 +234,11 @@ if __name__ == "__main__":
     print("num_evals,", parameters.num_evals)
     # print(pops_new)
     time_start = time.time()
+    test = True
     while True:
         # parallel pg process
+        print(pops_new[1].state_dict())
+
         rollout_ids = [worker.do_rollout.remote(pop_params.state_dict()) for worker, pop_params in zip(workers,pops_new)]
         results = ray.get(rollout_ids)
         all_fitness, pops, num_frames = process_results(results)
@@ -264,6 +267,12 @@ if __name__ == "__main__":
             print("all num_frames,", sum(num_frames))
             print("time,",time.time()-time_start)
         # exit(0)
+        if test:
+            test = False
+            continue
+        else:
+            break
+
 
 
 
