@@ -237,7 +237,7 @@ if __name__ == "__main__":
     # test = True
     while True:
         # parallel pg process
-        print(pops_new[1].state_dict())
+        # print(pops_new[1].state_dict())
 
         rollout_ids = [worker.do_rollout.remote(pop_params.state_dict()) for worker, pop_params in zip(workers,pops_new)]
         results = ray.get(rollout_ids)
