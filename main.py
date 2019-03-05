@@ -121,6 +121,11 @@ class OUNoise:
         return self.state * self.scale
 
 
+def test_value_rollout():
+
+
+
+
 @ray.remote(num_gpus=0.2)
 class Worker(object):
     def __init__(self, args):
@@ -152,7 +157,7 @@ class Worker(object):
             # self.policy.set_weights(params)
         # todo: rollout in remote functions
         for _ in range(self.args.num_evals):
-            fitness += self._rollout()
+            fitness += self._rollout(store_transition=store_transition)
 
         # print("evaluate fitness,", fitness/self.args.num_evals)
 
@@ -161,6 +166,13 @@ class Worker(object):
         # print("evalute, pg fitness,", fitness, fitness_pg)
 
         return fitness/self.args.num_evals, self.policy.cpu().state_dict(), self.num_frames
+
+    def do_test(self,params,store_transition=False):
+        fitness = 0
+        self.policy.cuda().load_state_dict(params)
+        for _ in range(5):
+            fitness += self._rollout(store_transition=store_transition)
+        return fitness/5.0
 
     def _rollout(self, is_action_noise=False, store_transition=True):
         total_reward = 0.0
@@ -245,8 +257,11 @@ if __name__ == "__main__":
         # print("maximum score,", max(all_fitness))
         # print(all_fitness)
         # print("all num_frames,", sum(num_frames))
-        time_evaluate = time.time()-time_start
-        time_middle = time.time()
+        best_train_fitness = max(all_fitness)
+        champ_index = all_fitness.index(max(all_fitness))
+
+        test_score_id = workers[0].do_test.remote(pops_new[champ_index])
+
         # print("time for evalutation,", time_evaluate)
         # pops_new = copy.deepcopy(pops)
         # evolver process
@@ -259,10 +274,11 @@ if __name__ == "__main__":
 
         elite_index = evolver.epoch(pops_new, all_fitness)
         # print("elite_index,", elite_index)
-        time_evolve = time.time()-time_middle
+        # time_evolve = time.time()-time_middle
         # print("time for evolve,", time_evolve)
-
         # if sum(num_frames) % 44000 == 0:
+        test_score = ray.get(test_score_id)
+        print("test score,",test_score)
         print("maximum score,", max(all_fitness))
         print("all num_frames,", sum(num_frames))
         print("time,",time.time()-time_start)
