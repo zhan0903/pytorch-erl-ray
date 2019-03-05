@@ -259,7 +259,7 @@ if __name__ == "__main__":
         best_train_fitness = max(all_fitness)
         champ_index = all_fitness.index(max(all_fitness))
 
-        test_score_id = workers[0].do_test.remote(pops_new[champ_index])
+        test_score_id = workers[0].do_test.remote(pops_new[champ_index].state_dict())
 
         # print("time for evalutation,", time_evaluate)
         # pops_new = copy.deepcopy(pops)
