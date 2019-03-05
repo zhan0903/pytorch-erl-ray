@@ -231,10 +231,10 @@ if __name__ == "__main__":
     workers = [Worker.remote(parameters)
                for _ in range(num_workers)]
     # pops_new = [None for _ in range(num_workers)]
-    print("num_evals,", parameters.num_evals)
+    # print("num_evals,", parameters.num_evals)
     # print(pops_new)
     time_start = time.time()
-    test = True
+    # test = True
     while True:
         # parallel pg process
         print(pops_new[1].state_dict())
@@ -242,12 +242,12 @@ if __name__ == "__main__":
         rollout_ids = [worker.do_rollout.remote(pop_params.state_dict()) for worker, pop_params in zip(workers,pops_new)]
         results = ray.get(rollout_ids)
         all_fitness, pops, num_frames = process_results(results)
-        print("maximum score,", max(all_fitness))
-        print(all_fitness)
-        print("all num_frames,", sum(num_frames))
+        # print("maximum score,", max(all_fitness))
+        # print(all_fitness)
+        # print("all num_frames,", sum(num_frames))
         time_evaluate = time.time()-time_start
         time_middle = time.time()
-        print("time for evalutation,", time_evaluate)
+        # print("time for evalutation,", time_evaluate)
         # pops_new = copy.deepcopy(pops)
         # evolver process
         # evolver = utils_ne.SSNE(parameters)
@@ -257,21 +257,21 @@ if __name__ == "__main__":
             new_pop.load_state_dict(pop)
             pops_new.append(new_pop)
 
-        # elite_index = evolver.epoch(new_pops, all_fitness)
+        elite_index = evolver.epoch(pops_new, all_fitness)
         # print("elite_index,", elite_index)
         time_evolve = time.time()-time_middle
-        print("time for evolve,", time_evolve)
+        # print("time for evolve,", time_evolve)
 
-        if sum(num_frames) % 44000 == 0:
-            print("maximum score,", max(all_fitness))
-            print("all num_frames,", sum(num_frames))
-            print("time,",time.time()-time_start)
-        # exit(0)
-        if test:
-            test = False
-            continue
-        else:
-            break
+        # if sum(num_frames) % 44000 == 0:
+        print("maximum score,", max(all_fitness))
+        print("all num_frames,", sum(num_frames))
+        print("time,",time.time()-time_start)
+        # # exit(0)
+        # if test:
+        #     test = False
+        #     continue
+        # else:
+        #     break
 
 
 
