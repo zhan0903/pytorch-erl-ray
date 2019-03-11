@@ -325,7 +325,7 @@ if __name__ == "__main__":
 
     pops_new = []
     for _ in range(parameters.pop_size):
-        pops_new.append(ddpg.DDPG(parameters))
+        pops_new.append(ddpg.Actor(parameters))
 
 
 
