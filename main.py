@@ -335,7 +335,7 @@ if __name__ == "__main__":
     grads_sum = None
 
     while True:
-        rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.cpu().state_dict()) for worker, pop_params in zip(workers, pops_new)]
+        rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers, pops_new)]
         results = ray.get(rollout_ids)
         grads, pops, avg_fitness,num_frames = process_results(results)
         best_train_fitness = max(avg_fitness)
