@@ -341,12 +341,13 @@ if __name__ == "__main__":
         best_train_fitness = max(avg_fitness)
         champ_index = avg_fitness.index(max(avg_fitness))
         print("avg_fitness,",avg_fitness)
-        print("grads[0],", grads[0])
+        # print("grads[0],", grads[0])
         # print("len grads,",len(grads))
         # exit(0)
         # grads_sum = sum(grads)
         # print("grads_sum", grads_sum)
         grads_sum = copy.deepcopy(grads[-1])
+        print(gcritic.device)
         for grad in grads[:-1]:
             for temp_itme, grad_item in zip(grads_sum, grad):
                 temp_itme += grad_item
@@ -354,7 +355,7 @@ if __name__ == "__main__":
         for param, grad in zip(gcritic.parameters(), grads_sum):
             param.grad = torch.FloatTensor(grad).to(device)
 
-        print(gcritic.device)
+        # print(gcritic.device)
         nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
         gcritic_optim.step()
         print("time duration,",time.time()-time_start)
