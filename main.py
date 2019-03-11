@@ -198,7 +198,7 @@ class Worker(object):
         current_q = self.critic.forward((state_batch), (action_batch))
         dt = self.loss(current_q, target_q)
         dt.backward()
-        nn.utils.clip_grad_norm(self.critic.parameters(), 10)
+        nn.utils.clip_grad_norm_(self.critic.parameters(), 10)
         self.critic_optim.step()
 
         # Actor Update
@@ -206,7 +206,7 @@ class Worker(object):
         policy_loss = -self.critic.forward((state_batch), self.actor.forward((state_batch)))
         policy_loss = policy_loss.mean()
         policy_loss.backward()
-        nn.utils.clip_grad_norm(self.actor.parameters(), 10)
+        nn.utils.clip_grad_norm_(self.actor.parameters(), 10)
         self.actor_optim.step()
 
         ddpg.soft_update(self.actor_target, self.actor, self.tau)
@@ -327,34 +327,27 @@ if __name__ == "__main__":
     for _ in range(parameters.pop_size):
         pops_new.append(ddpg.Actor(parameters))
 
-
-
-    # print(pops_new[1].state_dict())
-
     ray.init(include_webui=False, ignore_reinit_error=True)
     workers = [Worker.remote(parameters)
                for _ in range(num_workers)]
-    # pops_new = [None for _ in range(num_workers)]
-    # print("num_evals,", parameters.num_evals)
-    # print(pops_new)
-    time_start = time.time()
-    # test = True
-    while True:
-        # parallel pg process
-        # print(pops_new[1].state_dict())
 
+    time_start = time.time()
+
+    while True:
         rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers, pops_new)]
         results = ray.get(rollout_ids)
         grads, pops, avg_fitness,num_frames = process_results(results)
         best_train_fitness = max(avg_fitness)
         champ_index = avg_fitness.index(max(avg_fitness))
+        print("grads,",grads)
+        exit(0)
         grads_sum = sum(grads)
         print("grads_sum", grads_sum)
 
         for param, grad in zip(gcritic.parameters(), grads_sum):
             param.grad = torch.FloatTensor(grad).to(device)
 
-        nn.utils.clip_grad_norm(gcritic.parameters(), 10)
+        nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
         gcritic_optim.step()
 
         exit(0)
