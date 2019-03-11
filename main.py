@@ -332,6 +332,7 @@ if __name__ == "__main__":
                for _ in range(num_workers)]
 
     time_start = time.time()
+    grads_sum = None
 
     while True:
         rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers, pops_new)]
@@ -340,11 +341,15 @@ if __name__ == "__main__":
         best_train_fitness = max(avg_fitness)
         champ_index = avg_fitness.index(max(avg_fitness))
         print("avg_fitness,",avg_fitness)
-        print("grads,",grads)
-        print("len grads,",len(grads))
-        exit(0)
-        grads_sum = sum(grads)
-        print("grads_sum", grads_sum)
+        print("grads[0],",grads[0])
+        # print("len grads,",len(grads))
+        # exit(0)
+        # grads_sum = sum(grads)
+        # print("grads_sum", grads_sum)
+        grads_sum = grads[-1]
+        for grad in grads[:-1]:
+            for temp_itme, grad_item in zip(grads_sum, grad):
+                temp_itme += grad_item
 
         for param, grad in zip(gcritic.parameters(), grads_sum):
             param.grad = torch.FloatTensor(grad).to(device)
