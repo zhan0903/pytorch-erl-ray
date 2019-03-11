@@ -82,7 +82,7 @@ class Critic(nn.Module):
         self.w_out.weight.data.mul_(0.1)
         self.w_out.bias.data.mul_(0.1)
 
-        if args.is_cuda: self.cuda()
+        # if args.is_cuda: self.cuda()
 
     def forward(self, input, action):
 
@@ -138,7 +138,7 @@ class DDPG(object):
         #Critic Update
         next_action_batch = self.actor_target.forward(next_state_batch)
         next_q = self.critic_target.forward(next_state_batch, next_action_batch)
-        if self.args.use_done_mask: next_q = next_q * ( 1 - done_batch.float()) #Done mask
+        if self.args.use_done_mask: next_q = next_q * (1 - done_batch.float()) #Done mask
         target_q = reward_batch + (self.gamma * next_q)
 
         self.critic_optim.zero_grad()

@@ -133,9 +133,85 @@ class Worker(object):
         self.args = args
         self.ounoise = OUNoise(args.action_dim)
         # self.sess = make_session(single_threaded=True)
-        self.policy = ddpg.Actor(args)
+        self.actor = ddpg.Actor(args,init=True)
+        self.actor_target = ddpg.Actor(args, init=True)
+        self.actor_optim = Adam(self.actor.parameters(), lr=0.5e-4)
+
+        self.critic = ddpg.Critic(args)
+        self.critic_target = ddpg.Critic(args)
+        self.critic_optim = Adam(self.critic.parameters(), lr=0.5e-3)
+
+        self.gamma = args.gamma; self.tau = self.args.tau
+        self.loss = nn.MSELoss()
+
+        ddpg.hard_update(self.actor_target, self.actor)  # Make sure target is with the same weight
+        ddpg.hard_update(self.critic_target, self.critic)
+
         self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size//args.pop_size)
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
+
+    def compute_gradients(self, params):
+        self.gen_frames = 0
+        avg_fitness = self.do_rollout(params)
+        for _ in range(int(self.gen_frames*self.args.frac_frames_train)):
+            transitions = self.replay_buffer.sample(self.args.batch_size)
+            batch = replay_memory.Transition(*zip(*transitions))
+            self.update_params(batch)
+
+        # avg_fitness_1 = self.do_rollout(params)
+        grads = [param.grad.data.cpu().numpy() if param.grad is not None else None
+                 for param in self.critic.parameters()]
+
+        return grads, self.actor.cpu().state_dict(), avg_fitness, self.num_frames
+
+
+    def update_params(self, batch):
+        state_batch = torch.cat(batch.state)
+        next_state_batch = torch.cat(batch.next_state)
+        action_batch = torch.cat(batch.action)
+        reward_batch = torch.cat(batch.reward)
+        if self.args.use_done_mask: done_batch = torch.cat(batch.done)
+        state_batch.volatile = False
+        next_state_batch.volatile = True
+        action_batch.volatile = False
+
+        # Load everything to GPU if not already
+        if self.args.is_memory_cuda and not self.args.is_cuda:
+            self.actor.cuda()
+            self.actor_target.cuda()
+            self.critic_target.cuda()
+            self.critic.cuda()
+            state_batch = state_batch.cuda()
+            next_state_batch = next_state_batch.cuda()
+            action_batch = action_batch.cuda()
+            reward_batch = reward_batch.cuda()
+            if self.args.use_done_mask:
+                done_batch = done_batch.cuda()
+
+        #Critic Update
+        next_action_batch = self.actor_target.forward(next_state_batch)
+        next_q = self.critic_target.forward(next_state_batch, next_action_batch)
+        if self.args.use_done_mask: next_q = next_q * (1 - done_batch.float()) #Done mask
+        target_q = reward_batch + (self.gamma * next_q)
+
+        self.critic_optim.zero_grad()
+        current_q = self.critic.forward((state_batch), (action_batch))
+        dt = self.loss(current_q, target_q)
+        dt.backward()
+        nn.utils.clip_grad_norm(self.critic.parameters(), 10)
+        self.critic_optim.step()
+
+        # Actor Update
+        self.actor_optim.zero_grad()
+        policy_loss = -self.critic.forward((state_batch), self.actor.forward((state_batch)))
+        policy_loss = policy_loss.mean()
+        policy_loss.backward()
+        nn.utils.clip_grad_norm(self.actor.parameters(), 10)
+        self.actor_optim.step()
+
+        ddpg.soft_update(self.actor_target, self.actor, self.tau)
+        ddpg.soft_update(self.critic_target, self.critic, self.tau)
+
 
     def add_experience(self, state, action, next_state, reward, done):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
@@ -151,12 +227,13 @@ class Worker(object):
         # print("random,", random.randint(0, 10))
         fitness = 0
         # if params:
-        self.policy.cuda().load_state_dict(params)
+        self.actor.cuda().load_state_dict(params)
 
             # self.policy.set_weights(params)
         # todo: rollout in remote functions
         for _ in range(self.args.num_evals):
             fitness += self._rollout(store_transition=store_transition)
+            # print("fitness,",fitness)
 
         # print("evaluate fitness,", fitness/self.args.num_evals)
 
@@ -164,11 +241,11 @@ class Worker(object):
         # fitness_pg = self._rollout()
         # print("evalute, pg fitness,", fitness, fitness_pg)
 
-        return fitness/self.args.num_evals, self.policy.cpu().state_dict(), self.num_frames
+        return fitness/self.args.num_evals
 
-    def do_test(self,params,store_transition=False):
+    def do_test(self, params, store_transition=False):
         fitness = 0
-        self.policy.cuda().load_state_dict(params)
+        self.actor.cuda().load_state_dict(params)
         for _ in range(5):
             fitness += self._rollout(store_transition=store_transition)
         return fitness/5.0
@@ -183,7 +260,7 @@ class Worker(object):
 
         while not done:
             if store_transition: self.num_frames += 1; self.gen_frames += 1
-            action = self.policy.forward(state)
+            action = self.actor.forward(state)
             action.clamp(-1, 1)
             action = utils.to_numpy(action.cpu())
             if is_action_noise: action += self.ounoise.noise()
@@ -196,28 +273,32 @@ class Worker(object):
             total_reward += reward
 
             if store_transition: self.add_experience(state, action, next_state, reward, done)
-            print("action,",action)
+            # print("action,",action)
 
             state = next_state
         if store_transition: self.num_games += 1
         # print("come here,total_reward:",total_reward)
         return total_reward
 
+
 def process_results(results):
     pops = []
     fitness = []
     num_frames = []
+    grads = []
     for result in results:
-        num_frames.append(result[2])
+        num_frames.append(result[3])
+        fitness.append(result[2])
         pops.append(result[1])
-        fitness.append(result[0])
-    return fitness, pops, num_frames
+        grads.append(result[0])
+    return grads, pops, fitness, num_frames
 
 
 if __name__ == "__main__":
     # time_start = time.time()
     num_workers = 10
     parameters = Parameters()
+    device = "cuda" # if args.cuda else "cpu"
     # tf.enable_eager_execution()
 
     # Create Env
@@ -234,9 +315,19 @@ if __name__ == "__main__":
     evolver = utils_ne.SSNE(parameters)
     # print("random,",random.randint(0,10))
 
+    # pops_new = []
+    # for _ in range(parameters.pop_size):
+    #     pops_new.append(ddpg.Actor(parameters))
+
+    gcritic = ddpg.Critic(parameters)
+    gcritic_target = ddpg.Critic(parameters)
+    gcritic_optim = Adam(gcritic.parameters(), lr=0.5e-3)
+
     pops_new = []
     for _ in range(parameters.pop_size):
-        pops_new.append(ddpg.Actor(parameters))
+        pops_new.append(ddpg.DDPG(parameters))
+
+
 
     # print(pops_new[1].state_dict())
 
@@ -252,33 +343,32 @@ if __name__ == "__main__":
         # parallel pg process
         # print(pops_new[1].state_dict())
 
-        rollout_ids = [worker.do_rollout.remote(pop_params.state_dict()) for worker, pop_params in zip(workers,pops_new)]
+        rollout_ids = [worker.compute_gradients.remote(pop_params) for worker, pop_params in zip(workers,pops_new)]
         results = ray.get(rollout_ids)
-        all_fitness, pops, num_frames = process_results(results)
-        # print("maximum score,", max(all_fitness))
-        # print(all_fitness)
-        # print("all num_frames,", sum(num_frames))
-        best_train_fitness = max(all_fitness)
-        champ_index = all_fitness.index(max(all_fitness))
+        grads, pops, avg_fitness,num_frames = process_results(results)
+        best_train_fitness = max(avg_fitness)
+        champ_index = avg_fitness.index(max(avg_fitness))
+        grads_sum = sum(grads)
+        print("grads_sum", grads_sum)
 
-        # test_score_id = workers[0].do_test.remote(pops_new[champ_index].state_dict())
+        for param, grad in zip(gcritic.parameters(), grads_sum):
+            param.grad = torch.FloatTensor(grad).to(device)
 
-        # print("time for evalutation,", time_evaluate)
-        # pops_new = copy.deepcopy(pops)
-        # evolver process
-        # evolver = utils_ne.SSNE(parameters)
+        nn.utils.clip_grad_norm(gcritic.parameters(), 10)
+        gcritic_optim.step()
+
+        exit(0)
+
         pops_new = []
         for pop in pops:
             new_pop = ddpg.Actor(parameters)
             new_pop.load_state_dict(pop)
             pops_new.append(new_pop)
 
-        elite_index = evolver.epoch(pops_new, all_fitness)
-        # print("elite_index,", elite_index)
-        # time_evolve = time.time()-time_middle
-        # print("time for evolve,", time_evolve)
-        # if sum(num_frames) % 44000 == 0:
-        # test_score = ray.get(test_score_id)
+
+        exit(0)
+        elite_index = evolver.epoch(pops_new, avg_fitness)
+
         if sum(num_frames) % 40000 == 0:
             test_score_id = workers[0].do_test.remote(pops_new[champ_index].state_dict())
             test_score = ray.get(test_score_id)
