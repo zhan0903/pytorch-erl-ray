@@ -171,9 +171,9 @@ class Worker(object):
         action_batch = torch.cat(batch.action)
         reward_batch = torch.cat(batch.reward)
         if self.args.use_done_mask: done_batch = torch.cat(batch.done)
-        state_batch.volatile = False
-        next_state_batch.volatile = True
-        action_batch.volatile = False
+        # state_batch.volatile = False
+        # next_state_batch.volatile = True
+        # action_batch.volatile = False
 
         # Load everything to GPU if not already
         if self.args.is_memory_cuda and not self.args.is_cuda:
@@ -223,19 +223,18 @@ class Worker(object):
         if self.args.is_cuda: action = action.cuda()
         self.replay_buffer.push(state, action, next_state, reward, done)
 
-    def do_rollout(self, params, store_transition=True):
+    def do_rollout(self, actor_params, gcritic_params, store_transition=True):
         # print("random,", random.randint(0, 10))
         fitness = 0
         # if params:
-        self.actor.cuda().load_state_dict(params)
+        self.actor.cuda().load_state_dict(actor_params)
+        self.critic.cuda().load_state_dict(gcritic_params)
+        ddpg.soft_update(self.actor_target, self.actor, self.tau)
+        ddpg.soft_update(self.critic_target, self.critic, self.tau)
 
-            # self.policy.set_weights(params)
         # todo: rollout in remote functions
         for _ in range(self.args.num_evals):
             fitness += self._rollout(store_transition=store_transition)
-            # print("fitness,",fitness)
-
-        # print("evaluate fitness,", fitness/self.args.num_evals)
 
         # self.policy.learn()
         # fitness_pg = self._rollout()
@@ -343,7 +342,7 @@ if __name__ == "__main__":
         # parallel pg process
         # print(pops_new[1].state_dict())
 
-        rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict()) for worker, pop_params in zip(workers, pops_new)]
+        rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers, pops_new)]
         results = ray.get(rollout_ids)
         grads, pops, avg_fitness,num_frames = process_results(results)
         best_train_fitness = max(avg_fitness)
