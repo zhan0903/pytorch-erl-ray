@@ -343,7 +343,7 @@ if __name__ == "__main__":
         # parallel pg process
         # print(pops_new[1].state_dict())
 
-        rollout_ids = [worker.compute_gradients.remote(pop_params) for worker, pop_params in zip(workers,pops_new)]
+        rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict()) for worker, pop_params in zip(workers, pops_new)]
         results = ray.get(rollout_ids)
         grads, pops, avg_fitness,num_frames = process_results(results)
         best_train_fitness = max(avg_fitness)
