@@ -125,7 +125,7 @@ def test_value_rollout():
     pass
 
 
-@ray.remote(num_gpus=0.2)
+@ray.remote(num_gpus=0.4)
 class Worker(object):
     def __init__(self, args):
         self.env = utils.NormalizedActions(gym.make(env_tag))
@@ -346,7 +346,7 @@ if __name__ == "__main__":
         # exit(0)
         # grads_sum = sum(grads)
         # print("grads_sum", grads_sum)
-        grads_sum = grads[-1]
+        grads_sum = copy.deepcopy(grads[-1])
         for grad in grads[:-1]:
             for temp_itme, grad_item in zip(grads_sum, grad):
                 temp_itme += grad_item
@@ -356,6 +356,7 @@ if __name__ == "__main__":
 
         nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
         gcritic_optim.step()
+        print("time duration,",time.time()-time_start)
 
         exit(0)
 
