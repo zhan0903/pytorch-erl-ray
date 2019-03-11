@@ -162,8 +162,7 @@ class Worker(object):
         grads = [param.grad.data.cpu().numpy() if param.grad is not None else None
                  for param in self.critic.parameters()]
 
-        return grads, self.actor.cpu().state_dict(), avg_fitness, self.num_frames
-
+        return grads, self.actor.state_dict(), avg_fitness, self.num_frames
 
     def update_params(self, batch):
         state_batch = torch.cat(batch.state)
@@ -245,7 +244,7 @@ class Worker(object):
 
     def do_test(self, params, store_transition=False):
         fitness = 0
-        self.actor.cuda().load_state_dict(params)
+        self.actor.load_state_dict(params)
         for _ in range(5):
             fitness += self._rollout(store_transition=store_transition)
         return fitness/5.0
