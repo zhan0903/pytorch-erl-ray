@@ -150,9 +150,9 @@ class Worker(object):
         self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size//args.pop_size)
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
 
-    def compute_gradients(self, params):
+    def compute_gradients(self, actor_params, gcritic_params):
         self.gen_frames = 0
-        avg_fitness = self.do_rollout(params)
+        avg_fitness = self.do_rollout(actor_params, gcritic_params)
         for _ in range(int(self.gen_frames*self.args.frac_frames_train)):
             transitions = self.replay_buffer.sample(self.args.batch_size)
             batch = replay_memory.Transition(*zip(*transitions))
