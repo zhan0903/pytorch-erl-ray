@@ -347,7 +347,8 @@ if __name__ == "__main__":
         # grads_sum = sum(grads)
         # print("grads_sum", grads_sum)
         grads_sum = copy.deepcopy(grads[-1])
-        print(gcritic.device)
+        # print(gcritic.get_device())
+        print(next(gcritic.parameters()).device)
         for grad in grads[:-1]:
             for temp_itme, grad_item in zip(grads_sum, grad):
                 temp_itme += grad_item
