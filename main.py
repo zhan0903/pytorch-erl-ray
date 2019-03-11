@@ -134,11 +134,11 @@ class Worker(object):
         self.ounoise = OUNoise(args.action_dim)
         # self.sess = make_session(single_threaded=True)
         self.actor = ddpg.Actor(args,init=True)
-        self.actor_target = ddpg.Actor(args, init=True)
+        self.actor_target = ddpg.Actor(args, init=True).cuda()
         self.actor_optim = Adam(self.actor.parameters(), lr=0.5e-4)
 
         self.critic = ddpg.Critic(args)
-        self.critic_target = ddpg.Critic(args)
+        self.critic_target = ddpg.Critic(args).cuda()
         self.critic_optim = Adam(self.critic.parameters(), lr=0.5e-3)
 
         self.gamma = args.gamma; self.tau = self.args.tau
@@ -229,6 +229,7 @@ class Worker(object):
         # if params:
         self.actor.cuda().load_state_dict(actor_params)
         self.critic.cuda().load_state_dict(gcritic_params)
+
         ddpg.soft_update(self.actor_target, self.actor, self.tau)
         ddpg.soft_update(self.critic_target, self.critic, self.tau)
 
