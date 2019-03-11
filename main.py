@@ -319,8 +319,8 @@ if __name__ == "__main__":
     # for _ in range(parameters.pop_size):
     #     pops_new.append(ddpg.Actor(parameters))
 
-    gcritic = ddpg.Critic(parameters)
-    gcritic_target = ddpg.Critic(parameters)
+    gcritic = ddpg.Critic(parameters).cuda()
+    gcritic_target = ddpg.Critic(parameters).cuda()
     gcritic_optim = Adam(gcritic.parameters(), lr=0.5e-3)
 
     pops_new = []
@@ -353,6 +353,8 @@ if __name__ == "__main__":
 
         for param, grad in zip(gcritic.parameters(), grads_sum):
             param.grad = torch.FloatTensor(grad).to(device)
+
+
 
         nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
         gcritic_optim.step()
