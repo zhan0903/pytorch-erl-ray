@@ -125,7 +125,7 @@ def test_value_rollout():
     pass
 
 
-@ray.remote(num_gpus=0.2)
+@ray.remote(num_gpus=0.4)
 class Worker(object):
     def __init__(self, args):
         self.env = utils.NormalizedActions(gym.make(env_tag))
