@@ -337,7 +337,7 @@ if __name__ == "__main__":
     while True:
         rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers, pops_new)]
         results = ray.get(rollout_ids)
-        grads, pops, avg_fitness,num_frames = process_results(results)
+        grads, actors, avg_fitness,num_frames = process_results(results)
         best_train_fitness = max(avg_fitness)
         champ_index = avg_fitness.index(max(avg_fitness))
         print("avg_fitness,",avg_fitness)
@@ -360,18 +360,16 @@ if __name__ == "__main__":
         # print(gcritic.device)
         nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
         gcritic_optim.step()
-        print("time duration,",time.time()-time_start)
+        print("time duration in gradient compute,", time.time()-time_start)
 
-        exit(0)
+        # exit(0)
 
         pops_new = []
-        for pop in pops:
+        for pop in actors:
             new_pop = ddpg.Actor(parameters)
             new_pop.load_state_dict(pop)
             pops_new.append(new_pop)
 
-
-        exit(0)
         elite_index = evolver.epoch(pops_new, avg_fitness)
 
         if sum(num_frames) % 40000 == 0:
