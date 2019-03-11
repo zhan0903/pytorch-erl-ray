@@ -125,7 +125,7 @@ def test_value_rollout():
     pass
 
 
-@ray.remote(num_gpus=0.4)
+@ray.remote(num_gpus=0.2)
 class Worker(object):
     def __init__(self, args):
         self.env = utils.NormalizedActions(gym.make(env_tag))
@@ -319,7 +319,7 @@ if __name__ == "__main__":
     # for _ in range(parameters.pop_size):
     #     pops_new.append(ddpg.Actor(parameters))
 
-    gcritic = ddpg.Critic(parameters)
+    gcritic = ddpg.Critic(parameters).cuda()
     gcritic_target = ddpg.Critic(parameters)
     gcritic_optim = Adam(gcritic.parameters(), lr=0.5e-3)
 
@@ -353,7 +353,7 @@ if __name__ == "__main__":
             for temp_itme, grad_item in zip(grads_sum, grad):
                 temp_itme += grad_item
 
-        gcritic.cuda()
+        # gcritic.cuda()
         for param, grad in zip(gcritic.parameters(), grads_sum):
             param.grad = torch.FloatTensor(grad).to(device)
 
