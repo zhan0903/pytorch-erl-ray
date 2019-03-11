@@ -335,13 +335,13 @@ if __name__ == "__main__":
     grads_sum = None
 
     while True:
-        rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers, pops_new)]
+        rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.cpu().state_dict()) for worker, pop_params in zip(workers, pops_new)]
         results = ray.get(rollout_ids)
         grads, pops, avg_fitness,num_frames = process_results(results)
         best_train_fitness = max(avg_fitness)
         champ_index = avg_fitness.index(max(avg_fitness))
         print("avg_fitness,",avg_fitness)
-        print("grads[0],",grads[0])
+        print("grads[0],", grads[0])
         # print("len grads,",len(grads))
         # exit(0)
         # grads_sum = sum(grads)
@@ -354,8 +354,7 @@ if __name__ == "__main__":
         for param, grad in zip(gcritic.parameters(), grads_sum):
             param.grad = torch.FloatTensor(grad).to(device)
 
-
-
+        print(gcritic.device)
         nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
         gcritic_optim.step()
         print("time duration,",time.time()-time_start)
