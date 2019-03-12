@@ -284,14 +284,14 @@ def process_results(results):
     fitness = []
     num_frames = []
     grads = []
-    fitness_after_gradient = []
+    # fitness_after_gradient = []
     for result in results:
         # fitness_after_gradient.append([result[4]])
         num_frames.append(result[3])
         fitness.append(result[2])
         pops.append(result[1])
         grads.append(result[0])
-    return grads, pops, fitness, num_frames, fitness_after_gradient
+    return grads, pops, fitness, num_frames
 
 
 if __name__ == "__main__":
@@ -338,11 +338,11 @@ if __name__ == "__main__":
         # time_start = time.time()
         rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers, pops_new)]
         results = ray.get(rollout_ids)
-        grads, actors, avg_fitness,num_frames, fitness_after_gradient = process_results(results)
+        grads, actors, avg_fitness, num_frames = process_results(results)
         best_train_fitness = max(avg_fitness)
         champ_index = avg_fitness.index(max(avg_fitness))
         print("best_train_fitness,", best_train_fitness)
-        print("best after gradient,",max(fitness_after_gradient))
+        # print("best after gradient,",max(fitness_after_gradient))
         print("num_frames,",num_frames)
         # print("avg_fitness,", avg_fitness)
         # print("fitness_after_gradient,",fitness_after_gradient)
