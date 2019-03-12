@@ -154,8 +154,8 @@ class Worker(object):
         self.actor.load_state_dict(actor_params)
         self.critic.load_state_dict(gcritic_params)
 
-        ddpg.soft_update(self.actor_target, self.actor, self.tau)
-        ddpg.soft_update(self.critic_target, self.critic, self.tau)
+        ddpg.hard_update(self.actor_target, self.actor)
+        ddpg.soft_update(self.critic_target, self.critic)
 
         self.gen_frames = 0
         avg_fitness = self.do_rollout()
@@ -168,6 +168,9 @@ class Worker(object):
                  for param in self.critic.parameters()]
 
         value_after_gradient = self.do_rollout()
+
+        if value_after_gradient < avg_fitness:
+            return grads, self.actor_target.state_dict(), avg_fitness, self.num_frames, value_after_gradient
 
         return grads, self.actor.state_dict(), avg_fitness, self.num_frames, value_after_gradient
 
