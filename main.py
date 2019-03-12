@@ -130,9 +130,9 @@ class Worker(object):
 
     def compute_gradients(self, actor_params, gcritic_params):
         self.actor.load_state_dict(actor_params)
-        # self.critic.load_state_dict(gcritic_params)
+        self.critic.load_state_dict(gcritic_params)
 
-        ddpg.hard_update(self.actor_target, self.actor)
+        # ddpg.hard_update(self.actor_target, self.actor)
         # ddpg.hard_update(self.critic_target, self.critic)
 
         self.gen_frames = 0
@@ -147,8 +147,8 @@ class Worker(object):
         grads = [param.grad.data.cpu().numpy() if param.grad is not None else None
                  for param in self.critic.parameters()]
 
-        value_after_gradient = self.do_rollout(store_transition=False)
-        print("(avg_fitness, value_after_gradient),",avg_fitness, value_after_gradient)
+        value_after_gradient = self.do_rollout()
+        print("(avg_fitness, value_after_gradient),", avg_fitness, value_after_gradient)
 
         if value_after_gradient < avg_fitness:
             return grads, self.actor_target.state_dict(), avg_fitness, self.num_frames #, (avg_fitness, value_after_gradient)
@@ -200,7 +200,7 @@ class Worker(object):
         self.actor_optim.step()
 
         # ddpg.soft_update(self.actor_target, self.actor, self.tau)
-        ddpg.soft_update(self.critic_target, self.critic, self.tau)
+        # ddpg.soft_update(self.critic_target, self.critic, self.tau)
 
     def add_experience(self, state, action, next_state, reward, done):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
@@ -329,6 +329,7 @@ if __name__ == "__main__":
         grads_sum = copy.deepcopy(grads[-1])
         # print(gcritic.get_device())
         # print(next(gcritic.parameters()).device)
+        gcritic_optim.zero_grad()
         for grad in grads[:-1]:
             for temp_itme, grad_item in zip(grads_sum, grad):
                 temp_itme += grad_item
@@ -338,7 +339,7 @@ if __name__ == "__main__":
             param.grad = torch.FloatTensor(grad).to(device)
 
         # print(gcritic.device)
-        gcritic_optim.zero_grad()
+        # gcritic_optim.zero_grad()
         nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
         gcritic_optim.step()
         # print("time duration in gradient compute,", time.time()-time_start)
