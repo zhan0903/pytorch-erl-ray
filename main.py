@@ -29,28 +29,6 @@ logger.addHandler(console_handler)
 logger.setLevel(level=logging.DEBUG)
 
 
-# # yapf: disable
-# # __sphinx_doc_begin__
-# DEFAULT_CONFIG = {
-#     # No remote workers by default
-#     "num_workers": 0,
-#     # Learning rate
-#     "lr": 0.0004,
-#     # Use PyTorch as backend
-#     "use_pytorch": False,
-# }
-# # __sphinx_doc_end__
-# # yapf: enable
-
-
-# def make_session(single_threaded):
-#     if not single_threaded:
-#         return tf.Session()
-#     config = tf.ConfigProto(inter_op_parallelism_threads=1, intra_op_parallelism_threads=1)
-#     config.gpu_options.allow_growth = True
-#     return tf.Session(config=config)
-
-
 class Parameters:
     def __init__(self):
         self.input_size = None
@@ -147,7 +125,7 @@ class Worker(object):
         ddpg.hard_update(self.actor_target, self.actor)  # Make sure target is with the same weight
         ddpg.hard_update(self.critic_target, self.critic)
 
-        self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size//args.pop_size)
+        self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size//10)
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
 
     def compute_gradients(self, actor_params, gcritic_params):
@@ -160,13 +138,14 @@ class Worker(object):
         self.gen_frames = 0
         avg_fitness = self.do_rollout()
         for _ in range(int(self.gen_frames*self.args.frac_frames_train)):
+            print("gen_frames,", self.gen_frames)
+            print("size of replay_buff,",len(self.replay_buffer))
             transitions = self.replay_buffer.sample(self.args.batch_size)
             batch = replay_memory.Transition(*zip(*transitions))
             self.update_params(batch)
 
         grads = [param.grad.data.cpu().numpy() if param.grad is not None else None
                  for param in self.critic.parameters()]
-
         value_after_gradient = self.do_rollout()
 
         if value_after_gradient < avg_fitness:
@@ -232,9 +211,7 @@ class Worker(object):
         self.replay_buffer.push(state, action, next_state, reward, done)
 
     def do_rollout(self, store_transition=True):
-        # print("random,", random.randint(0, 10))
         fitness = 0
-
         # todo: rollout in remote functions
         for _ in range(self.args.num_evals):
             fitness += self._rollout(store_transition=store_transition)
