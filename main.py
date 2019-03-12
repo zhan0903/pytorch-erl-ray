@@ -151,8 +151,14 @@ class Worker(object):
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
 
     def compute_gradients(self, actor_params, gcritic_params):
+        self.actor.load_state_dict(actor_params)
+        self.critic.load_state_dict(gcritic_params)
+
+        ddpg.soft_update(self.actor_target, self.actor, self.tau)
+        ddpg.soft_update(self.critic_target, self.critic, self.tau)
+
         self.gen_frames = 0
-        avg_fitness = self.do_rollout(actor_params, gcritic_params)
+        avg_fitness = self.do_rollout()
         for _ in range(int(self.gen_frames*self.args.frac_frames_train)):
             transitions = self.replay_buffer.sample(self.args.batch_size)
             batch = replay_memory.Transition(*zip(*transitions))
@@ -222,15 +228,9 @@ class Worker(object):
         if self.args.is_cuda: action = action.cuda()
         self.replay_buffer.push(state, action, next_state, reward, done)
 
-    def do_rollout(self, actor_params, gcritic_params, store_transition=True):
+    def do_rollout(self, store_transition=True):
         # print("random,", random.randint(0, 10))
         fitness = 0
-        # if params:
-        self.actor.load_state_dict(actor_params)
-        self.critic.load_state_dict(gcritic_params)
-
-        ddpg.soft_update(self.actor_target, self.actor, self.tau)
-        ddpg.soft_update(self.critic_target, self.critic, self.tau)
 
         # todo: rollout in remote functions
         for _ in range(self.args.num_evals):
@@ -334,20 +334,17 @@ if __name__ == "__main__":
     grads_sum = None
 
     while True:
+        # time_start = time.time()
         rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers, pops_new)]
         results = ray.get(rollout_ids)
         grads, actors, avg_fitness,num_frames = process_results(results)
         best_train_fitness = max(avg_fitness)
         champ_index = avg_fitness.index(max(avg_fitness))
-        print("avg_fitness,",avg_fitness)
-        # print("grads[0],", grads[0])
-        # print("len grads,",len(grads))
-        # exit(0)
-        # grads_sum = sum(grads)
-        # print("grads_sum", grads_sum)
+        print("best_train_fitness,", best_train_fitness)
+
         grads_sum = copy.deepcopy(grads[-1])
         # print(gcritic.get_device())
-        print(next(gcritic.parameters()).device)
+        # print(next(gcritic.parameters()).device)
         for grad in grads[:-1]:
             for temp_itme, grad_item in zip(grads_sum, grad):
                 temp_itme += grad_item
@@ -359,7 +356,7 @@ if __name__ == "__main__":
         # print(gcritic.device)
         nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
         gcritic_optim.step()
-        print("time duration in gradient compute,", time.time()-time_start)
+        # print("time duration in gradient compute,", time.time()-time_start)
 
         # exit(0)
 
