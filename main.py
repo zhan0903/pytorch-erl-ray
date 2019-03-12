@@ -132,8 +132,8 @@ class Worker(object):
         self.actor.load_state_dict(actor_params)
         self.critic.load_state_dict(gcritic_params)
 
-        # ddpg.hard_update(self.actor_target, self.actor)
-        # ddpg.hard_update(self.critic_target, self.critic)
+        ddpg.hard_update(self.actor_target, self.actor)
+        ddpg.hard_update(self.critic_target, self.critic)
 
         self.gen_frames = 0
         avg_fitness = self.do_rollout()
