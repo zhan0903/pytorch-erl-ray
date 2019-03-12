@@ -53,7 +53,7 @@ class Parameters:
         self.use_ln = True  # True
         self.gamma = 0.99; self.tau = 0.001
         self.seed = 7
-        self.batch_size = 256
+        self.batch_size = 128
         self.buffer_size = 1000000
         self.frac_frames_train = 1.0
         self.use_done_mask = True
@@ -131,21 +131,23 @@ class Worker(object):
     def compute_gradients(self, actor_params, gcritic_params):
         self.actor.load_state_dict(actor_params)
         # self.critic.load_state_dict(gcritic_params)
-        ddpg.soft_update(self.actor_target, self.actor, self.tau)
-        # ddpg.hard_update(self.actor_target, self.actor)
+        # ddpg.soft_update(self.actor_target, self.actor, self.tau)-failed
+        ddpg.hard_update(self.actor_target, self.actor)
         # ddpg.hard_update(self.critic_target, self.critic)
 
         self.gen_frames = 0
         avg_fitness = self.do_rollout()
-        for _ in range(int(self.gen_frames*self.args.frac_frames_train)):
+        for _ in range(int(2*self.gen_frames*self.args.frac_frames_train)):
             # print("gen_frames,", self.gen_frames)
             # print("size of replay_buff,",len(self.replay_buffer))
             transitions = self.replay_buffer.sample(self.args.batch_size)
             batch = replay_memory.Transition(*zip(*transitions))
             self.update_params(batch)
 
-        grads = [param.grad.data.cpu().numpy() if param.grad is not None else None
-                 for param in self.critic.parameters()]
+        # grads = [param.grad.data.cpu().numpy() if param.grad is not None else None
+        #          for param in self.critic.parameters()]
+
+        grads = 0
 
         value_after_gradient = self.do_rollout()
         print("(avg_fitness, value_after_gradient),", avg_fitness, value_after_gradient)
@@ -321,30 +323,16 @@ if __name__ == "__main__":
         best_train_fitness = max(avg_fitness)
         champ_index = avg_fitness.index(max(avg_fitness))
         print("best_train_fitness,", best_train_fitness)
-        # print("best after gradient,",max(fitness_after_gradient))
-        # print("num_frames,",num_frames)
-        # print("avg_fitness,", avg_fitness)
-        # print("fitness_after_gradient,",fitness_after_gradient)
 
-        grads_sum = copy.deepcopy(grads[-1])
-        # print(gcritic.get_device())
-        # print(next(gcritic.parameters()).device)
-        gcritic_optim.zero_grad()
-        for grad in grads[:-1]:
-            for temp_itme, grad_item in zip(grads_sum, grad):
-                temp_itme += grad_item
-
-        # gcritic.cuda()
-        for param, grad in zip(gcritic.parameters(), grads_sum):
-            param.grad = torch.FloatTensor(grad).to(device)
-
-        # print(gcritic.device)
+        # grads_sum = copy.deepcopy(grads[-1])
         # gcritic_optim.zero_grad()
-        nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
-        gcritic_optim.step()
-        # print("time duration in gradient compute,", time.time()-time_start)
-
-        # exit(0)
+        # for grad in grads[:-1]:
+        #     for temp_itme, grad_item in zip(grads_sum, grad):
+        #         temp_itme += grad_item
+        # for param, grad in zip(gcritic.parameters(), grads_sum):
+        #     param.grad = torch.FloatTensor(grad).to(device)
+        # nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
+        # gcritic_optim.step()
 
         pops_new = []
         for pop in actors:
