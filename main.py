@@ -170,9 +170,9 @@ class Worker(object):
         value_after_gradient = self.do_rollout()
 
         if value_after_gradient < avg_fitness:
-            return grads, self.actor_target.state_dict(), avg_fitness, self.num_frames, value_after_gradient
+            return grads, self.actor_target.state_dict(), avg_fitness, self.num_frames
 
-        return grads, self.actor.state_dict(), avg_fitness, self.num_frames, value_after_gradient
+        return grads, self.actor.state_dict(), value_after_gradient, self.num_frames
 
     def update_params(self, batch):
         state_batch = torch.cat(batch.state)
@@ -342,8 +342,10 @@ if __name__ == "__main__":
         best_train_fitness = max(avg_fitness)
         champ_index = avg_fitness.index(max(avg_fitness))
         print("best_train_fitness,", best_train_fitness)
-        print("avg_fitness,", avg_fitness)
-        print("fitness_after_gradient,",fitness_after_gradient)
+        print("best after gradient,",max(fitness_after_gradient))
+        print("num_frames,",num_frames)
+        # print("avg_fitness,", avg_fitness)
+        # print("fitness_after_gradient,",fitness_after_gradient)
 
         grads_sum = copy.deepcopy(grads[-1])
         # print(gcritic.get_device())
