@@ -130,10 +130,10 @@ class Worker(object):
 
     def compute_gradients(self, actor_params, gcritic_params):
         self.actor.load_state_dict(actor_params)
-        self.critic.load_state_dict(gcritic_params)
-
-        ddpg.hard_update(self.actor_target, self.actor)
-        ddpg.hard_update(self.critic_target, self.critic)
+        # self.critic.load_state_dict(gcritic_params)
+        ddpg.soft_update(self.actor_target, self.actor, self.tau)
+        # ddpg.hard_update(self.actor_target, self.actor)
+        # ddpg.hard_update(self.critic_target, self.critic)
 
         self.gen_frames = 0
         avg_fitness = self.do_rollout()
@@ -200,7 +200,7 @@ class Worker(object):
         self.actor_optim.step()
 
         # ddpg.soft_update(self.actor_target, self.actor, self.tau)
-        # ddpg.soft_update(self.critic_target, self.critic, self.tau)
+        ddpg.soft_update(self.critic_target, self.critic, self.tau)
 
     def add_experience(self, state, action, next_state, reward, done):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
