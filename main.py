@@ -170,9 +170,9 @@ class Worker(object):
         value_after_gradient = self.do_rollout()
 
         if value_after_gradient < avg_fitness:
-            return grads, self.actor_target.state_dict(), avg_fitness, self.num_frames
+            return grads, self.actor_target.state_dict(), avg_fitness, self.num_frames, (avg_fitness, value_after_gradient)
 
-        return grads, self.actor.state_dict(), value_after_gradient, self.num_frames
+        return grads, self.actor.state_dict(), value_after_gradient, self.num_frames, (avg_fitness, value_after_gradient)
 
     def update_params(self, batch):
         state_batch = torch.cat(batch.state)
@@ -329,21 +329,21 @@ if __name__ == "__main__":
 
     ray.init(include_webui=False, ignore_reinit_error=True)
     workers = [Worker.remote(parameters)
-               for _ in range(num_workers)]
+               for _ in range(num_workers+1)]
 
     time_start = time.time()
     grads_sum = None
 
     while True:
         # time_start = time.time()
-        rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers, pops_new)]
+        rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers[:-1], pops_new)]
         results = ray.get(rollout_ids)
         grads, actors, avg_fitness, num_frames = process_results(results)
         best_train_fitness = max(avg_fitness)
         champ_index = avg_fitness.index(max(avg_fitness))
         print("best_train_fitness,", best_train_fitness)
         # print("best after gradient,",max(fitness_after_gradient))
-        print("num_frames,",num_frames)
+        # print("num_frames,",num_frames)
         # print("avg_fitness,", avg_fitness)
         # print("fitness_after_gradient,",fitness_after_gradient)
 
@@ -375,7 +375,7 @@ if __name__ == "__main__":
         elite_index = evolver.epoch(pops_new, avg_fitness)
 
         if sum(num_frames) % 40000 == 0:
-            test_score_id = workers[0].do_test.remote(pops_new[champ_index].state_dict())
+            test_score_id = workers[-1].do_test.remote(pops_new[champ_index].state_dict())
             test_score = ray.get(test_score_id)
             print("#Max score:", best_train_fitness,"#Test score,",test_score,"#Frames:",sum(num_frames), "Time:",(time.time()-time_start))
         # # exit(0)
