@@ -335,10 +335,12 @@ if __name__ == "__main__":
         # time_start = time.time()
         rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers, pops_new)]
         results = ray.get(rollout_ids)
-        grads, actors, avg_fitness,num_frames = process_results(results)
+        grads, actors, avg_fitness,num_frames, fitness_after_gradient = process_results(results)
         best_train_fitness = max(avg_fitness)
         champ_index = avg_fitness.index(max(avg_fitness))
         print("best_train_fitness,", best_train_fitness)
+        print("avg_fitness,", avg_fitness)
+        print("fitness_after_gradient,",fitness_after_gradient)
 
         grads_sum = copy.deepcopy(grads[-1])
         # print(gcritic.get_device())
