@@ -116,7 +116,7 @@ class Worker(object):
         self.actor_optim = Adam(self.actor.parameters(), lr=0.5e-4)
 
         self.critic = ddpg.Critic(args)
-        self.critic_target = ddpg.Critic(args).cuda()
+        self.critic_target = ddpg.Critic(args)
         self.critic_optim = Adam(self.critic.parameters(), lr=0.5e-3)
 
         self.gamma = args.gamma; self.tau = self.args.tau
