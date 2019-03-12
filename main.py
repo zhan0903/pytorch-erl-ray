@@ -286,7 +286,7 @@ def process_results(results):
     grads = []
     fitness_after_gradient = []
     for result in results:
-        fitness_after_gradient.append([result[4]])
+        # fitness_after_gradient.append([result[4]])
         num_frames.append(result[3])
         fitness.append(result[2])
         pops.append(result[1])
