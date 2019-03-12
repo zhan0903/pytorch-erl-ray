@@ -167,7 +167,9 @@ class Worker(object):
         grads = [param.grad.data.cpu().numpy() if param.grad is not None else None
                  for param in self.critic.parameters()]
 
-        return grads, self.actor.state_dict(), avg_fitness, self.num_frames
+        value_after_gradient = self.do_rollout()
+
+        return grads, self.actor.state_dict(), avg_fitness, self.num_frames, value_after_gradient
 
     def update_params(self, batch):
         state_batch = torch.cat(batch.state)
@@ -279,12 +281,14 @@ def process_results(results):
     fitness = []
     num_frames = []
     grads = []
+    fitness_after_gradient = []
     for result in results:
+        fitness_after_gradient.append([result[4]])
         num_frames.append(result[3])
         fitness.append(result[2])
         pops.append(result[1])
         grads.append(result[0])
-    return grads, pops, fitness, num_frames
+    return grads, pops, fitness, num_frames, fitness_after_gradient
 
 
 if __name__ == "__main__":
@@ -348,6 +352,7 @@ if __name__ == "__main__":
             param.grad = torch.FloatTensor(grad).to(device)
 
         # print(gcritic.device)
+        gcritic_optim.zero_grad()
         nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
         gcritic_optim.step()
         # print("time duration in gradient compute,", time.time()-time_start)
