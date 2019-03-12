@@ -164,7 +164,6 @@ class Worker(object):
             batch = replay_memory.Transition(*zip(*transitions))
             self.update_params(batch)
 
-        # avg_fitness_1 = self.do_rollout(params)
         grads = [param.grad.data.cpu().numpy() if param.grad is not None else None
                  for param in self.critic.parameters()]
 
@@ -214,9 +213,8 @@ class Worker(object):
         nn.utils.clip_grad_norm_(self.actor.parameters(), 10)
         self.actor_optim.step()
 
-        ddpg.soft_update(self.actor_target, self.actor, self.tau)
-        ddpg.soft_update(self.critic_target, self.critic, self.tau)
-
+        # ddpg.soft_update(self.actor_target, self.actor, self.tau)
+        # ddpg.soft_update(self.critic_target, self.critic, self.tau)
 
     def add_experience(self, state, action, next_state, reward, done):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
@@ -235,10 +233,6 @@ class Worker(object):
         # todo: rollout in remote functions
         for _ in range(self.args.num_evals):
             fitness += self._rollout(store_transition=store_transition)
-
-        # self.policy.learn()
-        # fitness_pg = self._rollout()
-        # print("evalute, pg fitness,", fitness, fitness_pg)
 
         return fitness/self.args.num_evals
 
