@@ -53,7 +53,7 @@ class Parameters:
         self.use_ln = True  # True
         self.gamma = 0.99; self.tau = 0.001
         self.seed = 7
-        self.batch_size = 128
+        self.batch_size = 256
         self.buffer_size = 1000000
         self.frac_frames_train = 1.0
         self.use_done_mask = True
@@ -138,20 +138,22 @@ class Worker(object):
         self.gen_frames = 0
         avg_fitness = self.do_rollout()
         for _ in range(int(self.gen_frames*self.args.frac_frames_train)):
-            print("gen_frames,", self.gen_frames)
-            print("size of replay_buff,",len(self.replay_buffer))
+            # print("gen_frames,", self.gen_frames)
+            # print("size of replay_buff,",len(self.replay_buffer))
             transitions = self.replay_buffer.sample(self.args.batch_size)
             batch = replay_memory.Transition(*zip(*transitions))
             self.update_params(batch)
 
         grads = [param.grad.data.cpu().numpy() if param.grad is not None else None
                  for param in self.critic.parameters()]
-        value_after_gradient = self.do_rollout()
+
+        value_after_gradient = self.do_rollout(store_transition=False)
+        print("(avg_fitness, value_after_gradient),",avg_fitness, value_after_gradient)
 
         if value_after_gradient < avg_fitness:
-            return grads, self.actor_target.state_dict(), avg_fitness, self.num_frames, (avg_fitness, value_after_gradient)
+            return grads, self.actor_target.state_dict(), avg_fitness, self.num_frames #, (avg_fitness, value_after_gradient)
 
-        return grads, self.actor.state_dict(), value_after_gradient, self.num_frames, (avg_fitness, value_after_gradient)
+        return grads, self.actor.state_dict(), value_after_gradient, self.num_frames #, (avg_fitness, value_after_gradient)
 
     def update_params(self, batch):
         state_batch = torch.cat(batch.state)
