@@ -103,7 +103,7 @@ def test_value_rollout():
     pass
 
 
-@ray.remote(num_gpus=0.2)
+@ray.remote(num_gpus=0.1)
 class Worker(object):
     def __init__(self, args):
         self.env = utils.NormalizedActions(gym.make(env_tag))
@@ -111,7 +111,7 @@ class Worker(object):
         self.args = args
         self.ounoise = OUNoise(args.action_dim)
         # self.sess = make_session(single_threaded=True)
-        self.actor = ddpg.Actor(args,init=True)
+        self.actor = ddpg.Actor(args, init=True)
         self.actor_target = ddpg.Actor(args, init=True)
         self.actor_optim = Adam(self.actor.parameters(), lr=0.5e-4)
 
