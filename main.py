@@ -130,10 +130,10 @@ class Worker(object):
 
     def compute_gradients(self, actor_params, gcritic_params):
         self.actor.load_state_dict(actor_params)
-        # self.critic.load_state_dict(gcritic_params)
+        self.critic.load_state_dict(gcritic_params)
         # ddpg.soft_update(self.actor_target, self.actor, self.tau)-failed
         ddpg.hard_update(self.actor_target, self.actor)
-        # ddpg.hard_update(self.critic_target, self.critic)
+        ddpg.hard_update(self.critic_target, self.critic)
 
         self.gen_frames = 0
         avg_fitness = self.do_rollout()
@@ -144,10 +144,10 @@ class Worker(object):
             batch = replay_memory.Transition(*zip(*transitions))
             self.update_params(batch)
 
-        # grads = [param.grad.data.cpu().numpy() if param.grad is not None else None
-        #          for param in self.critic.parameters()]
+        grads = [param.grad.data.cpu().numpy() if param.grad is not None else None
+                 for param in self.critic.parameters()]
 
-        grads = 0
+        # grads = 0
 
         value_after_gradient = self.do_rollout()
         print("(avg_fitness, value_after_gradient),", avg_fitness, value_after_gradient)
@@ -202,7 +202,7 @@ class Worker(object):
         self.actor_optim.step()
 
         # ddpg.soft_update(self.actor_target, self.actor, self.tau)
-        ddpg.soft_update(self.critic_target, self.critic, self.tau)
+        # ddpg.soft_update(self.critic_target, self.critic, self.tau)
 
     def add_experience(self, state, action, next_state, reward, done):
         reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
@@ -274,6 +274,13 @@ def process_results(results):
         grads.append(result[0])
     return grads, pops, fitness, num_frames
 
+# def apply_gradients(model, gradients):
+#     with self.lock:
+#         for g, p in zip(gradients, self._model.parameters()):
+#             if g is not None:
+#                 p.grad = torch.from_numpy(g)
+#         self._optimizer.step()
+#         return {}
 
 if __name__ == "__main__":
     # time_start = time.time()
@@ -315,7 +322,7 @@ if __name__ == "__main__":
     time_start = time.time()
     grads_sum = None
 
-    while True:
+    while num_frames <= 1e6:
         # time_start = time.time()
         rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers[:-1], pops_new)]
         results = ray.get(rollout_ids)
@@ -325,12 +332,20 @@ if __name__ == "__main__":
         print("best_train_fitness,", best_train_fitness)
 
         # grads_sum = copy.deepcopy(grads[-1])
-        # gcritic_optim.zero_grad()
-        # for grad in grads[:-1]:
-        #     for temp_itme, grad_item in zip(grads_sum, grad):
-        #         temp_itme += grad_item
+        gcritic_optim.zero_grad()
+        for grad in grads:
+            # for temp_itme, grad_item in zip(grads_sum, grad):
+            #      if grad_item is not None:
+            #           temp_itme += grad_item
+            for g, p in zip(grad, gcritic.parameters()):
+                if g is not None:
+                    p.grad = torch.from_numpy(g)
+            nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
+            gcritic_optim.step()
+
         # for param, grad in zip(gcritic.parameters(), grads_sum):
         #     param.grad = torch.FloatTensor(grad).to(device)
+        #
         # nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
         # gcritic_optim.step()
 
