@@ -321,14 +321,16 @@ if __name__ == "__main__":
 
     time_start = time.time()
     grads_sum = None
+    frames_sum = 0
 
-    while num_frames <= 1e6:
+    while frames_sum <= 1e6:
         # time_start = time.time()
         rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers[:-1], pops_new)]
         results = ray.get(rollout_ids)
         grads, actors, avg_fitness, num_frames = process_results(results)
         best_train_fitness = max(avg_fitness)
         champ_index = avg_fitness.index(max(avg_fitness))
+        frames_sum = sum(num_frames)
         print("best_train_fitness,", best_train_fitness)
 
         # grads_sum = copy.deepcopy(grads[-1])
@@ -360,7 +362,7 @@ if __name__ == "__main__":
         if sum(num_frames) % 40000 == 0:
             test_score_id = workers[-1].do_test.remote(pops_new[champ_index].state_dict())
             test_score = ray.get(test_score_id)
-            print("#Max score:", best_train_fitness,"#Test score,",test_score,"#Frames:",sum(num_frames), "Time:",(time.time()-time_start))
+            print("#Max score:", best_train_fitness,"#Test score,",test_score,"#Frames:",frames_sum, "Time:",(time.time()-time_start))
         # # exit(0)
         # if test:
         #     test = False
