@@ -274,13 +274,6 @@ def process_results(results):
         grads.append(result[0])
     return grads, pops, fitness, num_frames
 
-# def apply_gradients(model, gradients):
-#     with self.lock:
-#         for g, p in zip(gradients, self._model.parameters()):
-#             if g is not None:
-#                 p.grad = torch.from_numpy(g)
-#         self._optimizer.step()
-#         return {}
 
 if __name__ == "__main__":
     # time_start = time.time()
@@ -341,7 +334,7 @@ if __name__ == "__main__":
             #           temp_itme += grad_item
             for g, p in zip(grad, gcritic.parameters()):
                 if g is not None:
-                    p.grad = torch.from_numpy(g)
+                    p.grad = torch.from_numpy(g).to(device)
             nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
             gcritic_optim.step()
 
