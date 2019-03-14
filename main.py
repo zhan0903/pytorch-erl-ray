@@ -265,17 +265,13 @@ class Worker(object):
         done = False
         episode_timesteps = 0
         episode_reward = 0
+        obs = self.env.reset()
         while True:
             if done:
                 # if self.total_timesteps != 0:
-                print("Total T: %d Episode Num: %d Episode T: %d Reward: %f") % (self.total_timesteps, episode_num, episode_timesteps, episode_reward)
+                print("Total T: %d Episode Num: %d Episode T: %d Reward: %f") % (self.total_timesteps, self.episode_num, self.episode_timesteps, episode_reward)
                 self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau,
                                  self.args.policy_noise, self.args.noise_clip, self.args.policy_freq)
-                # Reset environment
-                obs = self.env.reset()
-                # done = False
-                # episode_reward = 0
-                # episode_timesteps = 0
                 self.episode_num += 1
                 break
             # Select action randomly or according to policy
