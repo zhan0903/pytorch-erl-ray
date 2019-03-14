@@ -271,7 +271,7 @@ class Worker(object):
         while True:
             if done:
                 # if self.total_timesteps != 0:
-                print("Total T: %d Episode Num: %d Episode T: %d Reward: %f") % (self.total_timesteps, self.episode_num, episode_timesteps, episode_reward)
+                print("Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                 self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau,
                                  self.args.policy_noise, self.args.noise_clip, self.args.policy_freq)
                 self.episode_num += 1
