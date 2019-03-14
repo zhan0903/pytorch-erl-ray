@@ -108,7 +108,7 @@ def test_value_rollout():
     pass
 
 
-@ray.remote(num_gpus=0.2)
+@ray.remote(num_gpus=0.1)
 class Worker(object):
     def __init__(self, args):
         # self.env = utils.NormalizedActions(gym.make(env_tag))
@@ -268,7 +268,9 @@ class Worker(object):
         while True:
             if done:
                 if self.total_timesteps != 0:
-                   self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau,
+                    print("Total T: %d Episode Num: %d Episode T: %d Reward: %f") % (self.total_timesteps, episode_num, episode_timesteps, episode_reward)
+
+                    self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau,
                                  self.args.policy_noise, self.args.noise_clip, self.args.policy_freq)
                 # Reset environment
                 obs = self.env.reset()
