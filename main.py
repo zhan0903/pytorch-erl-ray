@@ -22,9 +22,6 @@ import time
 # parser.add_argument('-env', help='Environment Choices: (HalfCheetah-v2) (Ant-v2) (Reacher-v2) (Walker2d-v2) (Swimmer-v2) (Hopper-v2)', required=True)
 # env_tag = vars(parser.parse_args())['env']
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print("devide,",device)
-
 logger = logging.getLogger(__name__)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 console_handler = logging.StreamHandler()
@@ -348,7 +345,8 @@ def process_results(results):
 
 def apply_grads(net,grads_actor,grads_critic):
     net.critic_optimizer.zero_grad()
-    print()
+    print(grads_actor)
+    print(grads_critic)
     grads_sum_actor = copy.deepcopy(grads_actor[-1])
     for grad in grads_actor[:-1]:
         for temp_itme, grad_item in zip(grads_sum_actor, grad):
