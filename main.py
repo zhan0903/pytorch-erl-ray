@@ -77,10 +77,10 @@ class Worker(object):
         obs = self.env.reset()
         while True:
             if done:
+                self.episode_num += 1
                 if self.total_timesteps != 0:
                     print("Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
-                self.episode_num += 1
                 # Reset environment
                 # obs = env.reset()
                 # done = False
