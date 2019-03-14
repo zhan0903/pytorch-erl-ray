@@ -347,6 +347,7 @@ def process_results(results):
 
 def apply_grads(net,grads_actor,grads_critic):
     net.critic_optimizer.zero_grad()
+    print(net)
     grads_sum_actor = copy.deepcopy(grads_actor[-1])
     for grad in grads_actor[:-1]:
         for temp_itme, grad_item in zip(grads_sum_actor, grad):
