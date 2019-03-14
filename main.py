@@ -37,8 +37,6 @@ class Worker(object):
         self.episode_num = 0
         self.timesteps_since_eval = 0
 
-        self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
-
     def set_weights(self,actor_weights,critic_weights):
         self.policy.actor.load_state_dict(actor_weights)
         self.policy.critic.load_state_dict(critic_weights)
@@ -48,110 +46,6 @@ class Worker(object):
 
         for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
             target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
-
-
-
-    def compute_gradients(self, actor_params, gcritic_params):
-        self.actor.load_state_dict(actor_params)
-        self.critic.load_state_dict(gcritic_params)
-        # ddpg.soft_update(self.actor_target, self.actor, self.tau)-failed
-        ddpg.hard_update(self.actor_target, self.actor)
-        ddpg.hard_update(self.critic_target, self.critic)
-
-        self.gen_frames = 0
-        avg_fitness = self.do_rollout()
-        for _ in range(int(2*self.gen_frames*self.args.frac_frames_train)):
-            # print("gen_frames,", self.gen_frames)
-            # print("size of replay_buff,",len(self.replay_buffer))
-            transitions = self.replay_buffer.sample(self.args.batch_size)
-            batch = replay_memory.Transition(*zip(*transitions))
-            self.update_params(batch)
-
-        grads = [param.grad.data.cpu().numpy() if param.grad is not None else None
-                 for param in self.critic.parameters()]
-
-        # grads = 0
-
-        value_after_gradient = self.do_rollout()
-        print("(avg_fitness, value_after_gradient),", avg_fitness, value_after_gradient)
-
-        if value_after_gradient < avg_fitness:
-            return grads, self.actor_target.state_dict(), avg_fitness, self.num_frames #, (avg_fitness, value_after_gradient)
-
-        return grads, self.actor.state_dict(), value_after_gradient, self.num_frames #, (avg_fitness, value_after_gradient)
-
-    def update_params(self, batch):
-        state_batch = torch.cat(batch.state)
-        next_state_batch = torch.cat(batch.next_state)
-        action_batch = torch.cat(batch.action)
-        reward_batch = torch.cat(batch.reward)
-        if self.args.use_done_mask: done_batch = torch.cat(batch.done)
-        # state_batch.volatile = False
-        # next_state_batch.volatile = True
-        # action_batch.volatile = False
-
-        # Load everything to GPU if not already
-        if self.args.is_memory_cuda and not self.args.is_cuda:
-            self.actor.cuda()
-            self.actor_target.cuda()
-            self.critic_target.cuda()
-            self.critic.cuda()
-            state_batch = state_batch.cuda()
-            next_state_batch = next_state_batch.cuda()
-            action_batch = action_batch.cuda()
-            reward_batch = reward_batch.cuda()
-            if self.args.use_done_mask:
-                done_batch = done_batch.cuda()
-
-        #Critic Update
-        next_action_batch = self.actor_target.forward(next_state_batch)
-        next_q = self.critic_target.forward(next_state_batch, next_action_batch)
-        if self.args.use_done_mask: next_q = next_q * (1 - done_batch.float()) #Done mask
-        target_q = reward_batch + (self.gamma * next_q)
-
-        self.critic_optim.zero_grad()
-        current_q = self.critic.forward((state_batch), (action_batch))
-        dt = self.loss(current_q, target_q)
-        dt.backward()
-        nn.utils.clip_grad_norm_(self.critic.parameters(), 10)
-        self.critic_optim.step()
-
-        # Actor Update
-        self.actor_optim.zero_grad()
-        policy_loss = -self.critic.forward((state_batch), self.actor.forward((state_batch)))
-        policy_loss = policy_loss.mean()
-        policy_loss.backward()
-        nn.utils.clip_grad_norm_(self.actor.parameters(), 10)
-        self.actor_optim.step()
-
-        # ddpg.soft_update(self.actor_target, self.actor, self.tau)
-        # ddpg.soft_update(self.critic_target, self.critic, self.tau)
-
-    def add_experience(self, state, action, next_state, reward, done):
-        reward = utils.to_tensor(np.array([reward])).unsqueeze(0)
-        if self.args.is_cuda: reward = reward.cuda()
-        if self.args.use_done_mask:
-            done = utils.to_tensor(np.array([done]).astype('uint8')).unsqueeze(0)
-            if self.args.is_cuda: done = done.cuda()
-        action = utils.to_tensor(action)
-        if self.args.is_cuda: action = action.cuda()
-        self.replay_buffer.push(state, action, next_state, reward, done)
-
-    def do_rollout(self, store_transition=True):
-        fitness = 0
-        # todo: rollout in remote functions
-        for _ in range(self.args.num_evals):
-            fitness += self._rollout(store_transition=store_transition)
-
-        return fitness/self.args.num_evals
-
-    def do_test(self, params, store_transition=False):
-        fitness = 0
-        self.actor.load_state_dict(params)
-        for _ in range(5):
-            fitness += self._rollout(store_transition=store_transition)
-        return fitness/5.0
-
 
     # Runs policy for X episodes and returns average reward
     def evaluate_policy(self, actor_weights, critic_weights, eval_episodes=10):
@@ -172,19 +66,24 @@ class Worker(object):
         print("---------------------------------------")
         return avg_reward
 
+    def train(self,actor_weights, critic_weights):
+        self.set_weights(actor_weights, critic_weights)
 
-    def train(self,actor_weights,critic_weights):
-        self.set_weights(actor_weights,critic_weights)
         done = False
         episode_timesteps = 0
         episode_reward = 0
         obs = self.env.reset()
         while True:
             if done:
-                # if self.total_timesteps != 0:
-                print("Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
-                self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
+                if self.total_timesteps != 0:
+                    print("Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
+                    self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                 self.episode_num += 1
+                # Reset environment
+                # obs = env.reset()
+                # done = False
+                # episode_reward = 0
+                # episode_timesteps = 0
                 break
             # Select action randomly or according to policy
             if self.total_timesteps < args.start_timesteps:
@@ -192,8 +91,8 @@ class Worker(object):
             else:
                 action = self.policy.select_action(np.array(obs))
                 if args.expl_noise != 0:
-                    action = (action + np.random.normal(0, args.expl_noise, size=env.action_space.shape[0])).clip(
-                        env.action_space.low, env.action_space.high)
+                    action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(
+                        self.env.action_space.low, self.env.action_space.high)
             # Perform action
             new_obs, reward, done, _ = self.env.step(action)
             done_bool = 0 if episode_timesteps + 1 == self.env._max_episode_steps else float(done)
@@ -202,6 +101,7 @@ class Worker(object):
             # Store data in replay buffer
             self.replay_buffer.add((obs, new_obs, action, reward, done_bool))
             obs = new_obs
+
             episode_timesteps += 1
             self.total_timesteps += 1
             self.timesteps_since_eval += 1
@@ -212,37 +112,6 @@ class Worker(object):
                         for param in self.policy.actor.parameters()]
 
         return self.total_timesteps, grads_actor, grads_critic
-
-
-def _rollout(self, is_action_noise=False, store_transition=True):
-        total_reward = 0.0
-        state = self.env.reset()
-        state = utils.to_tensor(state).unsqueeze(0)
-        if self.args.is_cuda:
-            state = state.cuda()
-        done = False
-
-        while not done:
-            if store_transition: self.num_frames += 1; self.gen_frames += 1
-            action = self.actor.forward(state)
-            action.clamp(-1, 1)
-            action = utils.to_numpy(action.cpu())
-            if is_action_noise: action += self.ounoise.noise()
-            # print("come there in evaluate")
-            next_state, reward, done, info = self.env.step(action.flatten())  # Simulate one step in environment
-            # print("come there in evaluate")
-            next_state = utils.to_tensor(next_state).unsqueeze(0)
-            if self.args.is_cuda:
-                next_state = next_state.cuda()
-            total_reward += reward
-
-            if store_transition: self.add_experience(state, action, next_state, reward, done)
-            # print("action,",action)
-
-            state = next_state
-        if store_transition: self.num_games += 1
-        # print("come here,total_reward:",total_reward)
-        return total_reward
 
 
 def process_results(results):
@@ -257,12 +126,6 @@ def process_results(results):
 
 
 def apply_grads(net,grads_actor,grads_critic):
-    # print(grads_actor)
-    # print(grads_critic)
-
-    print(next(net.actor.parameters()).device)
-    print(next(net.critic.parameters()).device)
-
     # update actor
     net.actor_optimizer.zero_grad()
     grads_sum_actor = copy.deepcopy(grads_actor[-1])
@@ -291,11 +154,8 @@ def apply_grads(net,grads_actor,grads_critic):
 
 
 if __name__ == "__main__":
-    # time_start = time.time()
     num_workers = 1
-    # parameters = Parameters()
-    # # device = "cuda" # if args.cuda else "cpu"
-    # # tf.enable_eager_execution()
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default="OurDDPG")
     parser.add_argument("--env_name", default="HalfCheetah-v1")
@@ -339,24 +199,11 @@ if __name__ == "__main__":
 
     policy = ddpg.DDPG(state_dim, action_dim, max_action)
 
-    # pops_new = []
-    # for _ in range(parameters.pop_size):
-    #     pops_new.append(ddpg.Actor(parameters))
 
-
-    # create ray workers
     ray.init(include_webui=False, ignore_reinit_error=True)
     workers = [Worker.remote(args)
                for _ in range(num_workers+1)]
-    # time_start = time.time()
-    # grads_sum = None
-    #
-    # total_timesteps = 0
-    # timesteps_since_eval = 0
-    # episode_num = 0
-    # done = True
 
-    # Evaluate untrained policy
     evaluations = [ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict()))]
     total_timesteps = 0
     timesteps_since_eval = 0
@@ -365,11 +212,12 @@ if __name__ == "__main__":
     done = True
     time_start = time.time()
 
+
     while total_timesteps < args.max_timesteps:
         train_id = [worker.train.remote(policy.actor.state_dict(),policy.critic.state_dict()) for worker in workers[:-1]]
         results = ray.get(train_id)
         total_timesteps,grads_actor,grads_critic = process_results(results)
-        apply_grads(policy,grads_actor, grads_critic)
+        apply_grads(policy, grads_actor, grads_critic)
 
     # Final evaluation
     evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
