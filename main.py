@@ -344,7 +344,7 @@ def process_results(results):
         grads_critic.append(result[2])
         grads_actor.append(result[1])
         total_timesteps.append(result[0])
-    return total_timesteps, grads_actor, grads_critic
+    return sum(total_timesteps), grads_actor, grads_critic
 
 
 def apply_grads(net,grads_actor,grads_critic):
