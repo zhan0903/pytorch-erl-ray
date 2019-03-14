@@ -12,14 +12,15 @@ import torch.nn as nn
 from core import mod_utils as utils
 from core import mod_neuro_evo as utils_ne
 import utils
+import time
 
 
 
 
-render = False
-parser = argparse.ArgumentParser()
-parser.add_argument('-env', help='Environment Choices: (HalfCheetah-v2) (Ant-v2) (Reacher-v2) (Walker2d-v2) (Swimmer-v2) (Hopper-v2)', required=True)
-env_tag = vars(parser.parse_args())['env']
+# render = False
+# parser = argparse.ArgumentParser()
+# parser.add_argument('-env', help='Environment Choices: (HalfCheetah-v2) (Ant-v2) (Reacher-v2) (Walker2d-v2) (Swimmer-v2) (Hopper-v2)', required=True)
+# env_tag = vars(parser.parse_args())['env']
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -111,7 +112,7 @@ def test_value_rollout():
 class Worker(object):
     def __init__(self, args):
         # self.env = utils.NormalizedActions(gym.make(env_tag))
-        self.env = gym.make(env_tag)
+        self.env = gym.make(args.env_name)
         self.env.seed(args.seed)
         state_dim = env.observation_space.shape[0]
         action_dim = env.action_space.shape[0]
@@ -408,29 +409,6 @@ if __name__ == "__main__":
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
-
-
-    # env = utils.NormalizedActions(gym.make(env_tag))
-    # parameters.action_dim = env.action_space.shape[0]
-    # parameters.num_actions = env.action_space.shape[0]
-    # parameters.state_dim = env.observation_space.shape[0]
-    # parameters.input_size = env.observation_space.shape[0]
-
-    # # env.seed(parameters.seed)
-    # torch.manual_seed(parameters.seed)
-    # np.random.seed(parameters.seed)
-    # random.seed(parameters.seed)
-    # evolver = utils_ne.SSNE(parameters)
-    # print("random,",random.randint(0,10))
-
-    # pops_new = []
-    # for _ in range(parameters.pop_size):
-    #     pops_new.append(ddpg.Actor(parameters))
-
-    # gcritic = ddpg.Critic(parameters)
-    # gcritic_target = ddpg.Critic(parameters)
-    # gcritic_optim = Adam(gcritic.parameters(), lr=0.5e-3)
-
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
@@ -461,7 +439,7 @@ if __name__ == "__main__":
     episode_num = 0
     episode_timesteps = 0
     done = True
-
+    time_start = time.time()
 
     while total_timesteps < args.max_timesteps:
         train_id = [worker.train.remote(policy.actor.state_dict(),policy.critic.state_dict()) for worker in workers[:-1]]
