@@ -263,8 +263,7 @@ def apply_grads(net,grads_actor,grads_critic):
     print(next(net.actor.parameters()).device)
     print(next(net.critic.parameters()).device)
 
-    print(grads_critic.get_device())
-    print(grads_actor.get_device())
+
 
     net.actor_optimizer.zero_grad()
     grads_sum_actor = copy.deepcopy(grads_actor[-1])
@@ -286,6 +285,7 @@ def apply_grads(net,grads_actor,grads_critic):
 
     for g, p in zip(grads_sum_critic, net.critic.parameters()):
         if g is not None:
+            print(g)
             p.grad = torch.from_numpy(g).to(device)
     net.critic_optimizer.step()
 
