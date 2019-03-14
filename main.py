@@ -124,6 +124,7 @@ class Worker(object):
         self.args = args
         self.total_timesteps = 0
         self.episode_num = 0
+        self.timesteps_since_eval = 0
 
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
 
