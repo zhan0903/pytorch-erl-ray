@@ -123,6 +123,7 @@ class Worker(object):
 
         self.args = args
         self.total_timesteps = 0
+        self.epsiode_num = 0
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
 
     def set_weights(self,actor_weights,critic_weights):
@@ -379,7 +380,7 @@ if __name__ == "__main__":
     # # device = "cuda" # if args.cuda else "cpu"
     # # tf.enable_eager_execution()
     parser = argparse.ArgumentParser()
-    parser.add_argument("--policy_name", default="TD3")
+    parser.add_argument("--policy_name", default="OurDDPG")
     parser.add_argument("--env_name", default="HalfCheetah-v1")
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=1e4, type=int)
