@@ -16,94 +16,7 @@ import time
 
 
 
-
-# render = False
-# parser = argparse.ArgumentParser()
-# parser.add_argument('-env', help='Environment Choices: (HalfCheetah-v2) (Ant-v2) (Reacher-v2) (Walker2d-v2) (Swimmer-v2) (Hopper-v2)', required=True)
-# env_tag = vars(parser.parse_args())['env']
-
-logger = logging.getLogger(__name__)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
-logger.setLevel(level=logging.DEBUG)
-
-
-class Parameters:
-    def __init__(self):
-        self.input_size = None
-        self.hidden_size = 36
-        self.num_actions = None
-        self.learning_rate = 0.1
-        self.save_models = False
-        self.eval_freq = 5e3
-
-        #Number of Frames to Run
-        if env_tag == 'Hopper-v2': self.num_frames = 4000000
-        elif env_tag == 'Ant-v2': self.num_frames = 6000000
-        elif env_tag == 'Walker2d-v2': self.num_frames = 8000000
-        else: self.num_frames = 2000000
-
-        #USE CUDA
-        self.is_cuda = True; self.is_memory_cuda = True
-
-        #Sunchronization Period
-        if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
-        else: self.synch_period = 10
-
-        #DDPG params
-        self.use_ln = True  # True
-        self.gamma = 0.99; self.tau = 0.005
-        self.seed = 7
-        self.batch_size = 100
-        self.buffer_size = 1000000
-        self.frac_frames_train = 1.0
-        self.use_done_mask = True
-
-        ###### NeuroEvolution Params ########
-        #Num of trials
-        if env_tag == 'Hopper-v2' or env_tag == 'Reacher-v2': self.num_evals = 5
-        elif env_tag == 'Walker2d-v2': self.num_evals = 3
-        else: self.num_evals = 1
-
-        #Elitism Rate
-        if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.elite_fraction = 0.3
-        elif env_tag == 'Reacher-v2' or env_tag == 'Walker2d-v2': self.elite_fraction = 0.2
-        else: self.elite_fraction = 0.1
-
-        self.pop_size = 10
-        self.crossover_prob = 0.0
-        self.mutation_prob = 0.9
-
-        #Save Results
-        self.state_dim = None; self.action_dim = None #Simply instantiate them here, will be initialized later
-        self.save_foldername = 'test3-debug/%s/' % env_tag
-        if not os.path.exists(self.save_foldername): os.makedirs(self.save_foldername)
-
-
-class OUNoise:
-    def __init__(self, action_dimension, scale=0.3, mu=0, theta=0.15, sigma=0.2):
-        self.action_dimension = action_dimension
-        self.scale = scale
-        self.mu = mu
-        self.theta = theta
-        self.sigma = sigma
-        self.state = np.ones(self.action_dimension) * self.mu
-        self.reset()
-
-    def reset(self):
-        self.state = np.ones(self.action_dimension) * self.mu
-
-    def noise(self):
-        x = self.state
-        dx = self.theta * (self.mu - x) + self.sigma * np.random.randn(len(x))
-        self.state = x + dx
-        return self.state * self.scale
-
-
-def test_value_rollout():
-    pass
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 @ray.remote(num_gpus=0.1)
@@ -355,7 +268,7 @@ def apply_grads(net,grads_actor,grads_critic):
                   temp_itme += grad_item
     for g, p in zip(grads_sum_actor, net.actor.parameters()):
         if g is not None:
-            p.grad = torch.from_numpy(g)#.to(device)
+            p.grad = torch.from_numpy(g).to(device)
     net.actor_optimizer.step()
 
     net.critic_optimizer.zero_grad()
@@ -367,7 +280,7 @@ def apply_grads(net,grads_actor,grads_critic):
 
     for g, p in zip(grads_sum_critic, net.critic.parameters()):
         if g is not None:
-            p.grad = torch.from_numpy(g)#.to(device)
+            p.grad = torch.from_numpy(g).to(device)
     net.critic_optimizer.step()
 
 
