@@ -4,13 +4,14 @@ import argparse
 import logging
 import ray
 import copy
-from core import ddpg as ddpg
+from core import ddpg-new as ddpg
 from core import replay_memory
 import torch
 from torch.optim import Adam
 import torch.nn as nn
 from core import mod_utils as utils
 from core import mod_neuro_evo as utils_ne
+import utils
 
 
 
@@ -20,6 +21,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-env', help='Environment Choices: (HalfCheetah-v2) (Ant-v2) (Reacher-v2) (Walker2d-v2) (Swimmer-v2) (Hopper-v2)', required=True)
 env_tag = vars(parser.parse_args())['env']
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 logger = logging.getLogger(__name__)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -35,6 +37,8 @@ class Parameters:
         self.hidden_size = 36
         self.num_actions = None
         self.learning_rate = 0.1
+        self.save_models = False
+        self.eval_freq = 5e3
 
         #Number of Frames to Run
         if env_tag == 'Hopper-v2': self.num_frames = 4000000
@@ -51,9 +55,9 @@ class Parameters:
 
         #DDPG params
         self.use_ln = True  # True
-        self.gamma = 0.99; self.tau = 0.001
+        self.gamma = 0.99; self.tau = 0.005
         self.seed = 7
-        self.batch_size = 128
+        self.batch_size = 100
         self.buffer_size = 1000000
         self.frac_frames_train = 1.0
         self.use_done_mask = True
@@ -103,30 +107,33 @@ def test_value_rollout():
     pass
 
 
-@ray.remote(num_gpus=0.1)
+@ray.remote(num_gpus=0.2)
 class Worker(object):
     def __init__(self, args):
-        self.env = utils.NormalizedActions(gym.make(env_tag))
+        # self.env = utils.NormalizedActions(gym.make(env_tag))
+        self.env = gym.make(env_tag)
         self.env.seed(args.seed)
+        state_dim = env.observation_space.shape[0]
+        action_dim = env.action_space.shape[0]
+        max_action = float(env.action_space.high[0])
+
+        self.policy = ddpg.TD3(state_dim, action_dim, max_action)
+        self.replay_buffer = utils.ReplayBuffer()
+
         self.args = args
-        self.ounoise = OUNoise(args.action_dim)
-        # self.sess = make_session(single_threaded=True)
-        self.actor = ddpg.Actor(args, init=True)
-        self.actor_target = ddpg.Actor(args, init=True)
-        self.actor_optim = Adam(self.actor.parameters(), lr=0.5e-4)
-
-        self.critic = ddpg.Critic(args)
-        self.critic_target = ddpg.Critic(args)
-        self.critic_optim = Adam(self.critic.parameters(), lr=0.5e-3)
-
-        self.gamma = args.gamma; self.tau = self.args.tau
-        self.loss = nn.MSELoss()
-
-        ddpg.hard_update(self.actor_target, self.actor)  # Make sure target is with the same weight
-        ddpg.hard_update(self.critic_target, self.critic)
-
-        self.replay_buffer = replay_memory.ReplayMemory(args.buffer_size//10)
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
+
+    def set_weights(self,actor_weights,critic_weights):
+        self.policy.actor.load_state_dict(actor_weights)
+        self.policy.critic.load_state_dict(critic_weights)
+
+        for param, target_param in zip(self.policy.critic.parameters(), self.policy.critic_target.parameters()):
+            target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
+
+        for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
+            target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
+
+
 
     def compute_gradients(self, actor_params, gcritic_params):
         self.actor.load_state_dict(actor_params)
@@ -229,7 +236,73 @@ class Worker(object):
             fitness += self._rollout(store_transition=store_transition)
         return fitness/5.0
 
-    def _rollout(self, is_action_noise=False, store_transition=True):
+
+    # Runs policy for X episodes and returns average reward
+    def evaluate_policy(self, actor_weights, critic_weights, eval_episodes=10):
+        self.set_weights(actor_weights,critic_weights)
+        avg_reward = 0.
+        for _ in range(eval_episodes):
+            obs = self.env.reset()
+            done = False
+            while not done:
+                action = self.policy.select_action(np.array(obs))
+                obs, reward, done, _ = env.step(action)
+                avg_reward += reward
+
+        avg_reward /= eval_episodes
+
+        print("---------------------------------------")
+        print("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
+        print("---------------------------------------")
+        return avg_reward
+
+
+    def train(self,actor_weights,critic_weights):
+        self.set_weights(actor_weights,critic_weights)
+        done = True
+        episode_timesteps = 0
+        episode_reward = 0
+        while True:
+            if done:
+                if self.total_timesteps != 0:
+                   self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau,
+                                 self.args.policy_noise, self.args.noise_clip, self.args.policy_freq)
+                # Reset environment
+                obs = self.env.reset()
+                # done = False
+                # episode_reward = 0
+                # episode_timesteps = 0
+                self.episode_num += 1
+                break
+            # Select action randomly or according to policy
+            if self.total_timesteps < args.start_timesteps:
+                action = self.env.action_space.sample()
+            else:
+                action = self.policy.select_action(np.array(obs))
+                if args.expl_noise != 0:
+                    action = (action + np.random.normal(0, args.expl_noise, size=env.action_space.shape[0])).clip(
+                        env.action_space.low, env.action_space.high)
+            # Perform action
+            new_obs, reward, done, _ = self.env.step(action)
+            done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
+            episode_reward += reward
+
+            # Store data in replay buffer
+            self.replay_buffer.add((obs, new_obs, action, reward, done_bool))
+            obs = new_obs
+            self.episode_timesteps += 1
+            self.total_timesteps += 1
+            self.timesteps_since_eval += 1
+
+        grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
+                 for param in self.policy.critic.parameters()]
+        grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
+                        for param in self.policy.actor.parameters()]
+
+        return self.total_timesteps, grads_actor, grads_critic
+
+
+def _rollout(self, is_action_noise=False, store_transition=True):
         total_reward = 0.0
         state = self.env.reset()
         state = utils.to_tensor(state).unsqueeze(0)
@@ -261,108 +334,145 @@ class Worker(object):
 
 
 def process_results(results):
-    pops = []
-    fitness = []
-    num_frames = []
-    grads = []
-    # fitness_after_gradient = []
+    total_timesteps = []
+    grads_critic = []
+    grads_actor = []
     for result in results:
-        # fitness_after_gradient.append([result[4]])
-        num_frames.append(result[3])
-        fitness.append(result[2])
-        pops.append(result[1])
-        grads.append(result[0])
-    return grads, pops, fitness, num_frames
+        grads_critic.append(result[2])
+        grads_actor.append(result[1])
+        total_timesteps.append(result[0])
+    return total_timesteps, grads_actor, grads_critic
+
+
+def apply_grads(net,grads_actor,grads_critic):
+    net.critic_optimizer.zero_grad()
+    grads_sum_actor = copy.deepcopy(grads_actor[-1])
+    for grad in grads_actor[:-1]:
+        for temp_itme, grad_item in zip(grads_sum_actor, grad):
+             if grad_item is not None:
+                  temp_itme += grad_item
+    for g, p in zip(grads_sum_actor, net.actor.parameters()):
+        if g is not None:
+            p.grad = torch.from_numpy(g).to(device)
+
+    net.critic_optimizer.step()
+
+    net.actor_optimizer.zero_grad()
+    grads_sum_critic = copy.deepcopy(grads_actor[-1])
+    for grad in grads_critic[:-1]:
+        for temp_itme, grad_item in zip(grads_sum_critic, grad):
+             if grad_item is not None:
+                  temp_itme += grad_item
+
+    for g, p in zip(grads_sum_critic, net.critic.parameters()):
+        if g is not None:
+            p.grad = torch.from_numpy(g).to(device)
+    net.actor_optimizer.step()
 
 
 if __name__ == "__main__":
     # time_start = time.time()
-    num_workers = 10
+    num_workers = 1
     parameters = Parameters()
-    device = "cuda" # if args.cuda else "cpu"
+    # device = "cuda" # if args.cuda else "cpu"
     # tf.enable_eager_execution()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--policy_name", default="TD3")
+    parser.add_argument("--env_name", default="HalfCheetah-v1")
+    parser.add_argument("--seed", default=0, type=int)
+    parser.add_argument("--start_timesteps", default=1e4, type=int)
+    parser.add_argument("--eval_freq", default=5e3, type=float)
+    parser.add_argument("--max_timesteps", default=1e6, type=float)
+    parser.add_argument("--batch_size", default=100, type=int)
+    parser.add_argument("--discount", default=0.99, type=float)
+    parser.add_argument("--tau", default=0.005, type=float)
+    parser.add_argument("--save_models", action="store_true")
+    args = parser.parse_args()
+
+    file_name = "%s_%s_%s" % (args.policy_name, args.env_name, str(args.seed))
+    print("---------------------------------------")
+    print("Settings: %s" % file_name)
+    print("---------------------------------------")
+    if not os.path.exists("./results"):
+        os.makedirs("./results")
+
+    if args.save_models and not os.path.exists("./pytorch_models"):
+        os.makedirs("./pytorch_models")
+
 
     # Create Env
-    env = utils.NormalizedActions(gym.make(env_tag))
-    parameters.action_dim = env.action_space.shape[0]
-    parameters.num_actions = env.action_space.shape[0]
-    parameters.state_dim = env.observation_space.shape[0]
-    parameters.input_size = env.observation_space.shape[0]
+    env = gym.make(args.env_name)
 
-    # env.seed(parameters.seed)
-    torch.manual_seed(parameters.seed)
-    np.random.seed(parameters.seed)
-    random.seed(parameters.seed)
-    evolver = utils_ne.SSNE(parameters)
+    # Set seeds
+    env.seed(args.seed)
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+
+
+
+    # env = utils.NormalizedActions(gym.make(env_tag))
+    # parameters.action_dim = env.action_space.shape[0]
+    # parameters.num_actions = env.action_space.shape[0]
+    # parameters.state_dim = env.observation_space.shape[0]
+    # parameters.input_size = env.observation_space.shape[0]
+
+    # # env.seed(parameters.seed)
+    # torch.manual_seed(parameters.seed)
+    # np.random.seed(parameters.seed)
+    # random.seed(parameters.seed)
+    # evolver = utils_ne.SSNE(parameters)
     # print("random,",random.randint(0,10))
 
     # pops_new = []
     # for _ in range(parameters.pop_size):
     #     pops_new.append(ddpg.Actor(parameters))
 
-    gcritic = ddpg.Critic(parameters)
-    gcritic_target = ddpg.Critic(parameters)
-    gcritic_optim = Adam(gcritic.parameters(), lr=0.5e-3)
+    # gcritic = ddpg.Critic(parameters)
+    # gcritic_target = ddpg.Critic(parameters)
+    # gcritic_optim = Adam(gcritic.parameters(), lr=0.5e-3)
 
-    pops_new = []
-    for _ in range(parameters.pop_size):
-        pops_new.append(ddpg.Actor(parameters))
+    state_dim = env.observation_space.shape[0]
+    action_dim = env.action_space.shape[0]
+    max_action = float(env.action_space.high[0])
 
+    policy = ddpg.TD3(state_dim, action_dim, max_action)
+
+    # pops_new = []
+    # for _ in range(parameters.pop_size):
+    #     pops_new.append(ddpg.Actor(parameters))
+
+
+    # create ray workers
     ray.init(include_webui=False, ignore_reinit_error=True)
     workers = [Worker.remote(parameters)
                for _ in range(num_workers+1)]
+    # time_start = time.time()
+    # grads_sum = None
+    #
+    # total_timesteps = 0
+    # timesteps_since_eval = 0
+    # episode_num = 0
+    # done = True
 
-    time_start = time.time()
-    grads_sum = None
-    frames_sum = 0
+    # Evaluate untrained policy
+    evaluations = [ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict()))]
+    total_timesteps = 0
+    timesteps_since_eval = 0
+    episode_num = 0
+    episode_timesteps = 0
+    done = True
 
-    while frames_sum <= 1e6:
-        # time_start = time.time()
-        rollout_ids = [worker.compute_gradients.remote(pop_params.state_dict(), gcritic.state_dict()) for worker, pop_params in zip(workers[:-1], pops_new)]
-        results = ray.get(rollout_ids)
-        grads, actors, avg_fitness, num_frames = process_results(results)
-        best_train_fitness = max(avg_fitness)
-        champ_index = avg_fitness.index(max(avg_fitness))
-        frames_sum = sum(num_frames)
-        print("best_train_fitness,", best_train_fitness)
 
-        # grads_sum = copy.deepcopy(grads[-1])
-        gcritic_optim.zero_grad()
-        for grad in grads:
-            # for temp_itme, grad_item in zip(grads_sum, grad):
-            #      if grad_item is not None:
-            #           temp_itme += grad_item
-            for g, p in zip(grad, gcritic.parameters()):
-                if g is not None:
-                    p.grad = torch.from_numpy(g).to(device)
-            nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
-            gcritic_optim.step()
+    while total_timesteps < args.max_timesteps:
+        train_id = [worker.train.remote(policy.actor.state_dict(),policy.critic.state_dict()) for worker in workers[:-1]]
+        results = ray.get(train_id)
+        total_timesteps,grads_actor,grads_critic = process_results(results)
+        apply_grads(policy,grads_actor, grads_critic)
 
-        # for param, grad in zip(gcritic.parameters(), grads_sum):
-        #     param.grad = torch.FloatTensor(grad).to(device)
-        #
-        # nn.utils.clip_grad_norm_(gcritic.parameters(), 10)
-        # gcritic_optim.step()
-
-        pops_new = []
-        for pop in actors:
-            new_pop = ddpg.Actor(parameters)
-            new_pop.load_state_dict(pop)
-            pops_new.append(new_pop)
-
-        elite_index = evolver.epoch(pops_new, avg_fitness)
-
-        if sum(num_frames) % 40000 == 0:
-            test_score_id = workers[-1].do_test.remote(pops_new[champ_index].state_dict())
-            test_score = ray.get(test_score_id)
-            print("#Max score:", best_train_fitness,"#Test score,",test_score,"#Frames:",frames_sum, "Time:",(time.time()-time_start))
-        # # exit(0)
-        # if test:
-        #     test = False
-        #     continue
-        # else:
-        #     break
-
+    # Final evaluation
+    evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
+    if args.save_models: policy.save("%s" % (file_name), directory="./pytorch_models")
+    np.save("./results/%s" % (file_name), evaluations)
 
 
 
