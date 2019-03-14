@@ -356,7 +356,7 @@ def apply_grads(net,grads_actor,grads_critic):
                   temp_itme += grad_item
     for g, p in zip(grads_sum_actor, net.actor.parameters()):
         if g is not None:
-            p.grad = torch.from_numpy(g).to(device)
+            p.grad = torch.from_numpy(g)#.to(device)
 
     net.critic_optimizer.step()
 
@@ -369,7 +369,7 @@ def apply_grads(net,grads_actor,grads_critic):
 
     for g, p in zip(grads_sum_critic, net.critic.parameters()):
         if g is not None:
-            p.grad = torch.from_numpy(g).to(device)
+            p.grad = torch.from_numpy(g)#.to(device)
     net.actor_optimizer.step()
 
 
