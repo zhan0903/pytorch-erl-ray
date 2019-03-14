@@ -122,6 +122,7 @@ class Worker(object):
         self.replay_buffer = utils.ReplayBuffer()
 
         self.args = args
+        self.total_timesteps = 0
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
 
     def set_weights(self,actor_weights,critic_weights):
