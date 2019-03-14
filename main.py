@@ -413,7 +413,7 @@ if __name__ == "__main__":
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
 
-    policy = ddpg.TD3(state_dim, action_dim, max_action)
+    policy = ddpg.DDPG(state_dim, action_dim, max_action)
 
     # pops_new = []
     # for _ in range(parameters.pop_size):
