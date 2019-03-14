@@ -25,6 +25,8 @@ class Worker(object):
         # self.env = utils.NormalizedActions(gym.make(env_tag))
         self.env = gym.make(args.env_name)
         self.env.seed(args.seed)
+        torch.manual_seed(args.seed)
+        np.random.seed(args.seed)
         state_dim = env.observation_space.shape[0]
         action_dim = env.action_space.shape[0]
         max_action = float(env.action_space.high[0])
