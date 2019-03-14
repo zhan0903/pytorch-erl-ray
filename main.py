@@ -118,7 +118,7 @@ class Worker(object):
         action_dim = env.action_space.shape[0]
         max_action = float(env.action_space.high[0])
 
-        self.policy = ddpg.TD3(state_dim, action_dim, max_action)
+        self.policy = ddpg.DDPG(state_dim, action_dim, max_action)
         self.replay_buffer = utils.ReplayBuffer()
 
         self.args = args
