@@ -124,6 +124,7 @@ class Worker(object):
         self.args = args
         self.total_timesteps = 0
         self.episode_num = 0
+
         self.num_games = 0; self.num_frames = 0; self.gen_frames = 0
 
     def set_weights(self,actor_weights,critic_weights):
@@ -269,7 +270,7 @@ class Worker(object):
         while True:
             if done:
                 # if self.total_timesteps != 0:
-                print("Total T: %d Episode Num: %d Episode T: %d Reward: %f") % (self.total_timesteps, self.episode_num, self.episode_timesteps, episode_reward)
+                print("Total T: %d Episode Num: %d Episode T: %d Reward: %f") % (self.total_timesteps, self.episode_num, episode_timesteps, episode_reward)
                 self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau,
                                  self.args.policy_noise, self.args.noise_clip, self.args.policy_freq)
                 self.episode_num += 1
@@ -284,13 +285,13 @@ class Worker(object):
                         env.action_space.low, env.action_space.high)
             # Perform action
             new_obs, reward, done, _ = self.env.step(action)
-            done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
+            done_bool = 0 if episode_timesteps + 1 == self.env._max_episode_steps else float(done)
             episode_reward += reward
 
             # Store data in replay buffer
             self.replay_buffer.add((obs, new_obs, action, reward, done_bool))
             obs = new_obs
-            self.episode_timesteps += 1
+            episode_timesteps += 1
             self.total_timesteps += 1
             self.timesteps_since_eval += 1
 
