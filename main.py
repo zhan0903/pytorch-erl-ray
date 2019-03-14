@@ -260,6 +260,9 @@ def apply_grads(net,grads_actor,grads_critic):
     # print(grads_actor)
     # print(grads_critic)
 
+    print(next(net.actor.parameters()).device)
+    print(next(net.critic.parameters()).device)
+
     net.actor_optimizer.zero_grad()
     grads_sum_actor = copy.deepcopy(grads_actor[-1])
     for grad in grads_actor[:-1]:
