@@ -4,7 +4,7 @@ import argparse
 import logging
 import ray
 import copy
-from core import ddpg-new as ddpg
+from core import ddpg_new as ddpg
 from core import replay_memory
 import torch
 from torch.optim import Adam
