@@ -374,9 +374,9 @@ def apply_grads(net,grads_actor,grads_critic):
 if __name__ == "__main__":
     # time_start = time.time()
     num_workers = 1
-    parameters = Parameters()
-    # device = "cuda" # if args.cuda else "cpu"
-    # tf.enable_eager_execution()
+    # parameters = Parameters()
+    # # device = "cuda" # if args.cuda else "cpu"
+    # # tf.enable_eager_execution()
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default="TD3")
     parser.add_argument("--env_name", default="HalfCheetah-v1")
@@ -422,7 +422,7 @@ if __name__ == "__main__":
 
     # create ray workers
     ray.init(include_webui=False, ignore_reinit_error=True)
-    workers = [Worker.remote(parameters)
+    workers = [Worker.remote(args)
                for _ in range(num_workers+1)]
     # time_start = time.time()
     # grads_sum = None
