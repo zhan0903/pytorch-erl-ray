@@ -121,9 +121,11 @@ class Worker(object):
 
         grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
                  for param in self.policy.critic.parameters()]
+
         grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
                         for param in self.policy.actor.parameters()]
 
+        print("in train,",grads_actor[0][0])
         print("what is the matter")
 
         print("leave self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
