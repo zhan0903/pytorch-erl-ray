@@ -114,6 +114,7 @@ class Worker(object):
                         for param in self.policy.actor.parameters()]
 
         print(len(grads_critic))
+        print(grads_critic[0])
 
         return self.total_timesteps, grads_actor, grads_critic
 
