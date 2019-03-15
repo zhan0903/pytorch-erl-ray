@@ -134,10 +134,6 @@ class Worker(object):
         print("after gradient self.policy.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
 
 
-
-
-        exit(0)
-
         # print(len(grads_critic))
         # print("in train,",grads_critic[0][0])
         # print("in train,",grads_actor[0][0])
@@ -249,6 +245,7 @@ if __name__ == "__main__":
     while total_timesteps < args.max_timesteps:
         train_id = [worker.train.remote(policy.actor.state_dict(),policy.critic.state_dict()) for worker in workers[:-1]]
         results = ray.get(train_id)
+        exit(0)
         total_timesteps,grads_actor,grads_critic = process_results(results)
         apply_grads(policy, grads_actor, grads_critic)
         print("after apply_grads self.policy.actor,", policy.actor.state_dict()["l3.bias"])
