@@ -113,6 +113,8 @@ class Worker(object):
         grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
                         for param in self.policy.actor.parameters()]
 
+        print(len(grads_critic))
+
         return self.total_timesteps, grads_actor, grads_critic
 
 
