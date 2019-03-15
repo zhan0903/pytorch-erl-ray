@@ -113,8 +113,8 @@ class Worker(object):
         grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
                         for param in self.policy.actor.parameters()]
 
-        print(len(grads_critic))
-        print(grads_critic[0][0])
+        # print(len(grads_critic))
+        print("in train,",grads_critic[0][0])
 
         return self.total_timesteps, grads_actor, grads_critic
 
@@ -145,6 +145,7 @@ def apply_grads(net,grads_actor,grads_critic):
     net.actor_optimizer.step()
 
     # update critic
+    print("in apply_grads,",grads_critic[0][0])
     net.critic_optimizer.zero_grad()
     grads_sum_critic = copy.deepcopy(grads_critic[-1])
     for grad in grads_critic[:-1]:
