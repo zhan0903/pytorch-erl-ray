@@ -72,6 +72,9 @@ class Worker(object):
         print("into 0 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
         self.set_weights(actor_weights, critic_weights)
         print("into 1 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
+        grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
+                        for param in self.policy.critic.parameters()]
+        print("grads_critic before,",grads_critic[0][0])
 
         done = False
         episode_timesteps = 0
@@ -134,7 +137,7 @@ def process_results(results):
     return sum(total_timesteps), grads_actor, grads_critic
 
 
-def apply_grads(net,grads_actor,grads_critic):
+def apply_grads(net, grads_actor, grads_critic):
     # update actor
     # print("in apply_grads,grads_actor,",grads_actor[0][0][0])
     net.actor_optimizer.zero_grad()
