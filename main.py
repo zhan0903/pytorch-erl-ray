@@ -116,8 +116,8 @@ class Worker(object):
 
         print("leave self.policy.actor,", self.policy.actor.state_dict()[0])
         # print(len(grads_critic))
-        print("in train,",grads_critic[0][0])
-        print("in train,",grads_actor[0][0])
+        # print("in train,",grads_critic[0][0])
+        # print("in train,",grads_actor[0][0])
         return self.total_timesteps, grads_actor, grads_critic
 
 
