@@ -229,6 +229,7 @@ if __name__ == "__main__":
         results = ray.get(train_id)
         total_timesteps,grads_actor,grads_critic = process_results(results)
         apply_grads(policy, grads_actor, grads_critic)
+        print("after apply_grads self.policy.actor,", policy.actor.state_dict()["l3.bias"])
 
     # Final evaluation
     evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
