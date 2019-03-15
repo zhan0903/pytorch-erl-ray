@@ -93,7 +93,10 @@ class DDPG(object):
             # Optimize the actor
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
+            print("before actor grads,",self.actor.parameters[0].grad)
             self.actor_optimizer.step()
+            print("after actor grads,",self.actor.parameters[0].grad)
+
 
             # Update the frozen target models
             for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
