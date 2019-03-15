@@ -32,6 +32,7 @@ class Worker(object):
         max_action = float(env.action_space.high[0])
 
         self.policy = ddpg.DDPG(state_dim, action_dim, max_action)
+        self.policy_debug = ddpg.DDPG(state_dim, action_dim, max_action)
         self.replay_buffer = utils.ReplayBuffer()
 
         self.args = args
@@ -68,13 +69,16 @@ class Worker(object):
         print("---------------------------------------")
         return avg_reward
 
-    def train(self,actor_weights, critic_weights):
+    def train(self, actor_weights, critic_weights):
         print("into 0 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
         self.set_weights(actor_weights, critic_weights)
+        self.policy_debug.actor.load_state_dict(self.policy.actor.state_dict())
+        self.policy_debug.critic.load_state_dict(self.policy.critic.state_dict())
+
         print("into 1 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
-        grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
-                        for param in self.policy.critic.parameters()]
-        print("grads_critic before,",grads_critic)
+        # grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
+        #                 for param in self.policy.critic.parameters()]
+        # print("grads_critic before,",grads_critic)
 
         done = False
         episode_timesteps = 0
@@ -119,6 +123,19 @@ class Worker(object):
                         for param in self.policy.actor.parameters()]
 
         print("leave self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
+
+        for g, p in zip(grads_actor, self.policy_debug.actor.parameters()):
+            if g is not None:
+                p.grad = torch.from_numpy(g).to(device)
+        self.policy_debug.actor_optimizer.step()
+
+        print("after gradient self.policy.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
+
+
+
+
+        exit(0)
+
         # print(len(grads_critic))
         # print("in train,",grads_critic[0][0])
         # print("in train,",grads_actor[0][0])
