@@ -250,10 +250,12 @@ if __name__ == "__main__":
     while total_timesteps < args.max_timesteps:
         train_id = [worker.train.remote(policy.actor.state_dict(),policy.critic.state_dict()) for worker in workers[:-1]]
         results = ray.get(train_id)
-        exit(0)
+        # exit(0)
         total_timesteps,grads_actor,grads_critic = process_results(results)
         apply_grads(policy, grads_actor, grads_critic)
         print("after apply_grads self.policy.actor,", policy.actor.state_dict()["l3.bias"])
+        exit(0)
+
 
     # Final evaluation
     evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
