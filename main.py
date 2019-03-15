@@ -145,7 +145,7 @@ def apply_grads(net,grads_actor,grads_critic):
     net.actor_optimizer.step()
 
     # update critic
-    print("in apply_grads,",grads_critic[0][0])
+    print("in apply_grads,",grads_critic[0][0][0])
     net.critic_optimizer.zero_grad()
     grads_sum_critic = copy.deepcopy(grads_critic[-1])
     for grad in grads_critic[:-1]:
