@@ -70,6 +70,7 @@ class Worker(object):
 
     def train(self,actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
+        print("into self.policy.actor,", self.policy.actor.state_dict()[0])
 
         done = False
         episode_timesteps = 0
@@ -82,11 +83,11 @@ class Worker(object):
                     print("Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                 # Reset environment test on child process
-                obs = self.env.reset()
-                done = False
-                episode_reward = 0
-                episode_timesteps = 0
-                # break
+                # obs = self.env.reset()
+                # done = False
+                # episode_reward = 0
+                # episode_timesteps = 0
+                break
             # Select action randomly or according to policy
             if self.total_timesteps < args.start_timesteps:
                 action = self.env.action_space.sample()
@@ -113,6 +114,7 @@ class Worker(object):
         grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
                         for param in self.policy.actor.parameters()]
 
+        print("leave self.policy.actor,", self.policy.actor.state_dict()[0])
         # print(len(grads_critic))
         print("in train,",grads_critic[0][0])
         print("in train,",grads_actor[0][0])
