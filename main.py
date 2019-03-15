@@ -75,8 +75,8 @@ class Worker(object):
         self.policy_debug.actor.load_state_dict(self.policy.actor.state_dict())
         self.policy_debug.critic.load_state_dict(self.policy.critic.state_dict())
 
-        # print("into 1 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
-        # print("into 1 self.policy_debug.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
+        print("into 1 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
+        print("into 1 self.policy_debug.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
 
         # grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
         #                 for param in self.policy.critic.parameters()]
@@ -136,13 +136,16 @@ class Worker(object):
                 p.grad = torch.from_numpy(g).to(device)
         self.policy_debug.actor_optimizer.step()
 
-        print("after gradient self.policy.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
+        print("after gradient self.policy_debug.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
 
 
         # print(len(grads_critic))
         # print("in train,",grads_critic[0][0])
         # print("in train,",grads_actor[0][0])
-        return self.total_timesteps, grads_actor, grads_critic
+
+        return self.policy.actor.state_dict()["l3.bias"], self.policy_debug.actor.state_dict()["l3.bias"]
+
+        # return self.total_timesteps, grads_actor, grads_critic
 
 
 def process_results(results):
@@ -153,7 +156,7 @@ def process_results(results):
         grads_critic.append(result[2])
         grads_actor.append(result[1])
         total_timesteps.append(result[0])
-    print("len of grads_actor, grads_critic",len(grads_actor),len(grads_critic))
+    # print("len of grads_actor, grads_critic",len(grads_actor),len(grads_critic))
     return sum(total_timesteps), grads_actor, grads_critic
 
 
@@ -250,7 +253,8 @@ if __name__ == "__main__":
     while total_timesteps < args.max_timesteps:
         train_id = [worker.train.remote(policy.actor.state_dict(),policy.critic.state_dict()) for worker in workers[:-1]]
         results = ray.get(train_id)
-        # exit(0)
+        print(results)
+        exit(0)
         total_timesteps,grads_actor,grads_critic = process_results(results)
         apply_grads(policy, grads_actor, grads_critic)
         print("after apply_grads self.policy.actor,", policy.actor.state_dict()["l3.bias"])
