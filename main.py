@@ -74,7 +74,7 @@ class Worker(object):
         print("into 1 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
         grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
                         for param in self.policy.critic.parameters()]
-        print("grads_critic before,",grads_critic[0][0])
+        print("grads_critic before,",grads_critic)
 
         done = False
         episode_timesteps = 0
