@@ -81,12 +81,12 @@ class Worker(object):
                 if self.total_timesteps != 0:
                     print("Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
-                # Reset environment
-                # obs = env.reset()
-                # done = False
-                # episode_reward = 0
-                # episode_timesteps = 0
-                break
+                # Reset environment test on child process
+                obs = self.env.reset()
+                done = False
+                episode_reward = 0
+                episode_timesteps = 0
+                # break
             # Select action randomly or according to policy
             if self.total_timesteps < args.start_timesteps:
                 action = self.env.action_space.sample()
@@ -115,7 +115,7 @@ class Worker(object):
 
         # print(len(grads_critic))
         print("in train,",grads_critic[0][0])
-
+        print("in train,",grads_actor[0][0])
         return self.total_timesteps, grads_actor, grads_critic
 
 
@@ -132,6 +132,7 @@ def process_results(results):
 
 def apply_grads(net,grads_actor,grads_critic):
     # update actor
+    print("in apply_grads,grads_actor,",grads_actor[0][0][0])
     net.actor_optimizer.zero_grad()
     grads_sum_actor = copy.deepcopy(grads_actor[-1])
     for grad in grads_actor[:-1]:
@@ -145,7 +146,7 @@ def apply_grads(net,grads_actor,grads_critic):
     net.actor_optimizer.step()
 
     # update critic
-    print("in apply_grads,",grads_critic[0][0][0])
+    print("in apply_grads,grads_critic,",grads_critic[0][0][0])
     net.critic_optimizer.zero_grad()
     grads_sum_critic = copy.deepcopy(grads_critic[-1])
     for grad in grads_critic[:-1]:
