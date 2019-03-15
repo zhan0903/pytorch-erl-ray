@@ -125,7 +125,8 @@ class Worker(object):
                         for param in self.policy.actor.parameters()]
 
         print("leave self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
-        self.policy_debug.actor_optimizer.zero_grad()
+
+        # self.policy_debug.actor_optimizer.zero_grad()
         for g, p in zip(grads_actor, self.policy_debug.actor.parameters()):
             if g is not None:
                 p.grad = torch.from_numpy(g).to(device)
