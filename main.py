@@ -143,7 +143,7 @@ class Worker(object):
         # print("in train,",grads_critic[0][0])
         # print("in train,",grads_actor[0][0])
 
-        return self.policy.actor.state_dict()["l3.bias"], self.policy_debug.actor.state_dict()["l3.bias"]
+        return self.policy.actor.cpu().state_dict()["l3.bias"], self.policy_debug.actor.cpu().state_dict()["l3.bias"]
 
         # return self.total_timesteps, grads_actor, grads_critic
 
