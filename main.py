@@ -75,8 +75,8 @@ class Worker(object):
         self.policy_debug.actor.load_state_dict(self.policy.actor.state_dict())
         self.policy_debug.critic.load_state_dict(self.policy.critic.state_dict())
 
-        print("into 1 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
-        print("into 1 self.policy_debug.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
+        # print("into 1 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
+        # print("into 1 self.policy_debug.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
 
         # grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
         #                 for param in self.policy.critic.parameters()]
