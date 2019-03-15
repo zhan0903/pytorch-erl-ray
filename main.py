@@ -70,7 +70,7 @@ class Worker(object):
 
     def train(self,actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
-        print("into self.policy.actor,", self.policy.actor.state_dict()[0])
+        print("into self.policy.actor,", self.policy.actor.state_dict()["l1"])
 
         done = False
         episode_timesteps = 0
@@ -114,7 +114,7 @@ class Worker(object):
         grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
                         for param in self.policy.actor.parameters()]
 
-        print("leave self.policy.actor,", self.policy.actor.state_dict()[0])
+        print("leave self.policy.actor,", self.policy.actor.state_dict()["l1"])
         # print(len(grads_critic))
         # print("in train,",grads_critic[0][0])
         # print("in train,",grads_actor[0][0])
