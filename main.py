@@ -76,6 +76,8 @@ class Worker(object):
         self.policy_debug.critic.load_state_dict(self.policy.critic.state_dict())
 
         print("into 1 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
+        print("into 1 self.policy_debug.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
+
         # grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
         #                 for param in self.policy.critic.parameters()]
         # print("grads_critic before,",grads_critic)
@@ -123,7 +125,7 @@ class Worker(object):
                         for param in self.policy.actor.parameters()]
 
         print("leave self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
-
+        self.policy_debug.actor_optimizer.zero_grad()
         for g, p in zip(grads_actor, self.policy_debug.actor.parameters()):
             if g is not None:
                 p.grad = torch.from_numpy(g).to(device)
