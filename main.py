@@ -69,8 +69,9 @@ class Worker(object):
         return avg_reward
 
     def train(self,actor_weights, critic_weights):
+        print("into 0 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
         self.set_weights(actor_weights, critic_weights)
-        print("into self.policy.actor,", self.policy.actor.state_dict()["l1.bias"])
+        print("into 1 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
 
         done = False
         episode_timesteps = 0
@@ -114,7 +115,7 @@ class Worker(object):
         grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
                         for param in self.policy.actor.parameters()]
 
-        print("leave self.policy.actor,", self.policy.actor.state_dict()["l1.bias"])
+        print("leave self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
         # print(len(grads_critic))
         # print("in train,",grads_critic[0][0])
         # print("in train,",grads_actor[0][0])
@@ -129,12 +130,13 @@ def process_results(results):
         grads_critic.append(result[2])
         grads_actor.append(result[1])
         total_timesteps.append(result[0])
+    print("len of grads_actor, grads_critic",len(grads_actor),len(grads_critic))
     return sum(total_timesteps), grads_actor, grads_critic
 
 
 def apply_grads(net,grads_actor,grads_critic):
     # update actor
-    print("in apply_grads,grads_actor,",grads_actor[0][0][0])
+    # print("in apply_grads,grads_actor,",grads_actor[0][0][0])
     net.actor_optimizer.zero_grad()
     grads_sum_actor = copy.deepcopy(grads_actor[-1])
     for grad in grads_actor[:-1]:
@@ -148,7 +150,7 @@ def apply_grads(net,grads_actor,grads_critic):
     net.actor_optimizer.step()
 
     # update critic
-    print("in apply_grads,grads_critic,",grads_critic[0][0][0])
+    # print("in apply_grads,grads_critic,",grads_critic[0][0][0])
     net.critic_optimizer.zero_grad()
     grads_sum_critic = copy.deepcopy(grads_critic[-1])
     for grad in grads_critic[:-1]:
