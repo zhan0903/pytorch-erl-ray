@@ -71,10 +71,10 @@ class DDPG(object):
                        for param in self.actor.parameters()]
 
         if self.grads_critic is None and self.grads_actor is None:
-            self.grads_actor = grads_critic
+            self.grads_actor = grads_actor
             self.grads_critic = grads_critic
         else:
-            for t_grad, grad in zip(self.grads_critic,grads_critic):
+            for t_grad, grad in zip(self.grads_critic, grads_critic):
                 t_grad += grad
 
             for t_grad, grad in zip(self.grads_actor, grads_actor):
