@@ -65,10 +65,10 @@ class DDPG(object):
 
     def sum_grads(self):
         grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
-                        for param in self.policy.critic.parameters()]
+                        for param in self.critic.parameters()]
 
         grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
-                       for param in self.policy.actor.parameters()]
+                       for param in self.actor.parameters()]
 
         self.grads_critic += grads_critic
         self.grads_actor += grads_actor
