@@ -119,13 +119,13 @@ class Worker(object):
             self.total_timesteps += 1
             self.timesteps_since_eval += 1
 
-        grads = self.compute_gradients()
-
-        grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
-                 for param in self.policy.critic.parameters()]
-
-        grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
-                        for param in self.policy.actor.parameters()]
+        # grads = self.compute_gradients()
+        #
+        # grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
+        #          for param in self.policy.critic.parameters()]
+        #
+        # grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
+        #                 for param in self.policy.actor.parameters()]
 
         # print("in train,",grads_actor[0][0])
         # print("what is the matter")
@@ -133,7 +133,7 @@ class Worker(object):
         # print("leave self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
 
         # self.policy_debug.actor_optimizer.zero_grad()
-        for g, p in zip(grads_actor, self.policy_debug.actor.parameters()):
+        for g, p in zip(self.policy.grads_actor, self.policy_debug.actor.parameters()):
             if g is not None:
                 p.grad = torch.from_numpy(g).to(device)
         self.policy_debug.actor_optimizer.step()
