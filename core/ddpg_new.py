@@ -70,9 +70,15 @@ class DDPG(object):
         grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
                        for param in self.actor.parameters()]
 
-        self.grads_critic += grads_critic
-        self.grads_actor += grads_actor
+        if self.grads_critic is None and self.grads_actor is None:
+            self.grads_actor = grads_critic
+            self.grads_critic = grads_critic
+        else:
+            for t_grad, grad in zip(self.grads_critic,grads_critic):
+                t_grad += grad
 
+            for t_grad, grad in zip(self.grads_actor, grads_actor):
+                t_grad += grad
 
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005):
         self.grads_actor = None
