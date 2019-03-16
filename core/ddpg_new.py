@@ -93,6 +93,7 @@ class DDPG(object):
             # Optimize the actor
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
+            print("tpye parameter,",type(self.actor.parameters))
             print("before actor grads,",self.actor.parameters[0].grad)
             self.actor_optimizer.step()
             print("after actor grads,",self.actor.parameters[0].grad)
