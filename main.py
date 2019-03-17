@@ -74,8 +74,8 @@ class Worker(object):
     def train(self, actor_weights, critic_weights):
         # print("into 0 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
         self.set_weights(actor_weights, critic_weights)
-        self.policy_debug.actor.load_state_dict(self.policy.actor.state_dict())
-        self.policy_debug.critic.load_state_dict(self.policy.critic.state_dict())
+        # self.policy_debug.actor.load_state_dict(self.policy.actor.state_dict())
+        # self.policy_debug.critic.load_state_dict(self.policy.critic.state_dict())
 
         # print("into 1 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
         # print("into 1 self.policy_debug.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
@@ -106,8 +106,8 @@ class Worker(object):
             else:
                 action = self.policy.select_action(np.array(obs))
                 if args.expl_noise != 0:
-                    action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(
-                        self.env.action_space.low, self.env.action_space.high)
+                    action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(self.env.action_space.low, self.env.action_space.high)
+
             # Perform action
             new_obs, reward, done, _ = self.env.step(action)
             done_bool = 0 if episode_timesteps + 1 == self.env._max_episode_steps else float(done)
@@ -121,44 +121,6 @@ class Worker(object):
             self.total_timesteps += 1
             self.timesteps_since_eval += 1
 
-        # grads = self.compute_gradients()
-        #
-        # grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
-        #          for param in self.policy.critic.parameters()]
-        #
-        # grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
-        #                 for param in self.policy.actor.parameters()]
-
-        # print("in train,",grads_actor[0][0])
-        # print("what is the matter")
-
-        # print("leave self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
-
-        # self.policy_debug.actor_optimizer.zero_grad()
-        # for g, p in zip(self.policy.grads_actor, self.policy_debug.actor.parameters()):
-        #     if g is not None:
-        #         p.grad = torch.from_numpy(g).to(device)
-        # self.policy_debug.actor_optimizer.step()
-
-        # self.policy_debug.critic_optimizer.zero_grad()
-        # for grad in self.policy.grads_critic:
-        #     for g, p in zip(grad, self.policy_debug.critic.parameters()):
-        #         if g is not None:
-        #             p.grad = torch.from_numpy(g).to(device)
-        #     self.policy_debug.critic_optimizer.step()
-
-        # self.policy_debug.critic_optimizer.zero_grad()
-        # for grad in self.policy.grads_critic:
-        #     for g, p in zip(grad, self.policy_debug.critic.parameters()):
-        #         if g is not None:
-        #             p.grad = torch.from_numpy(g).to(device)
-        #     self.policy_debug.critic_optimizer.step()
-
-        # print(self.policy.critic.cpu().state_dict()["l3.bias"])
-        # print(self.policy_debug.critic.cpu().state_dict()["l3.bias"])
-        # print(self.policy.critic.cpu().state_dict()["l3.bias"])
-
-
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
 
         return self.total_timesteps, self.policy.grads_critic
@@ -170,45 +132,17 @@ def process_results(results):
     for result in results:
         grads_critic.append(result[1])
         total_timesteps.append(result[0])
-    # print("len of grads_actor, grads_critic",len(grads_actor),len(grads_critic))
     return sum(total_timesteps), grads_critic
 
 
-def apply_grads(net, grads_critic):
-    # update actor
-    # print("in apply_grads,grads_actor,",grads_actor[0][0][0])
-    # net.actor_optimizer.zero_grad()
-    # # grads_sum_actor = copy.deepcopy(grads_actor[-1])
-    # for grad in grads_actor[:-1]:
-    #     for temp_itme, grad_item in zip(grads_sum_actor, grad):
-    #         if grad_item is not None:
-    #             temp_itme += grad_item
+def apply_grads(net, critic_grad):
     net.critic_optimizer.zero_grad()
-    for worker_grad in grads_critic:
+    for worker_grad in critic_grad:
         for grad in worker_grad:
             for g, p in zip(grad, net.critic.parameters()):
                 if g is not None:
                     p.grad = torch.from_numpy(g).to(device)
             net.critic_optimizer.step()
-
-    # for g, p in zip(grads_sum_actor, net.actor.parameters()):
-    #     if g is not None:
-    #         p.grad = torch.from_numpy(g).to(device)
-    # net.actor_optimizer.step()
-
-    # update critic
-    # print("in apply_grads,grads_critic,",grads_critic[0][0][0])
-    # net.critic_optimizer.zero_grad()
-    # grads_sum_critic = copy.deepcopy(grads_critic[-1])
-    # for grad in grads_critic[:-1]:
-    #     for temp_itme, grad_item in zip(grads_sum_critic, grad):
-    #         if grad_item is not None:
-    #             temp_itme += grad_item
-
-    # for g, p in zip(grads_sum_critic, net.critic.parameters()):
-    #     if g is not None:
-    #         p.grad = torch.from_numpy(g).to(device)
-    # net.critic_optimizer.step()
 
 
 if __name__ == "__main__":
@@ -256,7 +190,6 @@ if __name__ == "__main__":
     max_action = float(env.action_space.high[0])
 
     policy = ddpg.DDPG(state_dim, action_dim, max_action)
-
 
     ray.init(include_webui=False, ignore_reinit_error=True)
     workers = [Worker.remote(args)
