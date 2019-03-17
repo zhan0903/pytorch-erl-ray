@@ -125,6 +125,8 @@ class DDPG(object):
             critic_loss.backward()
             self.critic_optimizer.step()
 
+            self.append_grads()
+
             # Compute actor loss
             actor_loss = -self.critic(state, self.actor(state)).mean()
 
@@ -133,7 +135,7 @@ class DDPG(object):
             actor_loss.backward()
             self.actor_optimizer.step()
 
-            self.append_grads()
+            # self.append_grads()
 
             # Update the frozen target models
             for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
