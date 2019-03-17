@@ -166,12 +166,12 @@ def process_results(results):
 def apply_grads(net, grads_actor, grads_critic):
     # update actor
     # print("in apply_grads,grads_actor,",grads_actor[0][0][0])
-    net.actor_optimizer.zero_grad()
-    grads_sum_actor = copy.deepcopy(grads_actor[-1])
-    for grad in grads_actor[:-1]:
-        for temp_itme, grad_item in zip(grads_sum_actor, grad):
-            if grad_item is not None:
-                temp_itme += grad_item
+    # net.actor_optimizer.zero_grad()
+    # # grads_sum_actor = copy.deepcopy(grads_actor[-1])
+    # for grad in grads_actor[:-1]:
+    #     for temp_itme, grad_item in zip(grads_sum_actor, grad):
+    #         if grad_item is not None:
+    #             temp_itme += grad_item
 
     net.critic_optimizer.zero_grad()
     for worker_grad in grads_critic:
