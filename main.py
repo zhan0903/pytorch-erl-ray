@@ -149,7 +149,7 @@ class Worker(object):
         print(self.policy_debug.critic.cpu().state_dict()["l3.bias"])
 
 
-        return self.policy.actor.cpu().state_dict()["l3.bias"], self.policy_debug.actor.cpu().state_dict()["l3.bias"]
+        return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
 
         return self.total_timesteps, self.policy.grads_critic
 
