@@ -56,8 +56,8 @@ class DDPG(object):
         self.critic_target.load_state_dict(self.critic.state_dict())
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
-        self.grads_critic = None
-        self.grads_actor = None
+        self.grads_critic = []
+        self.grads_actor = []
 
     def select_action(self, state):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
@@ -80,9 +80,19 @@ class DDPG(object):
             for t_grad, grad in zip(self.grads_actor, grads_actor):
                 t_grad += grad
 
+    def append_grads(self):
+        grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
+                        for param in self.critic.parameters()]
+
+        grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
+                       for param in self.actor.parameters()]
+
+        self.grads_actor.append(grads_actor)
+        self.grads_critic.append(grads_critic)
+
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005):
-        self.grads_actor = None
-        self.grads_critic = None
+        self.grads_actor = []
+        self.grads_critic = []
 
         for it in range(2):
 
@@ -117,7 +127,7 @@ class DDPG(object):
             actor_loss.backward()
             self.actor_optimizer.step()
 
-            self.sum_grads()
+            self.append_grads()
 
             # Update the frozen target models
             for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
