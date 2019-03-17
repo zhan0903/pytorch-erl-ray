@@ -154,13 +154,11 @@ class Worker(object):
 def process_results(results):
     total_timesteps = []
     grads_critic = []
-    grads_actor = []
     for result in results:
         grads_critic.append(result[1])
-        grads_actor.append(None)
         total_timesteps.append(result[0])
     # print("len of grads_actor, grads_critic",len(grads_actor),len(grads_critic))
-    return sum(total_timesteps), grads_actor, grads_critic
+    return sum(total_timesteps), grads_critic
 
 
 def apply_grads(net, grads_actor, grads_critic):
@@ -172,7 +170,7 @@ def apply_grads(net, grads_actor, grads_critic):
     #     for temp_itme, grad_item in zip(grads_sum_actor, grad):
     #         if grad_item is not None:
     #             temp_itme += grad_item
-
+    print("len(grads_critic),",len(grads_critic))
     net.critic_optimizer.zero_grad()
     for worker_grad in grads_critic:
         for grad in worker_grad:
@@ -266,7 +264,7 @@ if __name__ == "__main__":
         results = ray.get(train_id)
         # print(results)
         # exit(0)
-        total_timesteps,grads_actor,grads_critic = process_results(results)
+        total_timesteps,grads_critic = process_results(results)
         apply_grads(policy, None, grads_critic)
         print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
         exit(0)
