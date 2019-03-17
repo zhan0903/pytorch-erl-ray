@@ -97,7 +97,6 @@ class DDPG(object):
         self.grads_critic.append(grads_critic)
 
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005):
-        self.grads_actor = []
         self.grads_critic = []
 
         for it in range(iterations):
@@ -137,7 +136,7 @@ class DDPG(object):
 
             # self.append_grads()
 
-            # Update the frozen target models
+            #Update the frozen target models
             for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
                 target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 

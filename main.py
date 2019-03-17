@@ -37,13 +37,14 @@ class Worker(object):
 
     def set_weights(self,actor_weights,critic_weights):
         if actor_weights is not None:
+            print("come here 1")
             self.policy.actor.load_state_dict(actor_weights)
         self.policy.critic.load_state_dict(critic_weights)
 
         for param, target_param in zip(self.policy.critic.parameters(), self.policy.critic_target.parameters()):
             target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
-
         if actor_weights is not None:
+            print("come here 2")
             for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
                 target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
