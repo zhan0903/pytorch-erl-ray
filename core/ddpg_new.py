@@ -81,11 +81,14 @@ class DDPG(object):
                 t_grad += grad/3
 
     def append_grads(self):
-        grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
-                        for param in self.critic.parameters()]
+        # grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
+        #                 for param in self.critic.parameters()]
 
         grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
                        for param in self.actor.parameters()]
+
+        grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
+                        for param in self.critic.parameters()]
 
         self.grads_actor.append(grads_actor)
         self.grads_critic.append(grads_critic)
