@@ -149,7 +149,7 @@ class Worker(object):
         print(self.policy_debug.critic.cpu().state_dict()["l3.bias"])
 
 
-        # return self.policy.actor.cpu().state_dict()["l3.bias"], self.policy_debug.actor.cpu().state_dict()["l3.bias"]
+        return self.policy.actor.cpu().state_dict()["l3.bias"], self.policy_debug.actor.cpu().state_dict()["l3.bias"]
 
         return self.total_timesteps, self.policy.grads_critic
 
@@ -265,8 +265,8 @@ if __name__ == "__main__":
     while total_timesteps < args.max_timesteps:
         train_id = [worker.train.remote(policy.actor.state_dict(),policy.critic.state_dict()) for worker in workers[:-1]]
         results = ray.get(train_id)
-        # print(results)
-        # exit(0)
+        print(results)
+        exit(0)
         total_timesteps,grads_critic = process_results(results)
         apply_grads(policy, None, grads_critic)
         print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
