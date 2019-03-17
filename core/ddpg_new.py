@@ -84,7 +84,7 @@ class DDPG(object):
         self.grads_actor = None
         self.grads_critic = None
 
-        for it in range(iterations):
+        for it in range(1):
 
             # Sample replay buffer
             x, y, u, r, d = replay_buffer.sample(batch_size)
