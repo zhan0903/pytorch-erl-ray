@@ -133,11 +133,17 @@ class Worker(object):
         # print("leave self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
 
         self.policy_debug.actor_optimizer.zero_grad()
-        for grad in self.policy.grads_actor:
-            for g, p in zip(grad, self.policy_debug.actor.parameters()):
-                if g is not None:
-                    p.grad = torch.from_numpy(g).to(device)
-            self.policy_debug.actor_optimizer.step()
+        for g, p in zip(self.policy.grads_actor, self.policy_debug.actor.parameters()):
+            if g is not None:
+                p.grad = torch.from_numpy(g).to(device)
+        self.policy_debug.actor_optimizer.step()
+
+
+        # for grad in self.policy.grads_actor:
+        #     for g, p in zip(grad, self.policy_debug.actor.parameters()):
+        #         if g is not None:
+        #             p.grad = torch.from_numpy(g).to(device)
+        #     self.policy_debug.actor_optimizer.step()
 
         # print("after gradient self.policy_debug.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
 

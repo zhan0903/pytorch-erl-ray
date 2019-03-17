@@ -71,14 +71,14 @@ class DDPG(object):
                        for param in self.actor.parameters()]
 
         if self.grads_critic is None and self.grads_actor is None:
-            self.grads_actor = grads_actor
-            self.grads_critic = grads_critic
+            self.grads_actor = grads_actor/3
+            self.grads_critic = grads_critic/3
         else:
             for t_grad, grad in zip(self.grads_critic, grads_critic):
-                t_grad += grad
+                t_grad += grad/3
 
             for t_grad, grad in zip(self.grads_actor, grads_actor):
-                t_grad += grad
+                t_grad += grad/3
 
     def append_grads(self):
         grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
@@ -127,7 +127,7 @@ class DDPG(object):
             actor_loss.backward()
             self.actor_optimizer.step()
 
-            self.append_grads()
+            self.sum_grads()
 
             # Update the frozen target models
             for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
