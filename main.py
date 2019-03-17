@@ -156,7 +156,7 @@ def process_results(results):
     grads_critic = []
     grads_actor = []
     for result in results:
-        grads_critic.append(result[2])
+        grads_critic.append(result[1])
         grads_actor.append(None)
         total_timesteps.append(result[0])
     # print("len of grads_actor, grads_critic",len(grads_actor),len(grads_critic))
@@ -174,11 +174,12 @@ def apply_grads(net, grads_actor, grads_critic):
                 temp_itme += grad_item
 
     net.critic_optimizer.zero_grad()
-    for grad in grads_critic:
-        for g, p in zip(grad, net.critic.parameters()):
-            if g is not None:
-                p.grad = torch.from_numpy(g).to(device)
-        net.critic_optimizer.step()
+    for worker_grad in grads_critic:
+        for grad in worker_grad:
+            for g, p in zip(grad, net.critic.parameters()):
+                if g is not None:
+                    p.grad = torch.from_numpy(g).to(device)
+            net.critic_optimizer.step()
 
     # for g, p in zip(grads_sum_actor, net.actor.parameters()):
     #     if g is not None:
