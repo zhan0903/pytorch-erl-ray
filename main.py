@@ -138,7 +138,7 @@ class Worker(object):
         #         p.grad = torch.from_numpy(g).to(device)
         # self.policy_debug.actor_optimizer.step()
 
-        self.policy_debug.actor_optimizer.zero_grad()
+        self.policy_debug.critic_optimizer.zero_grad()
         for grad in self.policy.grads_critic:
             for g, p in zip(grad, self.policy_debug.critic.parameters()):
                 if g is not None:
