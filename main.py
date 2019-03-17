@@ -5,12 +5,7 @@ import logging
 import ray
 import copy
 from core import ddpg_new as ddpg
-from core import replay_memory
 import torch
-from torch.optim import Adam
-import torch.nn as nn
-from core import mod_utils as utils
-from core import mod_neuro_evo as utils_ne
 import utils
 import time
 
@@ -74,6 +69,8 @@ class Worker(object):
     def train(self, actor_weights, critic_weights):
         # print("into 0 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
         self.set_weights(actor_weights, critic_weights)
+        print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
+
         # self.policy_debug.actor.load_state_dict(self.policy.actor.state_dict())
         # self.policy_debug.critic.load_state_dict(self.policy.critic.state_dict())
 
@@ -83,7 +80,6 @@ class Worker(object):
         # grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
         #                 for param in self.policy.critic.parameters()]
         # print("grads_critic before,",grads_critic)
-
         done = False
         episode_timesteps = 0
         episode_reward = 0
@@ -121,6 +117,7 @@ class Worker(object):
             self.total_timesteps += 1
             self.timesteps_since_eval += 1
 
+        print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
 
         return self.total_timesteps, self.policy.grads_critic
@@ -204,7 +201,6 @@ if __name__ == "__main__":
     time_start = time.time()
     debug = True
 
-
     while total_timesteps < args.max_timesteps:
         if debug:
             actor_weight = policy.actor.state_dict()
@@ -216,8 +212,9 @@ if __name__ == "__main__":
         # exit(0)
         total_timesteps,grads_critic = process_results(results)
         apply_grads(policy, grads_critic)
+        print(time.time()-time_start)
         debug = False
-        # print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
+        print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
         # exit(0)
     # Final evaluation
     evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
