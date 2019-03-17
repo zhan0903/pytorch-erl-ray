@@ -70,13 +70,13 @@ class Worker(object):
         return avg_reward
 
     def train(self, actor_weights, critic_weights):
-        print("into 0 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
+        # print("into 0 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
         self.set_weights(actor_weights, critic_weights)
         self.policy_debug.actor.load_state_dict(self.policy.actor.state_dict())
         self.policy_debug.critic.load_state_dict(self.policy.critic.state_dict())
 
-        print("into 1 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
-        print("into 1 self.policy_debug.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
+        # print("into 1 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
+        # print("into 1 self.policy_debug.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
 
         # grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
         #                 for param in self.policy.critic.parameters()]
@@ -145,18 +145,19 @@ class Worker(object):
         #             p.grad = torch.from_numpy(g).to(device)
         #     self.policy_debug.critic_optimizer.step()
 
-        self.policy_debug.critic_optimizer.zero_grad()
-        for grad in self.policy.grads_critic:
-            for g, p in zip(grad, self.policy_debug.critic.parameters()):
-                if g is not None:
-                    p.grad = torch.from_numpy(g).to(device)
-            self.policy_debug.critic_optimizer.step()
+        # self.policy_debug.critic_optimizer.zero_grad()
+        # for grad in self.policy.grads_critic:
+        #     for g, p in zip(grad, self.policy_debug.critic.parameters()):
+        #         if g is not None:
+        #             p.grad = torch.from_numpy(g).to(device)
+        #     self.policy_debug.critic_optimizer.step()
 
         # print(self.policy.critic.cpu().state_dict()["l3.bias"])
         # print(self.policy_debug.critic.cpu().state_dict()["l3.bias"])
+        print(self.policy.critic.cpu().state_dict()["l3.bias"])
 
 
-        return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
+        # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
 
         return self.total_timesteps, self.policy.grads_critic
 
@@ -171,7 +172,7 @@ def process_results(results):
     return sum(total_timesteps), grads_critic
 
 
-def apply_grads(net, grads_actor, grads_critic):
+def apply_grads(net, grads_critic):
     # update actor
     # print("in apply_grads,grads_actor,",grads_actor[0][0][0])
     # net.actor_optimizer.zero_grad()
@@ -272,10 +273,10 @@ if __name__ == "__main__":
     while total_timesteps < args.max_timesteps:
         train_id = [worker.train.remote(policy.actor.state_dict(),policy.critic.state_dict()) for worker in workers[:-1]]
         results = ray.get(train_id)
-        print(results)
-        exit(0)
+        # print(results)
+        # exit(0)
         total_timesteps,grads_critic = process_results(results)
-        apply_grads(policy, None, grads_critic)
+        apply_grads(policy, grads_critic)
         print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
         exit(0)
 
