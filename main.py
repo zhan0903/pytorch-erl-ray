@@ -41,14 +41,16 @@ class Worker(object):
         self.timesteps_since_eval = 0
 
     def set_weights(self,actor_weights,critic_weights):
-        self.policy.actor.load_state_dict(actor_weights)
+        if actor_weights is not None:
+            self.policy.actor.load_state_dict(actor_weights)
         self.policy.critic.load_state_dict(critic_weights)
 
         for param, target_param in zip(self.policy.critic.parameters(), self.policy.critic_target.parameters()):
             target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
-        for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
-            target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
+        if actor_weights is not None:
+            for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
+                target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
     # Runs policy for X episodes and returns average reward
     def evaluate_policy(self, actor_weights, critic_weights, eval_episodes=10):
@@ -154,7 +156,7 @@ class Worker(object):
 
         # print(self.policy.critic.cpu().state_dict()["l3.bias"])
         # print(self.policy_debug.critic.cpu().state_dict()["l3.bias"])
-        print(self.policy.critic.cpu().state_dict()["l3.bias"])
+        # print(self.policy.critic.cpu().state_dict()["l3.bias"])
 
 
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
@@ -181,7 +183,6 @@ def apply_grads(net, grads_critic):
     #     for temp_itme, grad_item in zip(grads_sum_actor, grad):
     #         if grad_item is not None:
     #             temp_itme += grad_item
-    print("len(grads_critic),",len(grads_critic))
     net.critic_optimizer.zero_grad()
     for worker_grad in grads_critic:
         for grad in worker_grad:
@@ -268,19 +269,23 @@ if __name__ == "__main__":
     episode_timesteps = 0
     done = True
     time_start = time.time()
+    debug = True
 
 
     while total_timesteps < args.max_timesteps:
-        train_id = [worker.train.remote(policy.actor.state_dict(),policy.critic.state_dict()) for worker in workers[:-1]]
+        if debug:
+            actor_weight = policy.actor.state_dict()
+        else:
+            actor_weight = None
+        train_id = [worker.train.remote(actor_weight,policy.critic.state_dict()) for worker in workers[:-1]]
         results = ray.get(train_id)
         # print(results)
         # exit(0)
         total_timesteps,grads_critic = process_results(results)
         apply_grads(policy, grads_critic)
-        print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
-        exit(0)
-
-
+        debug = False
+        # print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
+        # exit(0)
     # Final evaluation
     evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
     if args.save_models: policy.save("%s" % (file_name), directory="./pytorch_models")
