@@ -94,7 +94,7 @@ class DDPG(object):
         self.grads_actor = []
         self.grads_critic = []
 
-        for it in range(3):
+        for it in range(iterations):
 
             # Sample replay buffer
             x, y, u, r, d = replay_buffer.sample(batch_size)
@@ -127,7 +127,7 @@ class DDPG(object):
             actor_loss.backward()
             self.actor_optimizer.step()
 
-            self.sum_grads()
+            self.append_grads()
 
             # Update the frozen target models
             for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
