@@ -84,11 +84,14 @@ class DDPG(object):
         # grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
         #                 for param in self.critic.parameters()]
 
-        grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
-                       for param in self.actor.parameters()]
+        grads_actor = [param_actor.grad.data.cpu().numpy() if param_actor.grad is not None else None
+                       for param_actor in self.actor.parameters()]
 
-        grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
-                        for param in self.critic.parameters()]
+        grads_critic = [param_critic.grad.data.cpu().numpy() if param_critic.grad is not None else None
+                        for param_critic in self.critic.parameters()]
+
+        print(grads_critic)
+        print(grads_actor)
 
         self.grads_actor.append(grads_actor)
         self.grads_critic.append(grads_critic)
