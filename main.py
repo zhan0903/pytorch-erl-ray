@@ -193,7 +193,7 @@ if __name__ == "__main__":
     workers = [Worker.remote(args)
                for _ in range(num_workers+1)]
 
-    evaluations = [ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict()))]
+    # evaluations = [ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict()))]
     total_timesteps = 0
     timesteps_since_eval = 0
     episode_num = 0
