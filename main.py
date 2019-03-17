@@ -139,11 +139,11 @@ class Worker(object):
         # self.policy_debug.actor_optimizer.step()
 
         self.policy_debug.critic_optimizer.zero_grad()
-        for grad in self.policy.grads_critic:
-            for g, p in zip(grad, self.policy_debug.critic.parameters()):
-                if g is not None:
-                    p.grad = torch.from_numpy(g).to(device)
-            self.policy_debug.critic_optimizer.step()
+        for g, p in zip(self.policy.grads_critic, self.policy_debug.critic.parameters()):
+            if g is not None:
+                p.grad = torch.from_numpy(g).to(device)
+        self.policy_debug.critic_optimizer.step()
+
         print(self.policy.critic.cpu().state_dict()["l3.bias"])
         print(self.policy_debug.critic.cpu().state_dict()["l3.bias"])
 
