@@ -289,7 +289,7 @@ if __name__ == "__main__":
         debug = False
         print("after apply_grads self.policy.critic,", g_critic.state_dict()["l3.bias"])
 
-        elite_index = evolver.epoch(pops_new, avg_fitness)
+        # elite_index = evolver.epoch(pops_new, avg_fitness)
         # exit(0)
     # Final evaluation
     # evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
