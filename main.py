@@ -211,8 +211,7 @@ if __name__ == "__main__":
     workers = [Worker.remote(args)
                for _ in range(num_workers+1)]
 
-    init_result_id = [worker.init_nets.remote(actor.state_dict(), g_critic.state_dict())
-        for worker, actor in zip(workers[:-1], actors)]
+    init_result_id = [worker.init_nets.remote(actor.state_dict(), g_critic.state_dict()) for worker, actor in zip(workers[:-1], actors)]
 
     print(ray.get(init_result_id))
 
@@ -238,7 +237,7 @@ if __name__ == "__main__":
         debug = False
         print("after apply_grads self.policy.critic,", g_critic.state_dict()["l3.bias"])
 
-        elite_index = evolver.epoch(pops_new, avg_fitness)
+        # elite_index = evolver.epoch(pops_new, avg_fitness)
         # exit(0)
     # Final evaluation
     # evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
