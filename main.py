@@ -199,7 +199,7 @@ def apply_grads(g_critic_net, optimizer, critic_grad):
     optimizer.zero_grad()
     for worker_grad in critic_grad:
         for grad in worker_grad:
-            for g, p in zip(grad, g_critic_net.parameters()):
+            for g, p in zip(grad, g_critic_net.cuda().parameters()):
                 if g is not None:
                     p.grad = torch.from_numpy(g).to(device)
             optimizer.step()
@@ -282,7 +282,7 @@ if __name__ == "__main__":
         #     actor_weight = actors[0].state_dict()
         # else:
         #     actor_weight = None
-        train_id = [worker.train.remote(actor.state_dict(), g_critic.state_dict()) for worker,actor in zip(workers[:-1],actors)]
+        train_id = [worker.train.remote(actor.cpu().state_dict(), g_critic.cpu().state_dict()) for worker,actor in zip(workers[:-1],actors)]
         results = ray.get(train_id)
         total_timesteps,grads_critic,all_fitness = process_results(results)
         apply_grads(g_critic, g_critic_optimizer, grads_critic)
