@@ -80,7 +80,7 @@ class Worker(object):
         max_action = float(env.action_space.high[0])
 
         self.policy = ddpg.DDPG(state_dim, action_dim, max_action)
-        print("in worker init g_critic,", g_critic.state_dict()["l3.bias"])
+        print("in worker init critic,", self.policy.critic.state_dict()["l3.bias"])
 
         self.replay_buffer = utils.ReplayBuffer()
 
