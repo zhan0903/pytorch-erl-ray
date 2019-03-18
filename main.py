@@ -175,6 +175,8 @@ class Worker(object):
             self.timesteps_since_eval += 1
 
         print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
+        print("grads_critic,",self.policy.grads_critic)
+
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
         return self.total_timesteps, self.policy.grads_critic, episode_reward
 
