@@ -106,50 +106,53 @@ class Worker(object):
 
         for param, target_param in zip(self.policy.critic.parameters(), self.policy.critic_target.parameters()):
             target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
+
         if actor_weights is not None:
             # print("come here 2")
             for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
                 target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
-    # Runs policy for X episodes and returns average reward
-    def evaluate_policy(self, actor_weights, critic_weights, eval_episodes=10):
-        # self.set_weights(actor_weights,critic_weights)
-        avg_reward = 0.
-        for _ in range(eval_episodes):
-            obs = self.env.reset()
-            done = False
-            while not done:
-                action = self.policy.select_action(np.array(obs))
-                obs, reward, done, _ = self.env.step(action)
-                avg_reward += reward
-
-        avg_reward /= eval_episodes
-
-        print("---------------------------------------")
-        print("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
-        print("---------------------------------------")
-        return avg_reward
+    # # Runs policy for X episodes and returns average reward
+    # def evaluate_policy(self, actor_weights, critic_weights, eval_episodes=10):
+    #     # self.set_weights(actor_weights,critic_weights)
+    #     avg_reward = 0.
+    #     for _ in range(eval_episodes):
+    #         obs = self.env.reset()
+    #         done = False
+    #         while not done:
+    #             action = self.policy.select_action(np.array(obs))
+    #             obs, reward, done, _ = self.env.step(action)
+    #             avg_reward += reward
+    #
+    #     avg_reward /= eval_episodes
+    #
+    #     print("---------------------------------------")
+    #     print("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
+    #     print("---------------------------------------")
+    #     return avg_reward
 
     def train(self, actor_weights, critic_weights):
-        # self.set_weights(actor_weights, critic_weights)
+        self.set_weights(actor_weights, critic_weights)
         print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
-        done = True
+        done = False
         episode_timesteps = 0
         episode_reward = 0
-        # obs = self.env.reset()
+        obs = self.env.reset()
+
         while True:
             if done:
-                # self.episode_num += 1
+                self.episode_num += 1
                 if self.total_timesteps != 0:
                     print("Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
+
                 # Reset environment test on child process
-                obs = self.env.reset()
-                done = False
-                episode_reward = 0
-                episode_timesteps = 0
-                self.episode_num += 1
-                # break
+                # obs = self.env.reset()
+                # done = False
+                # episode_reward = 0
+                # episode_timesteps = 0
+                # self.episode_num += 1
+                break
             # Select action randomly or according to policy
             if self.total_timesteps < args.start_timesteps:
                 action = self.env.action_space.sample()
@@ -173,7 +176,6 @@ class Worker(object):
 
         print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
-
         return self.total_timesteps, self.policy.grads_critic, episode_reward
 
 
