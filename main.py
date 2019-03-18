@@ -281,7 +281,7 @@ if __name__ == "__main__":
             actor_weight = actors[0].state_dict()
         else:
             actor_weight = None
-        train_id = [worker.train.remote(actor_weight,g_critic.state_dict()) for worker, actor in zip(workers[:-1], actors)]
+        train_id = [worker.train.remote(actor_weight, g_critic.state_dict()) for worker in workers[:-1]]
         results = ray.get(train_id)
         total_timesteps,grads_critic = process_results(results)
         apply_grads(g_critic,g_critic_optimizer, grads_critic)
