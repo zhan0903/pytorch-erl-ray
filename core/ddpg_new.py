@@ -71,7 +71,7 @@ class DDPG(object):
         #                for param in self.actor.parameters()]
 
         if self.grads_critic is []:
-            print("come here")
+            # print("come here")
             self.grads_critic = grads_critic
         else:
             for t_grad, grad in zip(self.grads_critic, grads_critic):
