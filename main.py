@@ -191,17 +191,27 @@ def process_results(r):
 
 
 def apply_grads(policy_net, critic_grad):
+    critic_grad = sum(critic_grad)/num_workers
+
+    # policy_net.critic_optimizer.zero_grad()
+    # for worker_grad in critic_grad:
+    #     for grad in worker_grad:
+    #         for g, p in zip(grad, policy_net.critic.parameters()):
+    #             if g is not None:
+    #                 p.grad = torch.from_numpy(g).to(device)
+    #         policy_net.critic_optimizer.step()
+
     policy_net.critic_optimizer.zero_grad()
-    for worker_grad in critic_grad:
-        for grad in worker_grad:
-            for g, p in zip(grad, policy_net.critic.parameters()):
-                if g is not None:
-                    p.grad = torch.from_numpy(g).to(device)
-            policy_net.critic_optimizer.step()
+    # for worker_grad in critic_grad:
+    for grad in critic_grad:
+        for g, p in zip(grad, policy_net.critic.parameters()):
+            if g is not None:
+                p.grad = torch.from_numpy(g).to(device)
+        policy_net.critic_optimizer.step()
 
 
 if __name__ == "__main__":
-    num_workers = 1
+    num_workers = 2
     parameters = Parameters()
     evolver = utils_ne.SSNE(parameters)
 
