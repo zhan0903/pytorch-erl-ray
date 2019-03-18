@@ -131,19 +131,8 @@ class Worker(object):
         return avg_reward
 
     def train(self, actor_weights, critic_weights):
-        # print("into 0 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
         # self.set_weights(actor_weights, critic_weights)
         print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
-
-        # self.policy_debug.actor.load_state_dict(self.policy.actor.state_dict())
-        # self.policy_debug.critic.load_state_dict(self.policy.critic.state_dict())
-
-        # print("into 1 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
-        # print("into 1 self.policy_debug.actor,", self.policy_debug.actor.state_dict()["l3.bias"])
-
-        # grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
-        #                 for param in self.policy.critic.parameters()]
-        # print("grads_critic before,",grads_critic)
         done = False
         episode_timesteps = 0
         episode_reward = 0
@@ -287,7 +276,8 @@ if __name__ == "__main__":
         #     actor_weight = actors[0].state_dict()
         # else:
         #     actor_weight = None
-        train_id = [worker.train.remote(None, policy.critic.state_dict()) for worker, actor in zip(workers[:-1],actors)]
+        critic_id = ray.put(policy.critic.state_dict())
+        train_id = [worker.train.remote(None, critic_id) for worker, actor in zip(workers[:-1],actors)]
         results = ray.get(train_id)
         total_timesteps, grads_critic, all_fitness = process_results(results)
         apply_grads(policy, grads_critic)
