@@ -89,14 +89,14 @@ class Worker(object):
         self.episode_num = 0
         self.timesteps_since_eval = 0
 
-    def init_nets(self, actor_weight_init, critic_weight_init):
-        self.policy.critic.load_state_dict(critic_weight_init)
-        self.policy.critic_target.load_state_dict(self.policy.critic.state_dict())
-
-        self.policy.actor.load_state_dict(actor_weight_init)
-        self.policy.actor_target.load_state_dict(self.policy.actor.state_dict())
-
-        return 1
+    # def init_nets(self, actor_weight_init, critic_weight_init):
+    #     self.policy.critic.load_state_dict(critic_weight_init)
+    #     self.policy.critic_target.load_state_dict(self.policy.critic.state_dict())
+    #
+    #     self.policy.actor.load_state_dict(actor_weight_init)
+    #     self.policy.actor_target.load_state_dict(self.policy.actor.state_dict())
+    #
+    #     return 1
 
     def set_weights(self,actor_weights, critic_weights):
         if actor_weights is not None:
@@ -132,7 +132,7 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights):
         # print("into 0 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
-        self.set_weights(actor_weights, critic_weights)
+        # self.set_weights(actor_weights, critic_weights)
         print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
 
         # self.policy_debug.actor.load_state_dict(self.policy.actor.state_dict())
