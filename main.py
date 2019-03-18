@@ -8,6 +8,7 @@ from core import ddpg_new as ddpg
 import torch
 import utils
 import time
+from core import mod_neuro_evo as utils_ne
 
 
 
@@ -40,6 +41,8 @@ class Worker(object):
 
         self.policy.actor.load_state_dict(actor_weight_init)
         self.policy.actor_target.load_state_dict(self.policy.actor.state_dict())
+
+        return 1
 
     def set_weights(self,actor_weights, critic_weights):
         if actor_weights is not None:
@@ -208,8 +211,10 @@ if __name__ == "__main__":
     workers = [Worker.remote(args)
                for _ in range(num_workers+1)]
 
-    [worker.init_nets.remote(actor.state_dict(), g_critic.state_dict())
+    init_result_id = [worker.init_nets.remote(actor.state_dict(), g_critic.state_dict())
         for worker, actor in zip(workers[:-1], actors)]
+
+    print(ray.get(init_result_id))
 
     # evaluations = [ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict()))]
     total_timesteps = 0
@@ -227,13 +232,13 @@ if __name__ == "__main__":
             actor_weight = None
         train_id = [worker.train.remote(actor_weight,g_critic.state_dict()) for worker, actor in zip(workers[:-1], actors)]
         results = ray.get(train_id)
-        # print(results)
-        # exit(0)
         total_timesteps,grads_critic = process_results(results)
         apply_grads(g_critic,g_critic_optimizer, grads_critic)
         print(time.time()-time_start)
         debug = False
         print("after apply_grads self.policy.critic,", g_critic.state_dict()["l3.bias"])
+
+        elite_index = evolver.epoch(pops_new, avg_fitness)
         # exit(0)
     # Final evaluation
     # evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
