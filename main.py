@@ -211,7 +211,7 @@ def apply_grads(policy_net, critic_grad):
 
 
 if __name__ == "__main__":
-    num_workers = 2
+    num_workers = 1
     parameters = Parameters()
     evolver = utils_ne.SSNE(parameters)
 
