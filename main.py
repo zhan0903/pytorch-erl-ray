@@ -204,8 +204,8 @@ def apply_grads(g_critic_net, optimizer, critic_grad):
 
 if __name__ == "__main__":
     num_workers = 1
-    parameters = Parameters()
-    evolver = utils_ne.SSNE(parameters)
+    # parameters = Parameters()
+    # evolver = utils_ne.SSNE(parameters)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default="OurDDPG")
