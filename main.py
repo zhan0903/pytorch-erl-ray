@@ -27,7 +27,6 @@ class Worker(object):
         max_action = float(env.action_space.high[0])
 
         self.policy = ddpg.DDPG(state_dim, action_dim, max_action)
-        self.policy_debug = ddpg.DDPG(state_dim, action_dim, max_action)
         self.replay_buffer = utils.ReplayBuffer()
 
         self.args = args
@@ -35,7 +34,14 @@ class Worker(object):
         self.episode_num = 0
         self.timesteps_since_eval = 0
 
-    def set_weights(self,actor_weights,critic_weights):
+    def init_nets(self, actor_weight_init, critic_weight_init):
+        self.policy.critic.load_state_dict(critic_weight_init)
+        self.policy.critic_target.load_state_dict(self.policy.critic.state_dict())
+
+        self.policy.actor.load_state_dict(actor_weight_init)
+        self.policy.actor_target.load_state_dict(self.policy.actor.state_dict())
+
+    def set_weights(self,actor_weights, critic_weights):
         if actor_weights is not None:
             print("come here 1")
             self.policy.actor.load_state_dict(actor_weights)
@@ -187,13 +193,21 @@ if __name__ == "__main__":
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
 
-    policy = ddpg.DDPG(state_dim, action_dim, max_action)
+    # policy = ddpg.DDPG(state_dim, action_dim, max_action)
 
     ray.init(include_webui=False, ignore_reinit_error=True)
 
+    g_critic = ddpg.DDPG.critic(state_dim, action_dim, max_action)
+    actors = []
+
+    for _ in range(num_workers):
+        actors.append(ddpg.DDPG.actor(state_dim, action_dim, max_action))
 
     workers = [Worker.remote(args)
                for _ in range(num_workers+1)]
+
+    [worker.init_ddpg.remote(actor.state_dict(), g_critic.state_dict())
+        for worker, actor in zip(workers[:-1], actors)]
 
     # evaluations = [ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict()))]
     total_timesteps = 0
@@ -206,18 +220,18 @@ if __name__ == "__main__":
 
     while total_timesteps < args.max_timesteps:
         if debug:
-            actor_weight = policy.actor.state_dict()
+            actor_weight = actors[0].state_dict()
         else:
             actor_weight = None
-        train_id = [worker.train.remote(actor_weight,policy.critic.state_dict()) for worker in workers[:-1]]
+        train_id = [worker.train.remote(actor_weight,g_critic.state_dict()) for worker, actor in zip(workers[:-1], actors)]
         results = ray.get(train_id)
         # print(results)
         # exit(0)
         total_timesteps,grads_critic = process_results(results)
-        apply_grads(policy, grads_critic)
+        apply_grads(g_critic, grads_critic)
         print(time.time()-time_start)
         debug = False
-        print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
+        print("after apply_grads self.policy.critic,", g_critic.critic.state_dict()["l3.bias"])
         # exit(0)
     # Final evaluation
     # evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
