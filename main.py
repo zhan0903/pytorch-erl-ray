@@ -133,21 +133,22 @@ class Worker(object):
     def train(self, actor_weights, critic_weights):
         # self.set_weights(actor_weights, critic_weights)
         print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
-        done = False
+        done = True
         episode_timesteps = 0
         episode_reward = 0
         obs = self.env.reset()
         while True:
             if done:
-                self.episode_num += 1
+                # self.episode_num += 1
                 if self.total_timesteps != 0:
                     print("Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                 # Reset environment test on child process
                 obs = self.env.reset()
-                # done = False
+                done = False
                 episode_reward = 0
                 episode_timesteps = 0
+                self.episode_num += 1
                 # break
             # Select action randomly or according to policy
             if self.total_timesteps < args.start_timesteps:
