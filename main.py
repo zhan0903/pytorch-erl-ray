@@ -144,11 +144,11 @@ class Worker(object):
                     print("Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                 # Reset environment test on child process
-                # obs = self.env.reset()
+                obs = self.env.reset()
                 # done = False
-                # episode_reward = 0
-                # episode_timesteps = 0
-                break
+                episode_reward = 0
+                episode_timesteps = 0
+                # break
             # Select action randomly or according to policy
             if self.total_timesteps < args.start_timesteps:
                 action = self.env.action_space.sample()
