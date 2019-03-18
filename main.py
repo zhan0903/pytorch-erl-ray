@@ -54,6 +54,7 @@ class Parameters:
         # if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.elite_fraction = 0.3
         # elif env_tag == 'Reacher-v2' or env_tag == 'Walker2d-v2': self.elite_fraction = 0.2
         # else: self.elite_fraction = 0.1
+        self.elite_fraction = 0.1
 
         self.pop_size = 10
         self.crossover_prob = 0.0
