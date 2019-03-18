@@ -254,12 +254,12 @@ if __name__ == "__main__":
 
     ray.init(include_webui=False, ignore_reinit_error=True)
 
-    g_critic = ddpg.Critic(state_dim, action_dim).to(device)
+    g_critic = ddpg.Critic(state_dim, action_dim)
     g_critic_optimizer = torch.optim.Adam(g_critic.parameters())
 
     actors = []
     for _ in range(num_workers):
-        actors.append(ddpg.Actor(state_dim, action_dim, max_action).to(device))
+        actors.append(ddpg.Actor(state_dim, action_dim, max_action))
 
     workers = [Worker.remote(args)
                for _ in range(num_workers+1)]
