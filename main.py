@@ -165,8 +165,8 @@ class Worker(object):
                 action = self.env.action_space.sample()
             else:
                 action = self.policy.select_action(np.array(obs))
-                # if args.expl_noise != 0:
-                #     action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(self.env.action_space.low, self.env.action_space.high)
+                if args.expl_noise != 0:
+                    action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(self.env.action_space.low, self.env.action_space.high)
 
             # Perform action
             new_obs, reward, done, _ = self.env.step(action)
