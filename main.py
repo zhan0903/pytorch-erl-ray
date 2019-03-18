@@ -206,7 +206,7 @@ def apply_grads(g_critic_net, optimizer, critic_grad):
 
 
 if __name__ == "__main__":
-    num_workers = 6
+    num_workers = 10
     parameters = Parameters()
     evolver = utils_ne.SSNE(parameters)
 
