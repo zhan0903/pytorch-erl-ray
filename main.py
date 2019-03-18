@@ -130,7 +130,7 @@ class Worker(object):
     def train(self, actor_weights, critic_weights):
         # print("into 0 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
         self.set_weights(actor_weights, critic_weights)
-        print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
+        # print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
 
         # self.policy_debug.actor.load_state_dict(self.policy.actor.state_dict())
         # self.policy_debug.critic.load_state_dict(self.policy.critic.state_dict())
@@ -178,7 +178,7 @@ class Worker(object):
             self.total_timesteps += 1
             self.timesteps_since_eval += 1
 
-        print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
+        # print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
 
         return self.total_timesteps, self.policy.grads_critic, episode_reward
@@ -287,8 +287,8 @@ if __name__ == "__main__":
         total_timesteps,grads_critic,all_fitness = process_results(results)
         apply_grads(g_critic, g_critic_optimizer, grads_critic)
         print(time.time()-time_start)
-        debug = False
-        print("after apply_grads self.policy.critic,", g_critic.state_dict()["l3.bias"])
+        # debug = False
+        # print("after apply_grads self.policy.critic,", g_critic.state_dict()["l3.bias"])
 
         elite_index = evolver.epoch(actors, all_fitness)
         # exit(0)
