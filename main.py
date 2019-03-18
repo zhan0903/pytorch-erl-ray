@@ -23,17 +23,17 @@ class Parameters:
         self.learning_rate = 0.1
 
         #Number of Frames to Run
-        if env_tag == 'Hopper-v2': self.num_frames = 4000000
-        elif env_tag == 'Ant-v2': self.num_frames = 6000000
-        elif env_tag == 'Walker2d-v2': self.num_frames = 8000000
-        else: self.num_frames = 2000000
+        # if env_tag == 'Hopper-v2': self.num_frames = 4000000
+        # elif env_tag == 'Ant-v2': self.num_frames = 6000000
+        # elif env_tag == 'Walker2d-v2': self.num_frames = 8000000
+        # else: self.num_frames = 2000000
 
         #USE CUDA
         self.is_cuda = True; self.is_memory_cuda = True
 
         #Sunchronization Period
-        if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
-        else: self.synch_period = 10
+        # if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
+        # else: self.synch_period = 10
 
         #DDPG params
         self.use_ln = True  # True
@@ -46,14 +46,14 @@ class Parameters:
 
         ###### NeuroEvolution Params ########
         #Num of trials
-        if env_tag == 'Hopper-v2' or env_tag == 'Reacher-v2': self.num_evals = 5
-        elif env_tag == 'Walker2d-v2': self.num_evals = 3
-        else: self.num_evals = 1
+        # if env_tag == 'Hopper-v2' or env_tag == 'Reacher-v2': self.num_evals = 5
+        # elif env_tag == 'Walker2d-v2': self.num_evals = 3
+        # else: self.num_evals = 1
 
         #Elitism Rate
-        if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.elite_fraction = 0.3
-        elif env_tag == 'Reacher-v2' or env_tag == 'Walker2d-v2': self.elite_fraction = 0.2
-        else: self.elite_fraction = 0.1
+        # if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.elite_fraction = 0.3
+        # elif env_tag == 'Reacher-v2' or env_tag == 'Walker2d-v2': self.elite_fraction = 0.2
+        # else: self.elite_fraction = 0.1
 
         self.pop_size = 10
         self.crossover_prob = 0.0
