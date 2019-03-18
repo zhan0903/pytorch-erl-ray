@@ -180,16 +180,18 @@ class Worker(object):
         print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
 
-        return self.total_timesteps, self.policy.grads_critic
+        return self.total_timesteps, self.policy.grads_critic, episode_reward
 
 
-def process_results(results):
-    total_timesteps = []
-    grads_critic = []
-    for result in results:
-        grads_critic.append(result[1])
-        total_timesteps.append(result[0])
-    return sum(total_timesteps), grads_critic
+def process_results(r):
+    total_t = []
+    grads_c = []
+    all_f = []
+    for result in r:
+        all_f.append(result[2])
+        grads_c.append(result[1])
+        total_t.append(result[0])
+    return sum(total_t), grads_c, all_f
 
 
 def apply_grads(g_critic_net, optimizer, critic_grad):
@@ -203,9 +205,9 @@ def apply_grads(g_critic_net, optimizer, critic_grad):
 
 
 if __name__ == "__main__":
-    num_workers = 1
-    # parameters = Parameters()
-    # evolver = utils_ne.SSNE(parameters)
+    num_workers = 2
+    parameters = Parameters()
+    evolver = utils_ne.SSNE(parameters)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default="OurDDPG")
@@ -234,7 +236,6 @@ if __name__ == "__main__":
 
     if args.save_models and not os.path.exists("./pytorch_models"):
         os.makedirs("./pytorch_models")
-
 
     # Create Env
     env = gym.make(args.env_name)
@@ -281,15 +282,15 @@ if __name__ == "__main__":
             actor_weight = actors[0].state_dict()
         else:
             actor_weight = None
-        train_id = [worker.train.remote(actor_weight, g_critic.state_dict()) for worker in workers[:-1]]
+        train_id = [worker.train.remote(actor.state_dict(), g_critic.state_dict()) for worker,actor in zip(workers[:-1],actors)]
         results = ray.get(train_id)
-        total_timesteps,grads_critic = process_results(results)
+        total_timesteps,grads_critic,all_fitness = process_results(results)
         apply_grads(g_critic,g_critic_optimizer, grads_critic)
         print(time.time()-time_start)
         debug = False
         print("after apply_grads self.policy.critic,", g_critic.state_dict()["l3.bias"])
 
-        # elite_index = evolver.epoch(pops_new, avg_fitness)
+        elite_index = evolver.epoch(actors, all_fitness)
         # exit(0)
     # Final evaluation
     # evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
