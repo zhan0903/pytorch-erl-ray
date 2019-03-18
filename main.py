@@ -197,11 +197,11 @@ if __name__ == "__main__":
 
     ray.init(include_webui=False, ignore_reinit_error=True)
 
-    g_critic = ddpg.DDPG.critic(state_dim, action_dim, max_action)
+    g_critic = ddpg.DDPG.Critic(state_dim, action_dim, max_action).to(device)
     actors = []
 
     for _ in range(num_workers):
-        actors.append(ddpg.DDPG.actor(state_dim, action_dim, max_action))
+        actors.append(ddpg.DDPG.Actor(state_dim, action_dim, max_action)).to(device)
 
     workers = [Worker.remote(args)
                for _ in range(num_workers+1)]
