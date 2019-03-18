@@ -256,7 +256,7 @@ if __name__ == "__main__":
     policy = ddpg.DDPG(state_dim, action_dim, max_action)
     print("in main policy,", policy.critic.state_dict()["l3.bias"])
 
-    ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30000000)
+    ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30000000000)
 
     g_critic = ddpg.Critic(state_dim, action_dim)
     g_critic_optimizer = torch.optim.Adam(g_critic.parameters())
