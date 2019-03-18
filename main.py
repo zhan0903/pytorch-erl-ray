@@ -206,7 +206,7 @@ def apply_grads(g_critic_net, optimizer, critic_grad):
 
 
 if __name__ == "__main__":
-    num_workers = 2
+    num_workers = 10
     parameters = Parameters()
     evolver = utils_ne.SSNE(parameters)
 
@@ -258,7 +258,6 @@ if __name__ == "__main__":
     g_critic_optimizer = torch.optim.Adam(g_critic.parameters())
 
     actors = []
-
     for _ in range(num_workers):
         actors.append(ddpg.Actor(state_dim, action_dim, max_action).to(device))
 
@@ -279,14 +278,14 @@ if __name__ == "__main__":
     debug = True
 
     while total_timesteps < args.max_timesteps:
-        if debug:
-            actor_weight = actors[0].state_dict()
-        else:
-            actor_weight = None
+        # if debug:
+        #     actor_weight = actors[0].state_dict()
+        # else:
+        #     actor_weight = None
         train_id = [worker.train.remote(actor.state_dict(), g_critic.state_dict()) for worker,actor in zip(workers[:-1],actors)]
         results = ray.get(train_id)
         total_timesteps,grads_critic,all_fitness = process_results(results)
-        apply_grads(g_critic,g_critic_optimizer, grads_critic)
+        apply_grads(g_critic, g_critic_optimizer, grads_critic)
         print(time.time()-time_start)
         debug = False
         print("after apply_grads self.policy.critic,", g_critic.state_dict()["l3.bias"])
