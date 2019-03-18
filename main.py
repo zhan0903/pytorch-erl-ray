@@ -198,14 +198,14 @@ def process_results(r):
     return sum(total_t), grads_c, all_f
 
 
-def apply_grads(g_critic_net, optimizer, critic_grad):
-    optimizer.zero_grad()
+def apply_grads(policy_net, critic_grad):
+    policy_net.critic_optimizer.zero_grad()
     for worker_grad in critic_grad:
         for grad in worker_grad:
-            for g, p in zip(grad, g_critic_net.cuda().parameters()):
+            for g, p in zip(grad, policy_net.parameters()):
                 if g is not None:
                     p.grad = torch.from_numpy(g).to(device)
-            optimizer.step()
+            policy_net.critic_optimizer.step()
 
 
 if __name__ == "__main__":
@@ -256,7 +256,6 @@ if __name__ == "__main__":
     policy = ddpg.DDPG(state_dim, action_dim, max_action)
     print("in main policy,", policy.critic.state_dict()["l3.bias"])
 
-
     ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30000000)
 
     g_critic = ddpg.Critic(state_dim, action_dim)
@@ -288,19 +287,21 @@ if __name__ == "__main__":
         #     actor_weight = actors[0].state_dict()
         # else:
         #     actor_weight = None
-        train_id = [worker.train.remote(actor.cpu().state_dict(), g_critic.cpu().state_dict()) for worker, actor in zip(workers[:-1],actors)]
+        train_id = [worker.train.remote(actor.state_dict(), policy.critic.state_dict()) for worker, actor in zip(workers[:-1],actors)]
         results = ray.get(train_id)
         total_timesteps, grads_critic, all_fitness = process_results(results)
-        apply_grads(g_critic, g_critic_optimizer, grads_critic)
+        apply_grads(policy, grads_critic)
         print(time.time()-time_start)
         # debug = False
-        print("after apply_grads self.policy.critic,", g_critic.state_dict()["l3.bias"])
+        print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
         # elite_index = evolver.epoch(actors, all_fitness)
         # exit(0)
     # Final evaluation
     # evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
-    if args.save_models: policy.save("%s" % (file_name), directory="./pytorch_models")
-    np.save("./results/%s" % (file_name), evaluations)
+    # print("done")
+    # exit(0)
+    # if args.save_models: policy.save("%s" % (file_name), directory="./pytorch_models")
+    # np.save("./results/%s" % (file_name), evaluations)
 
 
 
