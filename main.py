@@ -197,7 +197,7 @@ if __name__ == "__main__":
 
     ray.init(include_webui=False, ignore_reinit_error=True)
 
-    g_critic = ddpg.Critic(state_dim, action_dim, max_action).to(device)
+    g_critic = ddpg.Critic(state_dim, action_dim).to(device)
     actors = []
 
     for _ in range(num_workers):
