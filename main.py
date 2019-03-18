@@ -74,11 +74,14 @@ class Worker(object):
         self.env.seed(args.seed)
         torch.manual_seed(args.seed)
         np.random.seed(args.seed)
-        state_dim = env.observation_space.shape[0]
-        action_dim = env.action_space.shape[0]
+
+        state_dim = self.env.observation_space.shape[0]
+        action_dim = self.env.action_space.shape[0]
         max_action = float(env.action_space.high[0])
 
         self.policy = ddpg.DDPG(state_dim, action_dim, max_action)
+        print("in worker init g_critic,", g_critic.state_dict()["l3.bias"])
+
         self.replay_buffer = utils.ReplayBuffer()
 
         self.args = args
@@ -130,7 +133,7 @@ class Worker(object):
     def train(self, actor_weights, critic_weights):
         # print("into 0 self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
         self.set_weights(actor_weights, critic_weights)
-        # print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
+        print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
 
         # self.policy_debug.actor.load_state_dict(self.policy.actor.state_dict())
         # self.policy_debug.critic.load_state_dict(self.policy.critic.state_dict())
@@ -162,8 +165,8 @@ class Worker(object):
                 action = self.env.action_space.sample()
             else:
                 action = self.policy.select_action(np.array(obs))
-                if args.expl_noise != 0:
-                    action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(self.env.action_space.low, self.env.action_space.high)
+                # if args.expl_noise != 0:
+                #     action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(self.env.action_space.low, self.env.action_space.high)
 
             # Perform action
             new_obs, reward, done, _ = self.env.step(action)
@@ -178,7 +181,7 @@ class Worker(object):
             self.total_timesteps += 1
             self.timesteps_since_eval += 1
 
-        # print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
+        print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
 
         return self.total_timesteps, self.policy.grads_critic, episode_reward
@@ -206,7 +209,7 @@ def apply_grads(g_critic_net, optimizer, critic_grad):
 
 
 if __name__ == "__main__":
-    num_workers = 10
+    num_workers = 1
     parameters = Parameters()
     evolver = utils_ne.SSNE(parameters)
 
@@ -252,10 +255,11 @@ if __name__ == "__main__":
 
     # policy = ddpg.DDPG(state_dim, action_dim, max_action)
 
-    ray.init(include_webui=False, ignore_reinit_error=True)
+    ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30)
 
     g_critic = ddpg.Critic(state_dim, action_dim)
     g_critic_optimizer = torch.optim.Adam(g_critic.parameters())
+    print("in main g_critic,", g_critic.state_dict()["l3.bias"])
 
     actors = []
     for _ in range(num_workers):
@@ -282,15 +286,14 @@ if __name__ == "__main__":
         #     actor_weight = actors[0].state_dict()
         # else:
         #     actor_weight = None
-        train_id = [worker.train.remote(actor.cpu().state_dict(), g_critic.cpu().state_dict()) for worker,actor in zip(workers[:-1],actors)]
+        train_id = [worker.train.remote(actor.cpu().state_dict(), g_critic.cpu().state_dict()) for worker, actor in zip(workers[:-1],actors)]
         results = ray.get(train_id)
-        total_timesteps,grads_critic,all_fitness = process_results(results)
+        total_timesteps, grads_critic, all_fitness = process_results(results)
         apply_grads(g_critic, g_critic_optimizer, grads_critic)
         print(time.time()-time_start)
         # debug = False
-        # print("after apply_grads self.policy.critic,", g_critic.state_dict()["l3.bias"])
-
-        elite_index = evolver.epoch(actors, all_fitness)
+        print("after apply_grads self.policy.critic,", g_critic.state_dict()["l3.bias"])
+        # elite_index = evolver.epoch(actors, all_fitness)
         # exit(0)
     # Final evaluation
     # evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
