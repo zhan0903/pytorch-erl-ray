@@ -253,7 +253,9 @@ if __name__ == "__main__":
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
 
-    # policy = ddpg.DDPG(state_dim, action_dim, max_action)
+    policy = ddpg.DDPG(state_dim, action_dim, max_action)
+    print("in main policy,", policy.critic.state_dict()["l3.bias"])
+
 
     ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30000000)
 
