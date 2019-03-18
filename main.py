@@ -255,7 +255,7 @@ if __name__ == "__main__":
 
     # policy = ddpg.DDPG(state_dim, action_dim, max_action)
 
-    ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30)
+    ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30GB)
 
     g_critic = ddpg.Critic(state_dim, action_dim)
     g_critic_optimizer = torch.optim.Adam(g_critic.parameters())
