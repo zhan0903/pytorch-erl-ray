@@ -233,7 +233,7 @@ if __name__ == "__main__":
         apply_grads(g_critic,g_critic_optimizer, grads_critic)
         print(time.time()-time_start)
         debug = False
-        print("after apply_grads self.policy.critic,", g_critic.critic.state_dict()["l3.bias"])
+        print("after apply_grads self.policy.critic,", g_critic.state_dict()["l3.bias"])
         # exit(0)
     # Final evaluation
     # evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
