@@ -54,7 +54,7 @@ class DDPG(object):
         self.critic = Critic(state_dim, action_dim).to(device)
         self.critic_target = Critic(state_dim, action_dim).to(device)
         self.critic_target.load_state_dict(self.critic.state_dict())
-        self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
+        self.critic_optimizer = torch.optim.SGD(self.critic.parameters())
 
         self.grads_critic = []
         self.grads_actor = []
@@ -67,18 +67,16 @@ class DDPG(object):
         grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
                         for param in self.critic.parameters()]
 
-        grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
-                       for param in self.actor.parameters()]
+        # grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
+        #                for param in self.actor.parameters()]
 
-        if self.grads_critic is None and self.grads_actor is None:
-            self.grads_actor = grads_actor/3
-            self.grads_critic = grads_critic/3
+        if self.grads_critic is None:
+            self.grads_critic = grads_critic
         else:
             for t_grad, grad in zip(self.grads_critic, grads_critic):
-                t_grad += grad/3
-
-            for t_grad, grad in zip(self.grads_actor, grads_actor):
-                t_grad += grad/3
+                t_grad += grad
+            # for t_grad, grad in zip(self.grads_actor, grads_actor):
+            #     t_grad += grad
 
     def append_grads(self):
         # grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
@@ -124,7 +122,8 @@ class DDPG(object):
             critic_loss.backward()
             self.critic_optimizer.step()
 
-            self.append_grads()
+            # self.append_grads()
+            self.sum_grads()
 
             # Compute actor loss
             actor_loss = -self.critic(state, self.actor(state)).mean()
