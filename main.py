@@ -62,7 +62,7 @@ class Parameters:
         #Save Results
         self.state_dim = None; self.action_dim = None #Simply instantiate them here, will be initialized later
         # self.save_foldername = 'test3-debug/%s/' % env_tag
-        if not os.path.exists(self.save_foldername): os.makedirs(self.save_foldername)
+        # if not os.path.exists(self.save_foldername): os.makedirs(self.save_foldername)
 
 
 @ray.remote(num_gpus=0.1)
