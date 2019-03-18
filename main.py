@@ -191,7 +191,7 @@ def process_results(r):
 
 
 def apply_grads(policy_net, critic_grad):
-    critic_grad = np.sum(critic_grad,axis=0)/num_workers
+    critic_grad = np.sum(critic_grad, axis=0)/num_workers
 
     # policy_net.critic_optimizer.zero_grad()
     # for worker_grad in critic_grad:

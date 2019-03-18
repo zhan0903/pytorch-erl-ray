@@ -57,7 +57,7 @@ class DDPG(object):
         self.critic_optimizer = torch.optim.SGD(self.critic.parameters(),lr=0.01)
 
         self.grads_critic = []
-        self.grads_actor = []
+        # self.grads_actor = []
 
     def select_action(self, state):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
@@ -70,7 +70,8 @@ class DDPG(object):
         # grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
         #                for param in self.actor.parameters()]
 
-        if self.grads_critic is None:
+        if self.grads_critic is []:
+            print("come here")
             self.grads_critic = grads_critic
         else:
             for t_grad, grad in zip(self.grads_critic, grads_critic):
