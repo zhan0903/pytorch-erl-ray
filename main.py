@@ -202,7 +202,7 @@ def apply_grads(policy_net, critic_grad):
     policy_net.critic_optimizer.zero_grad()
     for worker_grad in critic_grad:
         for grad in worker_grad:
-            for g, p in zip(grad, policy_net.parameters()):
+            for g, p in zip(grad, policy_net.critic.parameters()):
                 if g is not None:
                     p.grad = torch.from_numpy(g).to(device)
             policy_net.critic_optimizer.step()
@@ -258,9 +258,9 @@ if __name__ == "__main__":
 
     ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30000000000)
 
-    g_critic = ddpg.Critic(state_dim, action_dim)
-    g_critic_optimizer = torch.optim.Adam(g_critic.parameters())
-    print("in main g_critic,", g_critic.state_dict()["l3.bias"])
+    # g_critic = ddpg.Critic(state_dim, action_dim)
+    # g_critic_optimizer = torch.optim.Adam(g_critic.parameters())
+    # print("in main g_critic,", g_critic.state_dict()["l3.bias"])
 
     actors = []
     for _ in range(num_workers):
