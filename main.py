@@ -136,7 +136,7 @@ class Worker(object):
         done = True
         episode_timesteps = 0
         episode_reward = 0
-        obs = self.env.reset()
+        # obs = self.env.reset()
         while True:
             if done:
                 # self.episode_num += 1
