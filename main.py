@@ -50,7 +50,7 @@ class Worker(object):
 
     # Runs policy for X episodes and returns average reward
     def evaluate_policy(self, actor_weights, critic_weights, eval_episodes=10):
-        self.set_weights(actor_weights,critic_weights)
+        # self.set_weights(actor_weights,critic_weights)
         avg_reward = 0.
         for _ in range(eval_episodes):
             obs = self.env.reset()
@@ -190,6 +190,8 @@ if __name__ == "__main__":
     policy = ddpg.DDPG(state_dim, action_dim, max_action)
 
     ray.init(include_webui=False, ignore_reinit_error=True)
+
+
     workers = [Worker.remote(args)
                for _ in range(num_workers+1)]
 
@@ -218,7 +220,7 @@ if __name__ == "__main__":
         print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
         # exit(0)
     # Final evaluation
-    evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
+    # evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
     if args.save_models: policy.save("%s" % (file_name), directory="./pytorch_models")
     np.save("./results/%s" % (file_name), evaluations)
 
