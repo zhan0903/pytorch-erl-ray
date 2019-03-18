@@ -139,14 +139,14 @@ def process_results(results):
     return sum(total_timesteps), grads_critic
 
 
-def apply_grads(net, critic_grad):
-    net.critic_optimizer.zero_grad()
+def apply_grads(g_critic_net, optimizer, critic_grad):
+    optimizer.zero_grad()
     for worker_grad in critic_grad:
         for grad in worker_grad:
-            for g, p in zip(grad, net.critic.parameters()):
+            for g, p in zip(grad, g_critic_net.parameters()):
                 if g is not None:
                     p.grad = torch.from_numpy(g).to(device)
-            net.critic_optimizer.step()
+            optimizer.step()
 
 
 if __name__ == "__main__":
@@ -198,6 +198,8 @@ if __name__ == "__main__":
     ray.init(include_webui=False, ignore_reinit_error=True)
 
     g_critic = ddpg.Critic(state_dim, action_dim).to(device)
+    g_critic_optimizer = torch.optim.Adam(g_critic.parameters())
+
     actors = []
 
     for _ in range(num_workers):
@@ -228,7 +230,7 @@ if __name__ == "__main__":
         # print(results)
         # exit(0)
         total_timesteps,grads_critic = process_results(results)
-        apply_grads(g_critic, grads_critic)
+        apply_grads(g_critic,g_critic_optimizer, grads_critic)
         print(time.time()-time_start)
         debug = False
         print("after apply_grads self.policy.critic,", g_critic.critic.state_dict()["l3.bias"])
