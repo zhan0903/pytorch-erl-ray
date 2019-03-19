@@ -52,6 +52,7 @@ class PERL(object):
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
     def evolve(self):
+        pass
 
 
     def apply_grads(self, grads):
