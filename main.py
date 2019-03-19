@@ -175,7 +175,7 @@ class Worker(object):
             self.timesteps_since_eval += 1
 
         print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
-        print("grads_critic,",self.policy.grads_critic)
+        # print("grads_critic,",self.policy.grads_critic)
 
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
         return self.total_timesteps, self.policy.grads_critic, episode_reward
@@ -193,8 +193,9 @@ def process_results(r):
 
 
 def apply_grads(policy_net, critic_grad):
+    print("critic_grad len,",len(critic_grad))
     critic_grad = np.sum(critic_grad, axis=0)/num_workers
-    print(critic_grad)
+    print(critic_grad[0][0])
 
     # policy_net.critic_optimizer.zero_grad()
     # for worker_grad in critic_grad:
