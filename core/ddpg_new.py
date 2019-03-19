@@ -69,8 +69,7 @@ class DDPG(object):
         # self.critic_optimizer = torch.optim.SGD(self.critic.parameters(), lr=0.001, momentum=0.8)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
-
-        self.grads_critic = None # []
+        self.grads_critic = [] # []
         # self.grads_actor = []
 
     def select_action(self, state):
@@ -110,7 +109,7 @@ class DDPG(object):
         self.grads_critic.append(grads_critic)
 
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005):
-        self.grads_critic = None
+        self.grads_critic = []
 
         for it in range(iterations):
 
@@ -138,8 +137,8 @@ class DDPG(object):
             nn.utils.clip_grad_norm_(self.critic.parameters(), 10)
             self.critic_optimizer.step()
 
-            # self.append_grads()
-            self.sum_grads()
+            self.append_grads()
+            # self.sum_grads()
 
             # Compute actor loss
             actor_loss = -self.critic(state, self.actor(state)).mean()
