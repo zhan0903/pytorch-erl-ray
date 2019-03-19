@@ -230,7 +230,7 @@ def apply_grads(policy_net, critic_grad_input):
 
 
 if __name__ == "__main__":
-    num_workers = 1
+    num_workers = 2
     parameters = Parameters()
     evolver = utils_ne.SSNE(parameters)
 
@@ -309,14 +309,14 @@ if __name__ == "__main__":
         # else:
         #     actor_weight = None
         critic_id = ray.put(policy.critic.state_dict())
-        train_id = [worker.train.remote(None, critic_id) for worker, actor in zip(workers[:-1],actors)]
+        train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers[:-1],actors)]
         results = ray.get(train_id)
         total_timesteps, grads_critic, all_fitness = process_results(results)
         apply_grads(policy, grads_critic)
         print(time.time()-time_start)
         # debug = False
         print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
-        # elite_index = evolver.epoch(actors, all_fitness)
+        elite_index = evolver.epoch(actors, all_fitness)
         # exit(0)
     # Final evaluation
     # evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
