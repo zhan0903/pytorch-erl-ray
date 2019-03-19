@@ -68,9 +68,10 @@ class Parameters:
 
 @ray.remote(num_gpus=0.2)
 class Worker(object):
-    def __init__(self, args):
+    def __init__(self, args, id):
         # self.env = utils.NormalizedActions(gym.make(env_tag))
         self.env = gym.make(args.env_name)
+        self.id = id
         self.env.seed(args.seed)
         torch.manual_seed(args.seed)
         np.random.seed(args.seed)
@@ -103,6 +104,7 @@ class Worker(object):
             # print("come here 1")
             self.policy.actor.load_state_dict(actor_weights)
         self.policy.critic.load_state_dict(critic_weights)
+        self.policy.critic.zero_grad()
 
         for param, target_param in zip(self.policy.critic.parameters(), self.policy.critic_target.parameters()):
             target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
@@ -178,18 +180,20 @@ class Worker(object):
         # print("grads_critic,",self.policy.grads_critic)
 
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
-        return self.total_timesteps, self.policy.grads_critic, episode_reward
+        return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id
 
 
 def process_results(r):
     total_t = []
     grads_c = []
     all_f = []
+    all_id = []
     for result in r:
+        all_id.append(result[3])
         all_f.append(result[2])
         grads_c.append(result[1])
         total_t.append(result[0])
-    return sum(total_t), grads_c, all_f
+    return sum(total_t), grads_c, all_f,all_id
 
 
 def apply_grads(policy_net, critic_grad_input):
@@ -287,8 +291,8 @@ if __name__ == "__main__":
     for _ in range(num_workers):
         actors.append(ddpg.Actor(state_dim, action_dim, max_action))
 
-    workers = [Worker.remote(args)
-               for _ in range(num_workers+1)]
+    workers = [Worker.remote(args, i)
+               for i in range(num_workers+1)]
 
     # init_result_id = [worker.init_nets.remote(actor.state_dict(), g_critic.state_dict()) for worker, actor in zip(workers[:-1], actors)]
     #
@@ -311,10 +315,11 @@ if __name__ == "__main__":
         critic_id = ray.put(policy.critic.state_dict())
         train_id = [worker.train.remote(actor.state_dict(), critic_id) for worker, actor in zip(workers[:-1],actors)]
         results = ray.get(train_id)
-        total_timesteps, grads_critic, all_fitness = process_results(results)
+        total_timesteps, grads_critic, all_fitness,all_id = process_results(results)
         apply_grads(policy, grads_critic)
         print(time.time()-time_start)
         print("max value,", max(all_fitness))
+        print("ids,",all_id)
         # debug = False
         # print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
         elite_index = evolver.epoch(actors, all_fitness)
