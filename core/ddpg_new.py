@@ -121,6 +121,7 @@ class DDPG(object):
             # Optimize the critic
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
+            nn.utils.clip_grad_norm(self.critic.parameters(), 10)
             self.critic_optimizer.step()
 
             # self.append_grads()
