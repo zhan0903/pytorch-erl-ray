@@ -135,6 +135,7 @@ class SSNE:
             else:
                 unselects.append(i)
         random.shuffle(unselects)
+        print("in epoch, unselects,",unselects)
 
         #COMPUTE RL_SELECTION RATE
         if self.rl_policy != None: #RL Transfer happened
