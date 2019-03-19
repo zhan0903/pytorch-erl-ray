@@ -133,7 +133,7 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
-        print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
+        # print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
         done = False
         episode_timesteps = 0
         episode_reward = 0
@@ -174,7 +174,7 @@ class Worker(object):
             self.total_timesteps += 1
             self.timesteps_since_eval += 1
 
-        print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
+        # print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
         # print("grads_critic,",self.policy.grads_critic)
 
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
@@ -316,7 +316,7 @@ if __name__ == "__main__":
         print(time.time()-time_start)
         print("max value,", max(all_fitness))
         # debug = False
-        print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
+        # print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
         elite_index = evolver.epoch(actors, all_fitness)
         # exit(0)
     # Final evaluation
