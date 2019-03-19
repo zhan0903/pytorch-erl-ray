@@ -234,7 +234,7 @@ def apply_grads(policy_net, critic_grad_input):
         for g, p in zip(grad, policy_net.critic.parameters()):
             if g is not None:
                 p.grad = torch.from_numpy(g).to(device)
-            policy_net.critic_optimizer.step()
+        policy_net.critic_optimizer.step()
 
     # for g, p in zip(critic_grad, policy_net.critic.parameters()):
     #     if g is not None:

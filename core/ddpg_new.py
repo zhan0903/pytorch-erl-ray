@@ -48,7 +48,9 @@ class PERL(object):
     def __init__(self, state_dim, action_dim, max_action, num_workers):
         self.actors = [Actor(state_dim, action_dim, max_action) for _ in range(num_workers)]
         self.critic = Critic(state_dim, action_dim).to(device)
-        self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
+        # self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
+        self.critic_optimizer = torch.optim.SGD(self.critic.parameters(), lr=0.001)
+
 
     def evolve(self):
         pass
@@ -62,13 +64,20 @@ class PERL(object):
         print(grads[0][-1][-1])
 
         self.critic_optimizer.zero_grad()
-        for grad in critic_grad:
-            self.critic_optimizer.zero_grad()
-            for g, p in zip(grad, self.critic.parameters()):
-                if g is not None:
-                    p.grad = torch.from_numpy(g).to(device)
-            self.critic_optimizer.step()
+        for g, p in zip(critic_grad, self.critic.parameters()):
+            if g is not None:
+                p.grad = torch.from_numpy(g).to(device)
+        self.critic_optimizer.step()
 
+
+
+        # for grad in critic_grad:
+        #     self.critic_optimizer.zero_grad()
+        #     for g, p in zip(grad, self.critic.parameters()):
+        #         if g is not None:
+        #             p.grad = torch.from_numpy(g).to(device)
+        #     self.critic_optimizer.step()
+        #
 
 class DDPG(object):
     def __init__(self, state_dim, action_dim, max_action):
@@ -97,14 +106,11 @@ class DDPG(object):
         # grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
         #                for param in self.actor.parameters()]
 
-        if self.grads_critic is None:
-            # print("come here")
+        if self.grads_critic:
             self.grads_critic = grads_critic
         else:
             for t_grad, grad in zip(self.grads_critic, grads_critic):
                 t_grad += grad
-            # for t_grad, grad in zip(self.grads_actor, grads_actor):
-            #     t_grad += grad
 
     def append_grads(self):
         # grads_critic = [param.grad.data.cpu().numpy() if param.grad is not None else None
@@ -151,8 +157,8 @@ class DDPG(object):
             # nn.utils.clip_grad_norm_(self.critic.parameters(), 10)
             self.critic_optimizer.step()
 
-            self.append_grads()
-            # self.sum_grads()
+            # self.append_grads()
+            self.sum_grads()
 
             # Compute actor loss
             actor_loss = -self.critic(state, self.actor(state)).mean()
