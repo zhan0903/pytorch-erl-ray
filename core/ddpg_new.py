@@ -63,6 +63,8 @@ class PERL(object):
         # print(critic_grad[-1][-1])
         # print(grads[0][-1][-1])
 
+        print(grads)
+
         print(critic_grad[-1])
         print(grads[0][-1])
 
