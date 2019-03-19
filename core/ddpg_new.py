@@ -48,12 +48,26 @@ class PERL(object):
     def __init__(self, state_dim, action_dim, max_action, num_workers):
         self.actors = [Actor(state_dim, action_dim, max_action) for _ in range(num_workers)]
         self.critic = Critic(state_dim, action_dim).to(device)
+        self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
     def evolve(self):
         pass
 
     def apply_grads(self,grads):
-        pass
+        self.critic_optimizer.zero_grad()
+        # for worker_grad in critic_grad:
+        critic_grad = np.sum(grads, axis=0)
+
+        print(critic_grad[-1][-1])
+        print(grads[0][-1][-1])
+
+        self.critic_optimizer.zero_grad()
+        for grad in critic_grad:
+            self.critic_optimizer.zero_grad()
+            for g, p in zip(grad, self.critic.parameters()):
+                if g is not None:
+                    p.grad = torch.from_numpy(g).to(device)
+                self.critic_optimizer.step()
 
 
 class DDPG(object):

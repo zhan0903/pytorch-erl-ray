@@ -287,8 +287,10 @@ if __name__ == "__main__":
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
 
-    policy = ddpg.DDPG(state_dim, action_dim, max_action)
-    print("in main policy,", policy.critic.state_dict()["l3.bias"])
+    # policy = ddpg.DDPG(state_dim, action_dim, max_action)
+    agent = ddpg.PERL(state_dim, action_dim, max_action,num_workers)
+
+    print("in main policy,", agent.critic.state_dict()["l3.bias"])
 
     ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30000000000)
 
@@ -296,9 +298,9 @@ if __name__ == "__main__":
     # g_critic_optimizer = torch.optim.Adam(g_critic.parameters())
     # print("in main g_critic,", g_critic.state_dict()["l3.bias"])
 
-    actors = []
-    for _ in range(num_workers):
-        actors.append(ddpg.Actor(state_dim, action_dim, max_action))
+    # actors = []
+    # for _ in range(num_workers):
+    #     actors.append(ddpg.Actor(state_dim, action_dim, max_action))
 
     workers = [Worker.remote(args, i)
                for i in range(num_workers+1)]
@@ -322,17 +324,17 @@ if __name__ == "__main__":
         #     actor_weight = actors[0].state_dict()
         # else:
         #     actor_weight = None
-        critic_id = ray.put(policy.critic.state_dict())
-        train_id = [worker.train.remote(None, critic_id) for worker, actor in zip(workers[:-1],actors)] # actor.state_dict()
+        critic_id = ray.put(agent.critic.state_dict())
+        train_id = [worker.train.remote(None, critic_id) for worker, actor in zip(workers[:-1], agent.actors)] # actor.state_dict()
         results = ray.get(train_id)
         total_timesteps, grads_critic, all_fitness, all_id = process_results(results)
-        apply_grads(policy, grads_critic)
+        agent.apply_grads(grads_critic)
         print(time.time()-time_start)
         print("max value,", max(all_fitness))
         print("ids,",all_id)
         episode += 1
         # debug = False
-        print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
+        print("after apply_grads self.policy.critic,", agent.critic.state_dict()["l3.bias"])
         # if episode // 3 == 0:
         #     elite_index = evolver.epoch(actors, all_fitness)
         #     print("elite_index,",elite_index)
