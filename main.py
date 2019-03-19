@@ -234,7 +234,7 @@ def apply_grads(policy_net, critic_grad_input):
 
 
 if __name__ == "__main__":
-    num_workers = 10
+    num_workers = 1
     parameters = Parameters()
     evolver = utils_ne.SSNE(parameters)
 
@@ -306,6 +306,7 @@ if __name__ == "__main__":
     done = True
     time_start = time.time()
     debug = True
+    episode = 0
 
     while total_timesteps < args.max_timesteps:
         # if debug:
@@ -313,17 +314,21 @@ if __name__ == "__main__":
         # else:
         #     actor_weight = None
         critic_id = ray.put(policy.critic.state_dict())
-        train_id = [worker.train.remote(actor.state_dict(), critic_id) for worker, actor in zip(workers[:-1],actors)]
+        train_id = [worker.train.remote(None, critic_id) for worker, actor in zip(workers[:-1],actors)] # actor.state_dict()
         results = ray.get(train_id)
-        total_timesteps, grads_critic, all_fitness,all_id = process_results(results)
+        total_timesteps, grads_critic, all_fitness, all_id = process_results(results)
         apply_grads(policy, grads_critic)
         print(time.time()-time_start)
         print("max value,", max(all_fitness))
         print("ids,",all_id)
+        episode += 1
         # debug = False
         # print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
-        elite_index = evolver.epoch(actors, all_fitness)
-        print("elite_index,",elite_index)
+        # if episode // 3 == 0:
+        #     elite_index = evolver.epoch(actors, all_fitness)
+        #     print("elite_index,",elite_index)
+        # else:
+
         # exit(0)
     # Final evaluation
     # evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
