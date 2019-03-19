@@ -141,7 +141,7 @@ class Worker(object):
         episode_reward = 0
         obs = self.env.reset()
 
-        pop_reward = self.evaluate_policy(self.actor)
+        # pop_reward = self.evaluate_policy(self.actor)
 
         while True:
             if done:
