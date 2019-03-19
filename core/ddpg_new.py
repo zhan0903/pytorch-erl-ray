@@ -97,7 +97,7 @@ class DDPG(object):
         # self.critic_optimizer = torch.optim.SGD(self.critic.parameters(), lr=0.001, momentum=0.8)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
-        self.grads_critic = [] # []
+        self.grads_critic = None #[] # []
         # self.grads_actor = []
 
     def select_action(self, state):
@@ -111,7 +111,7 @@ class DDPG(object):
         # grads_actor = [param.grad.data.cpu().numpy() if param.grad is not None else None
         #                for param in self.actor.parameters()]
 
-        if self.grads_critic:
+        if self.grads_critic is None:
             self.grads_critic = grads_critic
         else:
             for t_grad, grad in zip(self.grads_critic, grads_critic):
@@ -134,7 +134,7 @@ class DDPG(object):
         self.grads_critic.append(grads_critic)
 
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005):
-        self.grads_critic = []
+        self.grads_critic = None # []
 
         for it in range(iterations):
 
