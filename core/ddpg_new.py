@@ -43,6 +43,14 @@ class Critic(nn.Module):
         x = self.l3(x)
         return x
 
+class PERL(object):
+    def __init__(self, state_dim, action_dim, max_action, num_workers):
+        self.actors = [Actor(state_dim, action_dim, max_action) for _ in range(num_workers)]
+
+        self.critic = Critic(state_dim, action_dim).to(device)
+
+
+
 
 class DDPG(object):
     def __init__(self, state_dim, action_dim, max_action):
