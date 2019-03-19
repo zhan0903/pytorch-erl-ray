@@ -194,7 +194,7 @@ def process_results(r):
 
 def apply_grads(policy_net, critic_grad_input):
     # print("before,", critic_grad_input[0][0])
-    # # print("critic_grad len,",len(critic_grad))
+    print("critic_grad len,",len(critic_grad_input))
     critic_grad = np.sum(critic_grad_input, axis=0)/num_workers
 
 
@@ -230,7 +230,7 @@ def apply_grads(policy_net, critic_grad_input):
 
 
 if __name__ == "__main__":
-    num_workers = 2
+    num_workers = 10
     parameters = Parameters()
     evolver = utils_ne.SSNE(parameters)
 
