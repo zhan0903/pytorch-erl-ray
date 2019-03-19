@@ -198,8 +198,8 @@ def apply_grads(policy_net, critic_grad):
     critic_grad = np.sum(critic_grad, axis=0)
     print("after,",critic_grad[0][0])
 
-    for t_grad, grad in zip(self.grads_critic, grads_critic):
-        t_grad += grad
+    # for t_grad, grad in zip(self.grads_critic, grads_critic):
+    #     t_grad += grad
 
 
 
