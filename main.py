@@ -196,6 +196,9 @@ def apply_grads(policy_net, critic_grad_input):
     # print("before,", critic_grad_input[0][0])
     # # print("critic_grad len,",len(critic_grad))
     critic_grad = np.sum(critic_grad_input, axis=0)/num_workers
+
+
+    print(critic_grad[0])
     # # print("after,",critic_grad[0][0])
     # if len(critic_grad_input) == 1:
     #     critic_grad = critic_grad_input[0]
