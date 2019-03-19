@@ -291,6 +291,8 @@ if __name__ == "__main__":
         print("actor 0,",agent.actors[0].state_dict()["l3.bias"])
         print("actor 1,", agent.actors[1].state_dict()["l3.bias"])
         print("actor 2,", agent.actors[2].state_dict()["l3.bias"])
+        print("actor 3,", agent.actors[3].state_dict()["l3.bias"])
+        print("actor 4,", agent.actors[4].state_dict()["l3.bias"])
         #     print("elite_index,",elite_index)
         # else:
 
