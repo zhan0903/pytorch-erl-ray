@@ -279,7 +279,7 @@ if __name__ == "__main__":
         # else:
         #     actor_weight = None
         critic_id = ray.put(agent.critic.state_dict())
-        train_id = [worker.train.remote(actor.state_dict(), critic_id) for worker, actor in zip(workers[:-1], agent.actors)] # actor.state_dict()
+        train_id = [worker.train.remote(actor.cpu().state_dict(), critic_id) for worker, actor in zip(workers[:-1], agent.actors)] # actor.state_dict()
         results = ray.get(train_id)
         total_timesteps, grads_critic, all_fitness, all_id = process_results(results)
         agent.apply_grads(grads_critic)
