@@ -122,6 +122,8 @@ class SSNE:
         index_rank = self.list_argsort(fitness_evals); index_rank.reverse()
         elitist_index = index_rank[:self.num_elitists]  # Elitist indexes safeguard
 
+        print("in epoch, elitis_index,", elitist_index)
+
         # Selection step
         offsprings = self.selection_tournament(index_rank, num_offsprings=len(index_rank) - self.num_elitists,
                                                tournament_size=3)
