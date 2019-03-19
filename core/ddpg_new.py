@@ -53,7 +53,7 @@ class PERL(object):
     def evolve(self):
         pass
 
-    def apply_grads(self,grads):
+    def apply_grads(self, grads):
         self.critic_optimizer.zero_grad()
         # for worker_grad in critic_grad:
         critic_grad = np.sum(grads, axis=0)
@@ -67,7 +67,7 @@ class PERL(object):
             for g, p in zip(grad, self.critic.parameters()):
                 if g is not None:
                     p.grad = torch.from_numpy(g).to(device)
-                self.critic_optimizer.step()
+            self.critic_optimizer.step()
 
 
 class DDPG(object):
