@@ -197,7 +197,7 @@ def process_results(r):
 
 
 if __name__ == "__main__":
-    num_workers = 1
+    num_workers = 10
     parameters = Parameters()
     evolver = utils_ne.SSNE(parameters)
 
