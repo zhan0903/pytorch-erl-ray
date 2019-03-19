@@ -195,7 +195,7 @@ def process_results(r):
 def apply_grads(policy_net, critic_grad_input):
     # print("before,", critic_grad_input[0][0])
     print("critic_grad len,",len(critic_grad_input))
-    critic_grad = np.sum(critic_grad_input, axis=0)/num_workers
+    critic_grad = np.sum(critic_grad_input, axis=0)
 
 
     print(critic_grad[-1])
@@ -314,6 +314,7 @@ if __name__ == "__main__":
         total_timesteps, grads_critic, all_fitness = process_results(results)
         apply_grads(policy, grads_critic)
         print(time.time()-time_start)
+        print("max value,", max(all_fitness))
         # debug = False
         print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
         elite_index = evolver.epoch(actors, all_fitness)

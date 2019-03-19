@@ -46,8 +46,15 @@ class Critic(nn.Module):
 class PERL(object):
     def __init__(self, state_dim, action_dim, max_action, num_workers):
         self.actors = [Actor(state_dim, action_dim, max_action) for _ in range(num_workers)]
-
         self.critic = Critic(state_dim, action_dim).to(device)
+
+    def evolve(self):
+        pass
+
+    def apply_grads(self,grads):
+        pass
+
+
 
 
 
