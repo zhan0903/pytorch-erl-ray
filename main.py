@@ -290,7 +290,7 @@ if __name__ == "__main__":
         # debug = False
         print("after apply_grads self.policy.critic,", agent.critic.state_dict()["l3.bias"])
         # if episode // 3 == 0:
-        elite_index = agent.evolver.epoch(agent.actors, all_fitness)
+        elite_index = evolver.epoch(agent.actors, all_fitness)
         #     print("elite_index,",elite_index)
         # else:
 
