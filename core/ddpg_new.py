@@ -45,9 +45,9 @@ class Critic(nn.Module):
 
 
 class PERL(object):
-    def __init__(self, state_dim, action_dim, max_action, num_workers):
-        self.num_workers = num_workers
-        self.actors = [Actor(state_dim, action_dim, max_action) for _ in range(num_workers)]
+    def __init__(self, state_dim, action_dim, max_action, pop_size):
+        self.pop_size = pop_size
+        self.actors = [Actor(state_dim, action_dim, max_action) for _ in range(pop_size)]
         self.critic = Critic(state_dim, action_dim).to(device)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
@@ -58,7 +58,7 @@ class PERL(object):
     def apply_grads(self, grads):
         self.critic_optimizer.zero_grad()
         # for worker_grad in critic_grad:
-        critic_grad = np.sum(grads, axis=0)/self.num_workers
+        critic_grad = np.sum(grads, axis=0)/self.pop_size
 
         print(critic_grad[-1][-1])
         print(grads[0][-1][-1])

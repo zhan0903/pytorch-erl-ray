@@ -54,11 +54,8 @@ class Parameters:
         # if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.elite_fraction = 0.3
         # elif env_tag == 'Reacher-v2' or env_tag == 'Walker2d-v2': self.elite_fraction = 0.2
         # else: self.elite_fraction = 0.1
-        self.elite_fraction = 0.1
 
-        self.pop_size = 10
-        self.crossover_prob = 0.0
-        self.mutation_prob = 0.9
+
 
         #Save Results
         self.state_dim = None; self.action_dim = None #Simply instantiate them here, will be initialized later
@@ -197,9 +194,9 @@ def process_results(r):
 
 
 if __name__ == "__main__":
-    num_workers = 3
-    parameters = Parameters()
-    evolver = utils_ne.SSNE(parameters)
+    # num_workers = 3
+    # parameters = Parameters()
+    # evolver = utils_ne.SSNE(parameters)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default="OurDDPG")
@@ -216,8 +213,15 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     parser.add_argument("--save_models", action="store_true")
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
+    parser.add_argument("--pop_size", default=3, type=int)
+    parser.add_argument("--crossover_prob", default=0.0, type=float)
+    parser.add_argument("--mutation_prob", default=0.9, type=float)
+    parser.add_argument("--elite_fraction", default=0.1, type=float)
 
     args = parser.parse_args()
+
+    evolver = utils_ne.SSNE(args)
+
 
     file_name = "%s_%s_%s" % (args.policy_name, args.env_name, str(args.seed))
     print("---------------------------------------")
@@ -242,26 +246,14 @@ if __name__ == "__main__":
     max_action = float(env.action_space.high[0])
 
     # policy = ddpg.DDPG(state_dim, action_dim, max_action)
-    agent = ddpg.PERL(state_dim, action_dim, max_action,num_workers)
+    agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
 
     print("in main policy,", agent.critic.state_dict()["l3.bias"])
 
     ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30000000000)
 
-    # g_critic = ddpg.Critic(state_dim, action_dim)
-    # g_critic_optimizer = torch.optim.Adam(g_critic.parameters())
-    # print("in main g_critic,", g_critic.state_dict()["l3.bias"])
-
-    # actors = []
-    # for _ in range(num_workers):
-    #     actors.append(ddpg.Actor(state_dim, action_dim, max_action))
-
     workers = [Worker.remote(args, i)
-               for i in range(num_workers+1)]
-
-    # init_result_id = [worker.init_nets.remote(actor.state_dict(), g_critic.state_dict()) for worker, actor in zip(workers[:-1], actors)]
-    #
-    # print(ray.get(init_result_id))
+               for i in range(args.pop_size+1)]
 
     # evaluations = [ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict()))]
     total_timesteps = 0

@@ -9,7 +9,7 @@ class SSNE:
     def __init__(self, args):
         self.current_gen = 0
         self.args = args
-        self.population_size = self.args.pop_size;
+        self.population_size = self.args.pop_size
         self.num_elitists = int(self.args.elite_fraction * args.pop_size)
         if self.num_elitists < 1: self.num_elitists = 1
 
