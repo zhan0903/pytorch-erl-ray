@@ -135,7 +135,7 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
-        # print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
+        print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
         done = False
         episode_timesteps = 0
         episode_reward = 0
