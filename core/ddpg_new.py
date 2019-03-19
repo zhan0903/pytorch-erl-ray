@@ -54,7 +54,7 @@ class DDPG(object):
         self.critic = Critic(state_dim, action_dim).to(device)
         self.critic_target = Critic(state_dim, action_dim).to(device)
         self.critic_target.load_state_dict(self.critic.state_dict())
-        self.critic_optimizer = torch.optim.SGD(self.critic.parameters(),lr=0.01)
+        self.critic_optimizer = torch.optim.SGD(self.critic.parameters(), lr=0.01, momentum=0.9)
 
         self.grads_critic = None # []
         # self.grads_actor = []
