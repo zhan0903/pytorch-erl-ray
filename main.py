@@ -111,32 +111,37 @@ class Worker(object):
             for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
                 target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
-    # # Runs policy for X episodes and returns average reward
-    # def evaluate_policy(self, actor_weights, critic_weights, eval_episodes=10):
-    #     # self.set_weights(actor_weights,critic_weights)
-    #     avg_reward = 0.
-    #     for _ in range(eval_episodes):
-    #         obs = self.env.reset()
-    #         done = False
-    #         while not done:
-    #             action = self.policy.select_action(np.array(obs))
-    #             obs, reward, done, _ = self.env.step(action)
-    #             avg_reward += reward
-    #
-    #     avg_reward /= eval_episodes
-    #
-    #     print("---------------------------------------")
-    #     print("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
-    #     print("---------------------------------------")
-    #     return avg_reward
+    # Runs policy for X episodes and returns average reward
+    def evaluate_policy(self, actor_weights, critic_weights, eval_episodes=10):
+        # self.set_weights(actor_weights,critic_weights)
+        avg_reward = 0.
+        for _ in range(eval_episodes):
+            obs = self.env.reset()
+            done = False
+            while not done:
+                action = self.policy.select_action(np.array(obs))
+                obs, reward, done, _ = self.env.step(action)
+                avg_reward += reward
+
+        avg_reward /= eval_episodes
+
+        print("---------------------------------------")
+        print("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
+        print("---------------------------------------")
+        return avg_reward
 
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
         print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
+        print("set_weight self.policy.critic,", self.policy.actor.state_dict()["l3.bias"])
+
+
         done = False
         episode_timesteps = 0
         episode_reward = 0
         obs = self.env.reset()
+
+        pop_reward = self.evaluate_policy(self.actor)
 
         while True:
             if done:
@@ -271,7 +276,7 @@ if __name__ == "__main__":
         # else:
         #     actor_weight = None
         critic_id = ray.put(agent.critic.state_dict())
-        train_id = [worker.train.remote(actor.cpu().state_dict(), critic_id) for worker, actor in zip(workers[:-1], agent.actors)] # actor.state_dict()
+        train_id = [worker.train.remote(actor.state_dict(), critic_id) for worker, actor in zip(workers[:-1], agent.actors)] # actor.state_dict()
         results = ray.get(train_id)
         total_timesteps, grads_critic, all_fitness, all_id = process_results(results)
         agent.apply_grads(grads_critic)
@@ -283,6 +288,9 @@ if __name__ == "__main__":
         print("after apply_grads self.policy.critic,", agent.critic.state_dict()["l3.bias"])
         # if episode // 3 == 0:
         elite_index = evolver.epoch(agent.actors, all_fitness)
+        print("actor 0,",agent.actors[0].state_dict()["l3.bias"])
+        print("actor 1,", agent.actors[1].state_dict()["l3.bias"])
+        print("actor 2,", agent.actors[2].state_dict()["l3.bias"])
         #     print("elite_index,",elite_index)
         # else:
 
