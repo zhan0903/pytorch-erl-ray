@@ -48,9 +48,7 @@ class PERL(object):
     def __init__(self, state_dim, action_dim, max_action, num_workers):
         self.actors = [Actor(state_dim, action_dim, max_action) for _ in range(num_workers)]
         self.critic = Critic(state_dim, action_dim).to(device)
-        # self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
-        self.critic_optimizer = torch.optim.SGD(self.critic.parameters(), lr=0.001)
-
+        self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
     def evolve(self):
         pass
@@ -60,29 +58,16 @@ class PERL(object):
         # for worker_grad in critic_grad:
         critic_grad = np.sum(grads, axis=0)
 
-        # print(critic_grad[-1][-1])
-        # print(grads[0][-1][-1])
+        print(critic_grad[-1][-1])
+        print(grads[0][-1][-1])
 
-        # print(grads)
+        for grad in critic_grad:
+            self.critic_optimizer.zero_grad()
+            for g, p in zip(grad, self.critic.parameters()):
+                if g is not None:
+                    p.grad = torch.from_numpy(g).to(device)
+            self.critic_optimizer.step()
 
-        print(critic_grad[-1])
-        print(grads[0][-1])
-
-        self.critic_optimizer.zero_grad()
-        for g, p in zip(critic_grad, self.critic.parameters()):
-            if g is not None:
-                p.grad = torch.from_numpy(g).to(device)
-        self.critic_optimizer.step()
-
-
-
-        # for grad in critic_grad:
-        #     self.critic_optimizer.zero_grad()
-        #     for g, p in zip(grad, self.critic.parameters()):
-        #         if g is not None:
-        #             p.grad = torch.from_numpy(g).to(device)
-        #     self.critic_optimizer.step()
-        #
 
 class DDPG(object):
     def __init__(self, state_dim, action_dim, max_action):
@@ -97,7 +82,7 @@ class DDPG(object):
         # self.critic_optimizer = torch.optim.SGD(self.critic.parameters(), lr=0.001, momentum=0.8)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
-        self.grads_critic = None #[] # []
+        self.grads_critic = [] #[] # []
         # self.grads_actor = []
 
     def select_action(self, state):
@@ -134,7 +119,7 @@ class DDPG(object):
         self.grads_critic.append(grads_critic)
 
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005):
-        self.grads_critic = None # []
+        self.grads_critic = [] # []
 
         for it in range(iterations):
 
@@ -162,8 +147,7 @@ class DDPG(object):
             # nn.utils.clip_grad_norm_(self.critic.parameters(), 10)
             self.critic_optimizer.step()
 
-            # self.append_grads()
-            self.sum_grads()
+            self.append_grads()
 
             # Compute actor loss
             actor_loss = -self.critic(state, self.actor(state)).mean()
