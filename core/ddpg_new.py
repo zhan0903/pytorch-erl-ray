@@ -89,7 +89,7 @@ class DDPG(object):
         self.actor = Actor(state_dim, action_dim, max_action).to(device)
         self.actor_target = Actor(state_dim, action_dim, max_action).to(device)
         self.actor_target.load_state_dict(self.actor.state_dict())
-        self.actor_optimizer = torch.optim.SGD(self.critic.parameters(), lr=0.001)
+        self.actor_optimizer = torch.optim.SGD(self.actor.parameters(), lr=0.001)
 
         self.critic = Critic(state_dim, action_dim).to(device)
         self.critic_target = Critic(state_dim, action_dim).to(device)
