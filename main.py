@@ -176,7 +176,7 @@ class Worker(object):
             self.total_timesteps += 1
             self.timesteps_since_eval += 1
 
-        # print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
+        print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
         # print("grads_critic,",self.policy.grads_critic)
 
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
@@ -323,7 +323,7 @@ if __name__ == "__main__":
         print("ids,",all_id)
         episode += 1
         # debug = False
-        # print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
+        print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
         # if episode // 3 == 0:
         #     elite_index = evolver.epoch(actors, all_fitness)
         #     print("elite_index,",elite_index)
