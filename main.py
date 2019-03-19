@@ -198,8 +198,8 @@ def apply_grads(policy_net, critic_grad_input):
     critic_grad = np.sum(critic_grad_input, axis=0)/num_workers
 
 
-    print(critic_grad[0])
-    print(critic_grad_input[0][0])
+    print(critic_grad[-1])
+    print(critic_grad_input[0][-1])
 
     # # print("after,",critic_grad[0][0])
     # if len(critic_grad_input) == 1:
@@ -223,7 +223,7 @@ def apply_grads(policy_net, critic_grad_input):
     policy_net.critic_optimizer.zero_grad()
     # for worker_grad in critic_grad:
     # for grad in critic_grad_input:
-    for g, p in zip(critic_grad_input[0], policy_net.critic.parameters()):
+    for g, p in zip(critic_grad, policy_net.critic.parameters()):
         if g is not None:
             p.grad = torch.from_numpy(g).to(device)
         policy_net.critic_optimizer.step()
