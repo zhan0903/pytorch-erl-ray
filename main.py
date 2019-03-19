@@ -104,7 +104,7 @@ class Worker(object):
             # print("come here 1")
             self.policy.actor.load_state_dict(actor_weights)
         self.policy.critic.load_state_dict(critic_weights)
-        self.policy.critic.zero_grad()
+        # self.policy.critic.zero_grad()
 
         for param, target_param in zip(self.policy.critic.parameters(), self.policy.critic_target.parameters()):
             target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
@@ -180,7 +180,7 @@ class Worker(object):
         # print("grads_critic,",self.policy.grads_critic)
 
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
-        return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id
+        return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id,
 
 
 def process_results(r):
@@ -323,6 +323,7 @@ if __name__ == "__main__":
         # debug = False
         # print("after apply_grads self.policy.critic,", policy.critic.state_dict()["l3.bias"])
         elite_index = evolver.epoch(actors, all_fitness)
+        print("elite_index,",elite_index)
         # exit(0)
     # Final evaluation
     # evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
