@@ -133,7 +133,7 @@ class Worker(object):
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
         print("set_weight self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
-        print("set_weight self.policy.critic,", self.policy.actor.state_dict()["l3.bias"])
+        print("set_weight self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
 
 
         done = False
@@ -179,7 +179,7 @@ class Worker(object):
             self.timesteps_since_eval += 1
 
         print("before self.policy.critic,", self.policy.critic.state_dict()["l3.bias"])
-        # print("grads_critic,",self.policy.grads_critic)
+        print("before self.policy.actor,", self.policy.actor.state_dict()["l3.bias"])
 
         # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
         return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id,
