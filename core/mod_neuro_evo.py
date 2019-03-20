@@ -103,7 +103,7 @@ class SSNE:
                         elif random_num < reset_prob:  # Reset probability
                             W[ind_dim1, ind_dim2] = random.gauss(0, 1)
                         else:  # mutauion even normal
-                            W[ind_dim1, ind_dim2] += random.gauss(0, mut_strength *W[ind_dim1, ind_dim2])
+                            W[ind_dim1, ind_dim2] += random.gauss(0, mut_strength * W[ind_dim1, ind_dim2])
 
                         # Regularization hard limit
                         W[ind_dim1, ind_dim2] = self.regularize_weight(W[ind_dim1, ind_dim2], 1000000)
@@ -159,12 +159,12 @@ class SSNE:
 
         print("offsprings,new_elitists,", offsprings, new_elitists)
 
-        for i, j in zip(unselects[0::2], unselects[1::2]):
-            off_i = random.choice(elitist_index) ## change frome new_elitists to elitist_index ##
-            off_j = random.choice(offsprings)
-            self.clone(master=pop[off_i], replacee=pop[i])
-            self.clone(master=pop[off_j], replacee=pop[j])
-            self.crossover_inplace(pop[i], pop[j])
+        # for i, j in zip(unselects[0::2], unselects[1::2]):
+        #     off_i = random.choice(elitist_index) ## change frome new_elitists to elitist_index ##
+        #     off_j = random.choice(offsprings)
+        #     self.clone(master=pop[off_i], replacee=pop[i])
+        #     self.clone(master=pop[off_j], replacee=pop[j])
+        #     self.crossover_inplace(pop[i], pop[j])
 
         print("offsprings,new_elitists,", offsprings, new_elitists)
 
