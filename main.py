@@ -82,7 +82,7 @@ class Worker(object):
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
         # print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
-        # print("set_weight self.policy.actor,id", self.policy.actor.state_dict()["l3.bias"],self.id)
+        print("set_weight self.policy.actor,id", self.policy.actor.state_dict()["l3.bias"],self.id)
 
 
         done = False
@@ -233,6 +233,7 @@ if __name__ == "__main__":
     evolve = True
     actors = [actor.state_dict() for actor in agent.actors]
     # actors = agent.actors
+    average = None
 
     while total_timesteps < args.max_timesteps:
         # if debug:
@@ -246,14 +247,17 @@ if __name__ == "__main__":
         agent.apply_grads(grads_critic)
         print(time.time()-time_start)
         print("max value,", max(all_fitness))
-        print("max value index,",all_fitness.index(max(all_fitness)))
+        average = sum(all_fitness)/args.pop_size
+        print("average value,", average)
+        print("max value index,", all_fitness.index(max(all_fitness)))
         print("ids,", all_id)
         episode += 1
         # debug = False
         # print("after apply_grads self.policy.critic,", agent.critic.state_dict()["l3.bias"])
         # if episode // 3 == 0:
-        if all(v is None for v in new_pop) and episode >= 3:
-            episode %= 3
+        if all(v is None for v in new_pop) and episode >= 5:
+            # if sum(all_fitness)/args.pop_size
+            episode %= 5
             evolve = True
         else:
             evolve = False
