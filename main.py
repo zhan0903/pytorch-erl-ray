@@ -64,7 +64,7 @@ class Worker(object):
                 target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
     # Runs policy for X episodes and returns average reward
-    def evaluate_policy(self, eval_episodes=1):
+    def evaluate_policy(self, eval_episodes=3):
         # self.set_weights(actor_weights,critic_weights)
         avg_reward = 0.
         for _ in range(eval_episodes):
@@ -84,7 +84,7 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
-        print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
+        # print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
         print("set_weight self.policy.actor,id", self.policy.actor.state_dict()["l3.bias"],self.id)
 
 
@@ -103,7 +103,7 @@ class Worker(object):
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     pop_reward_after = self.evaluate_policy()
 
-                    print("before self.policy.critic,id,", self.policy.critic.state_dict()["l3.bias"], self.id)
+                    # print("before self.policy.critic,id,", self.policy.critic.state_dict()["l3.bias"], self.id)
                     print("before self.policy.actor,id,", self.policy.actor.state_dict()["l3.bias"], self.id)
 
                     if pop_reward_after > episode_reward:
@@ -117,15 +117,16 @@ class Worker(object):
                 # episode_reward = 0
                 # episode_timesteps = 0
                 # self.episode_num += 1
-                break
-            # Select action randomly or according to policy
-            if self.total_timesteps < args.start_timesteps:
-                action = self.env.action_space.sample()
-            else:
-                action = self.policy.select_action(np.array(obs))
-                if args.expl_noise != 0:
-                    action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(self.env.action_space.low, self.env.action_space.high)
 
+            # Select action randomly or according to policy
+            action = self.policy.select_action(np.array(obs))
+
+            # if self.total_timesteps < args.start_timesteps:
+            #     action = self.env.action_space.sample()
+            # else:
+            #     action = self.policy.select_action(np.array(obs))
+            #     if args.expl_noise != 0:
+            #         action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(self.env.action_space.low, self.env.action_space.high)
             # Perform action
             new_obs, reward, done, _ = self.env.step(action)
             done_bool = 0 if episode_timesteps + 1 == self.env._max_episode_steps else float(done)
@@ -248,7 +249,7 @@ if __name__ == "__main__":
         print("ids,",all_id)
         episode += 1
         # debug = False
-        print("after apply_grads self.policy.critic,", agent.critic.state_dict()["l3.bias"])
+        # print("after apply_grads self.policy.critic,", agent.critic.state_dict()["l3.bias"])
         # if episode // 3 == 0:
         for actor, pop in zip(agent.actors, new_pop):
             if pop is not None:
@@ -259,6 +260,7 @@ if __name__ == "__main__":
         print("before evolve actor 2,", agent.actors[2].state_dict()["l3.bias"])
         print("before evolve actor 3,", agent.actors[3].state_dict()["l3.bias"])
         print("before evolve actor 4,", agent.actors[4].state_dict()["l3.bias"])
+
         elite_index = evolver.epoch(agent.actors, all_fitness)
         print("actor 0,",agent.actors[0].state_dict()["l3.bias"])
         print("actor 1,", agent.actors[1].state_dict()["l3.bias"])

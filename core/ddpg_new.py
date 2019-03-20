@@ -54,7 +54,6 @@ class PERL(object):
     def evolve(self):
         pass
 
-
     def apply_grads(self, grads):
         self.critic_optimizer.zero_grad()
         # for worker_grad in critic_grad:
