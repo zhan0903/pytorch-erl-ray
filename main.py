@@ -258,11 +258,11 @@ if __name__ == "__main__":
             evolve = False
 
         if evolve:
-            print("before evolve actor 0,", agent.actors[0].state_dict()["l3.weight"][1][:5])
-            print("before evolve actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
-            print("before evolve actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
-            print("before evolve actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
-            print("before evolve actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
+            print("before evolve actor 0,", agent.actors[0]["l3.weight"][1][:5])
+            print("before evolve actor 1,", agent.actors[1]["l3.weight"][1][:5])
+            print("before evolve actor 2,", agent.actors[2]["l3.weight"][1][:5])
+            print("before evolve actor 3,", agent.actors[3]["l3.weight"][1][:5])
+            print("before evolve actor 4,", agent.actors[4]["l3.weight"][1][:5])
 
         if evolve:
             evolver.epoch(agent.actors, all_fitness)
@@ -271,11 +271,11 @@ if __name__ == "__main__":
             actors = [None for _ in range(args.pop_size)]
 
         if evolve:
-            print("actor 0,", agent.actors[0].state_dict()["l3.weight"][1][:5])
-            print("actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
-            print("actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
-            print("actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
-            print("actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
+            print("actor 0,", agent.actors[0]["l3.weight"][1][:5])
+            print("actor 1,", agent.actors[1]["l3.weight"][1][:5])
+            print("actor 2,", agent.actors[2]["l3.weight"][1][:5])
+            print("actor 3,", agent.actors[3]["l3.weight"][1][:5])
+            print("actor 4,", agent.actors[4]["l3.weight"][1][:5])
         #     print("elite_index,",elite_index)
         # else:
 
