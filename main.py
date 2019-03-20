@@ -112,7 +112,7 @@ class Worker(object):
                 target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
     # Runs policy for X episodes and returns average reward
-    def evaluate_policy(self, actor_weights, critic_weights, eval_episodes=10):
+    def evaluate_policy(self, eval_episodes=1):
         # self.set_weights(actor_weights,critic_weights)
         avg_reward = 0.
         for _ in range(eval_episodes):
@@ -126,7 +126,7 @@ class Worker(object):
         avg_reward /= eval_episodes
 
         print("---------------------------------------")
-        print("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
+        print("Evaluation over after gradient %f" % avg_reward)
         print("---------------------------------------")
         return avg_reward
 
@@ -149,6 +149,15 @@ class Worker(object):
                 if self.total_timesteps != 0:
                     print("ID: %d Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
+                    pop_reward_after = self.evaluate_policy()
+
+                    print("before self.policy.critic,id,", self.policy.critic.state_dict()["l3.bias"], self.id)
+                    print("before self.policy.actor,id,", self.policy.actor.state_dict()["l3.bias"], self.id)
+
+                    if pop_reward_after > episode_reward:
+                        return self.total_timesteps, self.policy.grads_critic, pop_reward_after, self.id, self.policy.actor.state_dict()
+                    else:
+                        return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id, None
 
                 # Reset environment test on child process
                 # obs = self.env.reset()
@@ -178,11 +187,11 @@ class Worker(object):
             self.total_timesteps += 1
             self.timesteps_since_eval += 1
 
-        print("before self.policy.critic,id,", self.policy.critic.state_dict()["l3.bias"],self.id)
-        print("before self.policy.actor,id,", self.policy.actor.state_dict()["l3.bias"],self.id)
-
-        # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
-        return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id,
+        # print("before self.policy.critic,id,", self.policy.critic.state_dict()["l3.bias"],self.id)
+        # print("before self.policy.actor,id,", self.policy.actor.state_dict()["l3.bias"],self.id)
+        #
+        # # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
+        # return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id,
 
 
 def process_results(r):
@@ -190,12 +199,14 @@ def process_results(r):
     grads_c = []
     all_f = []
     all_id = []
+    new_pop = []
     for result in r:
+        new_pop.append(result[4])
         all_id.append(result[3])
         all_f.append(result[2])
         grads_c.append(result[1])
         total_t.append(result[0])
-    return sum(total_t), grads_c, all_f,all_id
+    return sum(total_t), grads_c, all_f,all_id, new_pop
 
 
 if __name__ == "__main__":
@@ -278,7 +289,7 @@ if __name__ == "__main__":
         critic_id = ray.put(agent.critic.state_dict())
         train_id = [worker.train.remote(actor.state_dict(), critic_id) for worker, actor in zip(workers[:-1], agent.actors)] # actor.state_dict()
         results = ray.get(train_id)
-        total_timesteps, grads_critic, all_fitness, all_id = process_results(results)
+        total_timesteps, grads_critic, all_fitness, all_id, new_pop = process_results(results)
         agent.apply_grads(grads_critic)
         print(time.time()-time_start)
         print("max value,", max(all_fitness))
@@ -287,6 +298,10 @@ if __name__ == "__main__":
         # debug = False
         print("after apply_grads self.policy.critic,", agent.critic.state_dict()["l3.bias"])
         # if episode // 3 == 0:
+        for actor, pop in zip(agent.actors, new_pop):
+            if pop is not None:
+                actor.load_state_dict(pop)
+
         elite_index = evolver.epoch(agent.actors, all_fitness)
         print("actor 0,",agent.actors[0].state_dict()["l3.bias"])
         print("actor 1,", agent.actors[1].state_dict()["l3.bias"])
