@@ -93,6 +93,7 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
+        logger_main.info("test!!!")
         # print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
         logger_worker.debug("set_weight self.policy.actor:{0},id:{1}".format(self.policy.actor.state_dict()["l3.bias"],self.id))
         done = False
