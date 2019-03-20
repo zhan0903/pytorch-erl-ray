@@ -30,7 +30,7 @@ class Worker(object):
         max_action = float(env.action_space.high[0])
 
         self.policy = ddpg.DDPG(state_dim, action_dim, max_action)
-        print("in worker init critic,", self.policy.critic.state_dict()["l3.bias"])
+        # print("in worker init critic,", self.policy.critic.state_dict()["l3.bias"])
 
         self.replay_buffer = utils.ReplayBuffer()
 
@@ -254,6 +254,11 @@ if __name__ == "__main__":
             if pop is not None:
                 actor.load_state_dict(pop)
 
+        print("before evolve actor 0,", agent.actors[0].state_dict()["l3.bias"])
+        print("before evolve actor 1,", agent.actors[1].state_dict()["l3.bias"])
+        print("before evolve actor 2,", agent.actors[2].state_dict()["l3.bias"])
+        print("before evolve actor 3,", agent.actors[3].state_dict()["l3.bias"])
+        print("before evolve actor 4,", agent.actors[4].state_dict()["l3.bias"])
         elite_index = evolver.epoch(agent.actors, all_fitness)
         print("actor 0,",agent.actors[0].state_dict()["l3.bias"])
         print("actor 1,", agent.actors[1].state_dict()["l3.bias"])
