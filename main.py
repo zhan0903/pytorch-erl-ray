@@ -15,7 +15,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename='./output.log',
+                    filename='./bebug/output_5_sequential.log',
                     filemode='w')
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
