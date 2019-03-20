@@ -146,16 +146,17 @@ class SSNE:
             elif self.rl_policy in unselects: self.selection_stats['discarded'] += 1.0
             self.rl_policy = None
 
-        # Elitism step, assigning elite candidates to some unselects
-        for i in elitist_index:
-            try: replacee = unselects.pop(0)
-            except: replacee = offsprings.pop(0)
-            new_elitists.append(replacee)
-            self.clone(master=pop[i], replacee=pop[replacee])
+        # # Elitism step, assigning elite candidates to some unselects
+        # for i in elitist_index:
+        #     try: replacee = unselects.pop(0)
+        #     except: replacee = offsprings.pop(0)
+        #     new_elitists.append(replacee)
+        #     self.clone(master=pop[i], replacee=pop[replacee])
 
         # Crossover for unselected genes with 100 percent probability
         if len(unselects) % 2 != 0:  # Number of unselects left should be even
             unselects.append(unselects[fastrand.pcg32bounded(len(unselects))])
+
         for i, j in zip(unselects[0::2], unselects[1::2]):
             off_i = random.choice(new_elitists);
             off_j = random.choice(offsprings)
