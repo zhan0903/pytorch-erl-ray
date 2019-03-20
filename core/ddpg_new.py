@@ -61,12 +61,12 @@ class PERL(object):
     def apply_grads(self, grads):
         self.critic_optimizer.zero_grad()
         # for worker_grad in critic_grad:
-        critic_grad = np.sum(grads, axis=0)/self.pop_size
+        critic_grad = np.sum(grads, axis=0)
 
         print(critic_grad[-1][-1])
         print(grads[0][-1][-1])
 
-        # for pop_grad in grads:
+        # for pop_grad inn grads:
 
         for grad in critic_grad:
             self.critic_optimizer.zero_grad()

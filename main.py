@@ -179,7 +179,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     parser.add_argument("--save_models", action="store_true")
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
-    parser.add_argument("--pop_size", default=5, type=int)
+    parser.add_argument("--pop_size", default=6, type=int)
     parser.add_argument("--crossover_prob", default=0.0, type=float)
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)
@@ -252,11 +252,10 @@ if __name__ == "__main__":
         # debug = False
         # print("after apply_grads self.policy.critic,", agent.critic.state_dict()["l3.bias"])
         # if episode // 3 == 0:
-        if all(v is None for v in new_pop):
+        if all(v is None for v in new_pop) and episode >= 3:
+            episode %= 3
             evolve = True
         else:
-            # for actor, pop in zip(agent.actors, new_pop):
-            #     actor.load_state_dict(pop)
             evolve = False
 
         if evolve:
