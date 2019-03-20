@@ -89,13 +89,13 @@ class SSNE:
             if len(W.shape) == 2: #Weights, no bias
 
                 num_weights = W.shape[0]*W.shape[1]
-                print("num_weights,", num_weights)
+                print("all num_weights,", num_weights)
                 ssne_prob = ssne_probabilities[i]
 
                 if random.random() < ssne_prob:
                     print("before Mutation,weight,", model_params["l3.weight"][1][:10])
                     num_mutations = fastrand.pcg32bounded(int(math.ceil(num_mutation_frac * num_weights)))  # Number of mutation instances
-                    print("num_muations,", num_mutations)
+                    print("num_muations for mutation,", num_mutations)
                     for _ in range(num_mutations):
                         ind_dim1 = fastrand.pcg32bounded(W.shape[0])
                         ind_dim2 = fastrand.pcg32bounded(W.shape[-1])
