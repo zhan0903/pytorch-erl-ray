@@ -157,8 +157,10 @@ class SSNE:
         if len(unselects) % 2 != 0:  # Number of unselects left should be even
             unselects.append(unselects[fastrand.pcg32bounded(len(unselects))])
 
+        print("offsprings,new_elitists,", offsprings, new_elitists)
+
         for i, j in zip(unselects[0::2], unselects[1::2]):
-            off_i = random.choice(new_elitists);
+            off_i = random.choice(elitist_index) ## change frome new_elitists to elitist_index ##
             off_j = random.choice(offsprings)
             self.clone(master=pop[off_i], replacee=pop[i])
             self.clone(master=pop[off_j], replacee=pop[j])
@@ -172,10 +174,10 @@ class SSNE:
 
         # Mutate all genes in the population except the new elitists
         for i in range(self.population_size):
-            if i not in new_elitists:  # Spare the new elitists
+            if i not in elitist_index:  # Spare the new elitists
                 if random.random() < self.args.mutation_prob: self.mutate_inplace(pop[i])
 
-        return new_elitists[0]
+        return elitist_index[0]
 
 
 def unsqueeze(array, axis=1):
