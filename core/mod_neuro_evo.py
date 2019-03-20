@@ -71,7 +71,7 @@ class SSNE:
 
     def mutate_inplace(self, gene):
         mut_strength = 0.1
-        num_mutation_frac = 0.1
+        num_mutation_frac = 0.2
         super_mut_strength = 10
         super_mut_prob = 0.05
         reset_prob = super_mut_prob + 0.05
@@ -89,19 +89,18 @@ class SSNE:
             if len(W.shape) == 2: #Weights, no bias
 
                 num_weights = W.shape[0]*W.shape[1]
-                print("all num_weights,", num_weights)
+                # print("all num_weights,", num_weights)
                 ssne_prob = ssne_probabilities[i]
-
                 if random.random() < ssne_prob:
                     # print("before Mutation,weight,", model_params["l3.weight"][1][:10])
                     num_mutations = fastrand.pcg32bounded(int(math.ceil(num_mutation_frac * num_weights)))  # Number of mutation instances
-                    print("num_muations for mutation,", num_mutations)
+                    # print("num_muations for mutation,", num_mutations)
                     for _ in range(num_mutations):
                         ind_dim1 = fastrand.pcg32bounded(W.shape[0])
                         ind_dim2 = fastrand.pcg32bounded(W.shape[-1])
                         random_num = random.random()
-                        if key == 'l3.weight':
-                            print("before Mutation,weight,", model_params["l3.weight"][ind_dim1, ind_dim2])
+                        # if key == 'l3.weight':
+                            # print("before Mutation,weight,", model_params["l3.weight"][ind_dim1, ind_dim2])
 
                             # print('before l3.weight,',W[ind_dim1, ind_dim2])
                         if random_num < super_mut_prob:  # Super Mutation probability
@@ -113,8 +112,8 @@ class SSNE:
 
                         # Regularization hard limit
                         W[ind_dim1, ind_dim2] = self.regularize_weight(W[ind_dim1, ind_dim2], 1000000)
-                        if key == 'l3.weight':
-                            print("after Mutation,weight,", model_params["l3.weight"][ind_dim1, ind_dim2])
+                        # if key == 'l3.weight':
+                            # print("after Mutation,weight,", model_params["l3.weight"][ind_dim1, ind_dim2])
 
                     # print("after Mutation,weight,",model_params["l3.weight"][1][:10])
 

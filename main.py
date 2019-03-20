@@ -230,6 +230,8 @@ if __name__ == "__main__":
     time_start = time.time()
     debug = True
     episode = 0
+    evolve = True
+    actors = agent.actors
 
     while total_timesteps < args.max_timesteps:
         # if debug:
@@ -237,33 +239,43 @@ if __name__ == "__main__":
         # else:
         #     actor_weight = None
         critic_id = ray.put(agent.critic.state_dict())
-        train_id = [worker.train.remote(actor.state_dict(), critic_id) for worker, actor in zip(workers[:-1], agent.actors)] # actor.state_dict()
+        train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers[:-1], actors)] # actor.state_dict()
         results = ray.get(train_id)
         total_timesteps, grads_critic, all_fitness, all_id, new_pop = process_results(results)
         agent.apply_grads(grads_critic)
         print(time.time()-time_start)
         print("max value,", max(all_fitness))
-        print("ids,",all_id)
+        print("ids,", all_id)
         episode += 1
         # debug = False
         # print("after apply_grads self.policy.critic,", agent.critic.state_dict()["l3.bias"])
         # if episode // 3 == 0:
-        for actor, pop in zip(agent.actors, new_pop):
-            if pop is not None:
-                actor.load_state_dict(pop)
+        if all(v is None for v in new_pop):
+            evolve = True
+        else:
+            # for actor, pop in zip(agent.actors, new_pop):
+            #     actor.load_state_dict(pop)
+            evolve = False
 
-        print("before evolve actor 0,", agent.actors[0].state_dict()["l3.weight"][1][:5])
-        print("before evolve actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
-        print("before evolve actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
-        print("before evolve actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
-        print("before evolve actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
+        if evolve:
+            print("before evolve actor 0,", agent.actors[0].state_dict()["l3.weight"][1][:5])
+            print("before evolve actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
+            print("before evolve actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
+            print("before evolve actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
+            print("before evolve actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
 
-        elite_index = evolver.epoch(agent.actors, all_fitness)
-        print("actor 0,",agent.actors[0].state_dict()["l3.weight"][1][:5])
-        print("actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
-        print("actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
-        print("actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
-        print("actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
+        if evolve:
+            evolver.epoch(agent.actors, all_fitness)
+            actors = agent.actors
+        else:
+            actors = [None for _ in range(args.pop_size)]
+
+        if evolve:
+            print("actor 0,", agent.actors[0].state_dict()["l3.weight"][1][:5])
+            print("actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
+            print("actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
+            print("actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
+            print("actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
         #     print("elite_index,",elite_index)
         # else:
 

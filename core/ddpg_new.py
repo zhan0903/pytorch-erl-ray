@@ -22,6 +22,8 @@ class Actor(nn.Module):
 
         self.max_action = max_action
 
+        self.cuda()
+
     def forward(self, x):
         x = F.relu(self.l1(x))
         x = F.relu(self.l2(x))
@@ -37,6 +39,8 @@ class Critic(nn.Module):
         self.l2 = nn.Linear(400, 300)
         self.l3 = nn.Linear(300, 1)
 
+        self.cuda()
+
     def forward(self, x, u):
         x = F.relu(self.l1(torch.cat([x, u], 1)))
         x = F.relu(self.l2(x))
@@ -47,8 +51,8 @@ class Critic(nn.Module):
 class PERL(object):
     def __init__(self, state_dim, action_dim, max_action, pop_size):
         self.pop_size = pop_size
-        self.actors = [Actor(state_dim, action_dim, max_action).to(device) for _ in range(pop_size)]
-        self.critic = Critic(state_dim, action_dim).to(device)
+        self.actors = [Actor(state_dim, action_dim, max_action).state_dict() for _ in range(pop_size)]
+        self.critic = Critic(state_dim, action_dim)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
     def evolve(self):
