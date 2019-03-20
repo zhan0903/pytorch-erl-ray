@@ -145,23 +145,22 @@ class SSNE:
             else:
                 unselects.append(i)
         random.shuffle(unselects)
-        print("in epoch, unselects,",unselects)
+        print("in epoch, unselects,", unselects)
 
-        #COMPUTE RL_SELECTION RATE
-        if self.rl_policy != None: #RL Transfer happened
-            self.selection_stats['total'] += 1.0
+        # #COMPUTE RL_SELECTION RATE
+        # if self.rl_policy != None: #RL Transfer happened
+        #     self.selection_stats['total'] += 1.0
+        #     if self.rl_policy in elitist_index: self.selection_stats['elite'] += 1.0
+        #     elif self.rl_policy in offsprings: self.selection_stats['selected'] += 1.0
+        #     elif self.rl_policy in unselects: self.selection_stats['discarded'] += 1.0
+        #     self.rl_policy = None
 
-            if self.rl_policy in elitist_index: self.selection_stats['elite'] += 1.0
-            elif self.rl_policy in offsprings: self.selection_stats['selected'] += 1.0
-            elif self.rl_policy in unselects: self.selection_stats['discarded'] += 1.0
-            self.rl_policy = None
-
-        # # Elitism step, assigning elite candidates to some unselects
-        # for i in elitist_index:
-        #     try: replacee = unselects.pop(0)
-        #     except: replacee = offsprings.pop(0)
-        #     new_elitists.append(replacee)
-        #     self.clone(master=pop[i], replacee=pop[replacee])
+        # Elitism step, assigning elite candidates to some unselects
+        for i in elitist_index:
+            try: replacee = unselects.pop(0)
+            except: replacee = offsprings.pop(0)
+            new_elitists.append(replacee)
+            self.clone(master=pop[i], replacee=pop[replacee])
 
         # Crossover for unselected genes with 100 percent probability
         if len(unselects) % 2 != 0:  # Number of unselects left should be even
@@ -169,12 +168,12 @@ class SSNE:
 
         print("offsprings,new_elitists,", offsprings, new_elitists)
 
-        # for i, j in zip(unselects[0::2], unselects[1::2]):
-        #     off_i = random.choice(elitist_index) ## change frome new_elitists to elitist_index ##
-        #     off_j = random.choice(offsprings)
-        #     self.clone(master=pop[off_i], replacee=pop[i])
-        #     self.clone(master=pop[off_j], replacee=pop[j])
-        #     self.crossover_inplace(pop[i], pop[j])
+        for i, j in zip(unselects[0::2], unselects[1::2]):
+            off_i = random.choice(new_elitists) ## change frome new_elitists to elitist_index ##
+            off_j = random.choice(offsprings)
+            self.clone(master=pop[off_i], replacee=pop[i])
+            self.clone(master=pop[off_j], replacee=pop[j])
+            self.crossover_inplace(pop[i], pop[j])
 
         print("offsprings,new_elitists,", offsprings, new_elitists)
 
@@ -184,10 +183,10 @@ class SSNE:
 
         # Mutate all genes in the population except the new elitists
         for i in range(self.population_size):
-            if i not in elitist_index:  # Spare the new elitists
+            if i not in new_elitists:  # Spare the new elitists
                 if random.random() < self.args.mutation_prob: self.mutate_inplace(pop[i])
 
-        return elitist_index
+        return new_elitists[0]
 
 
 def unsqueeze(array, axis=1):

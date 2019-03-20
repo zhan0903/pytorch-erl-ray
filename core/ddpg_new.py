@@ -66,6 +66,8 @@ class PERL(object):
         print(critic_grad[-1][-1])
         print(grads[0][-1][-1])
 
+        # for pop_grad in grads:
+
         for grad in critic_grad:
             self.critic_optimizer.zero_grad()
             for g, p in zip(grad, self.critic.parameters()):
