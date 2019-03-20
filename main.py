@@ -126,7 +126,7 @@ class Worker(object):
         avg_reward /= eval_episodes
 
         print("---------------------------------------")
-        print("Evaluation over after gradient %f" % avg_reward)
+        print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
         print("---------------------------------------")
         return avg_reward
 
