@@ -163,6 +163,8 @@ class SSNE:
             self.clone(master=pop[off_j], replacee=pop[j])
             self.crossover_inplace(pop[i], pop[j])
 
+        print("offsprings,new_elitists,", offsprings, new_elitists)
+
         # Crossover for selected offsprings
         for i, j in zip(offsprings[0::2], offsprings[1::2]):
             if random.random() < self.args.crossover_prob: self.crossover_inplace(pop[i], pop[j])
