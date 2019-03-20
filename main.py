@@ -15,54 +15,6 @@ from core import mod_neuro_evo as utils_ne
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-class Parameters:
-    def __init__(self):
-        self.input_size = None
-        self.hidden_size = 36
-        self.num_actions = None
-        self.learning_rate = 0.1
-
-        #Number of Frames to Run
-        # if env_tag == 'Hopper-v2': self.num_frames = 4000000
-        # elif env_tag == 'Ant-v2': self.num_frames = 6000000
-        # elif env_tag == 'Walker2d-v2': self.num_frames = 8000000
-        # else: self.num_frames = 2000000
-
-        #USE CUDA
-        self.is_cuda = True; self.is_memory_cuda = True
-
-        #Sunchronization Period
-        # if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.synch_period = 1
-        # else: self.synch_period = 10
-
-        #DDPG params
-        self.use_ln = True  # True
-        self.gamma = 0.99; self.tau = 0.001
-        self.seed = 7
-        self.batch_size = 128
-        self.buffer_size = 1000000
-        self.frac_frames_train = 1.0
-        self.use_done_mask = True
-
-        ###### NeuroEvolution Params ########
-        #Num of trials
-        # if env_tag == 'Hopper-v2' or env_tag == 'Reacher-v2': self.num_evals = 5
-        # elif env_tag == 'Walker2d-v2': self.num_evals = 3
-        # else: self.num_evals = 1
-
-        #Elitism Rate
-        # if env_tag == 'Hopper-v2' or env_tag == 'Ant-v2': self.elite_fraction = 0.3
-        # elif env_tag == 'Reacher-v2' or env_tag == 'Walker2d-v2': self.elite_fraction = 0.2
-        # else: self.elite_fraction = 0.1
-
-
-
-        #Save Results
-        self.state_dim = None; self.action_dim = None #Simply instantiate them here, will be initialized later
-        # self.save_foldername = 'test3-debug/%s/' % env_tag
-        # if not os.path.exists(self.save_foldername): os.makedirs(self.save_foldername)
-
-
 @ray.remote(num_gpus=0.2)
 class Worker(object):
     def __init__(self, args, id):
