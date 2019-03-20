@@ -231,7 +231,8 @@ if __name__ == "__main__":
     debug = True
     episode = 0
     evolve = True
-    actors = agent.actors
+    actors = [actor.state_dict() for actor in agent.actors]
+    # actors = agent.actors
 
     while total_timesteps < args.max_timesteps:
         # if debug:
@@ -266,7 +267,7 @@ if __name__ == "__main__":
 
         if evolve:
             evolver.epoch(agent.actors, all_fitness)
-            actors = agent.actors
+            actors = [actor.state_dict() for actor in agent.actors]
         else:
             actors = [None for _ in range(args.pop_size)]
 
