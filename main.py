@@ -94,6 +94,7 @@ class Worker(object):
         return avg_reward
 
     def train(self, actor_weights, critic_weights):
+        global logger_worker
         self.set_weights(actor_weights, critic_weights)
         # logger_main.info("test!!!")
         # print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
