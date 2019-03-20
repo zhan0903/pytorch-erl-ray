@@ -88,13 +88,13 @@ class Worker(object):
                 avg_reward += reward
 
         avg_reward /= eval_episodes
-        print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
+        logger_worker.info("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
         return avg_reward
 
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
         # print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
-        logger_worker.debug("set_weight self.policy.actor,id", self.policy.actor.state_dict()["l3.bias"],self.id)
+        logger_worker.debug("set_weight self.policy.actor:{0},id:{1}".format(self.policy.actor.state_dict()["l3.bias"],self.id))
         done = False
         episode_timesteps = 0
         episode_reward = 0
@@ -108,7 +108,7 @@ class Worker(object):
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     pop_reward_after = self.evaluate_policy()
 
-                    logger_worker.debug("before self.policy.actor,id,", self.policy.actor.state_dict()["l3.bias"], self.id)
+                    logger_worker.debug("before self.policy.actor:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
 
                     if pop_reward_after > episode_reward:
                         return self.total_timesteps, self.policy.grads_critic, pop_reward_after, self.id, self.policy.actor.state_dict()
@@ -232,10 +232,10 @@ if __name__ == "__main__":
         total_timesteps, grads_critic, all_fitness, all_id, new_pop = process_results(results)
         agent.apply_grads_sequential(grads_critic)
         logger_main.info(time.time()-time_start)
-        logger_main.info("max value,", max(all_fitness))
+        logger_main.info("max value:{}".format(max(all_fitness)))
         average = sum(all_fitness)/args.pop_size
         # print("average value,", average)
-        logger_main.info("max value index,", all_fitness.index(max(all_fitness)))
+        logger_main.info("max value index:{}".format(all_fitness.index(max(all_fitness))))
         # print("ids,", all_id)
         episode += 1
         # debug = False
@@ -249,11 +249,11 @@ if __name__ == "__main__":
             evolve = False
 
         if evolve:
-            logger_main.info("before evolve actor 0,", agent.actors[0].state_dict()["l3.weight"][1][:5])
-            logger_main.info("before evolve actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
-            logger_main.info("before evolve actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
-            logger_main.info("before evolve actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
-            logger_main.info("before evolve actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
+            logger_main.info("before evolve actor 0:{}".format(agent.actors[0].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("before evolve actor 1:{}".format(agent.actors[1].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("before evolve actor 2:{}".format(agent.actors[2].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("before evolve actor 3:{}".format(agent.actors[3].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("before evolve actor 4:{}".format(agent.actors[4].state_dict()["l3.weight"][1][:5]))
             # print("before evolve actor 5,", agent.actors[4].state_dict()["l3.weight"][1][:5])
         if evolve:
             evolver.epoch(agent.actors, all_fitness)
@@ -262,11 +262,11 @@ if __name__ == "__main__":
             actors = [None for _ in range(args.pop_size)]
 
         if evolve:
-            logger_main.info("after actor 0,", agent.actors[0].state_dict()["l3.weight"][1][:5])
-            logger_main.info("after actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
-            logger_main.info("after actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
-            logger_main.info("after actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
-            logger_main.info("after actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
+            logger_main.info("after actor 0:{}".format(agent.actors[0].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("after actor 1,{}".format(agent.actors[1].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("after actor 2,{}".format(agent.actors[2].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("after actor 3,{}".format(agent.actors[3].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("after actor 4,{}".format(agent.actors[4].state_dict()["l3.weight"][1][:5]))
 
 
 
