@@ -64,7 +64,7 @@ class Worker(object):
                 target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
     # Runs policy for X episodes and returns average reward
-    def evaluate_policy(self, eval_episodes=3):
+    def evaluate_policy(self, eval_episodes=1):
         # self.set_weights(actor_weights,critic_weights)
         avg_reward = 0.
         for _ in range(eval_episodes):
@@ -76,10 +76,7 @@ class Worker(object):
                 avg_reward += reward
 
         avg_reward /= eval_episodes
-
-        print("---------------------------------------")
         print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
-        print("---------------------------------------")
         return avg_reward
 
     def train(self, actor_weights, critic_weights):
@@ -255,18 +252,18 @@ if __name__ == "__main__":
             if pop is not None:
                 actor.load_state_dict(pop)
 
-        print("before evolve actor 0,", agent.actors[0].state_dict()["l3.bias"])
-        print("before evolve actor 1,", agent.actors[1].state_dict()["l3.bias"])
-        print("before evolve actor 2,", agent.actors[2].state_dict()["l3.bias"])
-        print("before evolve actor 3,", agent.actors[3].state_dict()["l3.bias"])
-        print("before evolve actor 4,", agent.actors[4].state_dict()["l3.bias"])
+        print("before evolve actor 0,", agent.actors[0].state_dict()["l3.weights"][:10])
+        print("before evolve actor 1,", agent.actors[1].state_dict()["l3.weights"][:10])
+        print("before evolve actor 2,", agent.actors[2].state_dict()["l3.weights"][:10])
+        print("before evolve actor 3,", agent.actors[3].state_dict()["l3.weights"][:10])
+        print("before evolve actor 4,", agent.actors[4].state_dict()["l3.weights"][:10])
 
         elite_index = evolver.epoch(agent.actors, all_fitness)
-        print("actor 0,",agent.actors[0].state_dict()["l3.bias"])
-        print("actor 1,", agent.actors[1].state_dict()["l3.bias"])
-        print("actor 2,", agent.actors[2].state_dict()["l3.bias"])
-        print("actor 3,", agent.actors[3].state_dict()["l3.bias"])
-        print("actor 4,", agent.actors[4].state_dict()["l3.bias"])
+        print("actor 0,",agent.actors[0].state_dict()["l3.weights"][:10])
+        print("actor 1,", agent.actors[1].state_dict()["l3.weights"][:10])
+        print("actor 2,", agent.actors[2].state_dict()["l3.weights"][:10])
+        print("actor 3,", agent.actors[3].state_dict()["l3.weights"][:10])
+        print("actor 4,", agent.actors[4].state_dict()["l3.weights"][:10])
         #     print("elite_index,",elite_index)
         # else:
 
