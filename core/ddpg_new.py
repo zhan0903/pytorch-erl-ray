@@ -75,6 +75,22 @@ class PERL(object):
                     p.grad = torch.from_numpy(g).to(device)
             self.critic_optimizer.step()
 
+    def apply_grads_sequential(self, grads):
+        self.critic_optimizer.zero_grad()
+        # for worker_grad in critic_grad:
+        critic_grad = np.sum(grads, axis=0)/self.pop_size
+
+        print(critic_grad[-1][-1])
+        print(grads[0][-1][-1])
+
+        for pop_grad in grads:
+            for grad in pop_grad:
+                self.critic_optimizer.zero_grad()
+                for g, p in zip(grad, self.critic.parameters()):
+                    if g is not None:
+                        p.grad = torch.from_numpy(g).to(device)
+                self.critic_optimizer.step()
+
 
 class DDPG(object):
     def __init__(self, state_dim, action_dim, max_action):

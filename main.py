@@ -11,8 +11,20 @@ import time
 from core import mod_neuro_evo as utils_ne
 
 
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename='./output.log',
+                    filemode='w')
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+console.setFormatter(formatter)
+logging.getLogger('').addHandler(console)
+
+logger_worker = logging.getLogger('Worker')
+logger_main = logging.getLogger('Main')
 
 
 @ray.remote(num_gpus=0.2)
@@ -82,38 +94,27 @@ class Worker(object):
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
         # print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
-        print("set_weight self.policy.actor,id", self.policy.actor.state_dict()["l3.bias"],self.id)
-
-
+        logger_worker.debug("set_weight self.policy.actor,id", self.policy.actor.state_dict()["l3.bias"],self.id)
         done = False
         episode_timesteps = 0
         episode_reward = 0
         obs = self.env.reset()
 
-        # pop_reward = self.evaluate_policy(self.actor)
-
         while True:
             if done:
                 self.episode_num += 1
                 if self.total_timesteps != 0:
-                    print("ID: %d Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
+                    logger_worker.info("ID: %d Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     pop_reward_after = self.evaluate_policy()
 
-                    # print("before self.policy.critic,id,", self.policy.critic.state_dict()["l3.bias"], self.id)
-                    print("before self.policy.actor,id,", self.policy.actor.state_dict()["l3.bias"], self.id)
+                    logger_worker.debug("before self.policy.actor,id,", self.policy.actor.state_dict()["l3.bias"], self.id)
 
                     if pop_reward_after > episode_reward:
                         return self.total_timesteps, self.policy.grads_critic, pop_reward_after, self.id, self.policy.actor.state_dict()
                     else:
                         return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id, None
 
-                # Reset environment test on child process
-                # obs = self.env.reset()
-                # done = False
-                # episode_reward = 0
-                # episode_timesteps = 0
-                # self.episode_num += 1
 
             # Select action randomly or according to policy
             action = self.policy.select_action(np.array(obs))
@@ -137,12 +138,6 @@ class Worker(object):
             self.total_timesteps += 1
             self.timesteps_since_eval += 1
 
-        # print("before self.policy.critic,id,", self.policy.critic.state_dict()["l3.bias"],self.id)
-        # print("before self.policy.actor,id,", self.policy.actor.state_dict()["l3.bias"],self.id)
-        #
-        # # return self.policy.critic.cpu().state_dict()["l3.bias"], self.policy_debug.critic.cpu().state_dict()["l3.bias"]
-        # return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id,
-
 
 def process_results(r):
     total_t = []
@@ -160,10 +155,6 @@ def process_results(r):
 
 
 if __name__ == "__main__":
-    # num_workers = 3
-    # parameters = Parameters()
-    # evolver = utils_ne.SSNE(parameters)
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default="OurDDPG")
     parser.add_argument("--env_name", default="HalfCheetah-v1")
@@ -179,15 +170,13 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     parser.add_argument("--save_models", action="store_true")
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
-    parser.add_argument("--pop_size", default=6, type=int)
+    parser.add_argument("--pop_size", default=5, type=int)
     parser.add_argument("--crossover_prob", default=0.0, type=float)
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)
-
     args = parser.parse_args()
 
     evolver = utils_ne.SSNE(args)
-
 
     file_name = "%s_%s_%s" % (args.policy_name, args.env_name, str(args.seed))
     print("---------------------------------------")
@@ -213,9 +202,6 @@ if __name__ == "__main__":
 
     # policy = ddpg.DDPG(state_dim, action_dim, max_action)
     agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
-
-    print("in main policy,", agent.critic.state_dict()["l3.bias"])
-
     ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30000000000)
 
     workers = [Worker.remote(args, i)
@@ -223,12 +209,12 @@ if __name__ == "__main__":
 
     # evaluations = [ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict()))]
     total_timesteps = 0
-    timesteps_since_eval = 0
-    episode_num = 0
-    episode_timesteps = 0
-    done = True
+    # timesteps_since_eval = 0
+    # episode_num = 0
+    # episode_timesteps = 0
+    # done = True
     time_start = time.time()
-    debug = True
+    # debug = True
     episode = 0
     evolve = True
     actors = [actor.state_dict() for actor in agent.actors]
@@ -244,13 +230,13 @@ if __name__ == "__main__":
         train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers[:-1], actors)] # actor.state_dict()
         results = ray.get(train_id)
         total_timesteps, grads_critic, all_fitness, all_id, new_pop = process_results(results)
-        agent.apply_grads(grads_critic)
-        print(time.time()-time_start)
-        print("max value,", max(all_fitness))
+        agent.apply_grads_sequential(grads_critic)
+        logger_main.info(time.time()-time_start)
+        logger_main.info("max value,", max(all_fitness))
         average = sum(all_fitness)/args.pop_size
-        print("average value,", average)
-        print("max value index,", all_fitness.index(max(all_fitness)))
-        print("ids,", all_id)
+        # print("average value,", average)
+        logger_main.info("max value index,", all_fitness.index(max(all_fitness)))
+        # print("ids,", all_id)
         episode += 1
         # debug = False
         # print("after apply_grads self.policy.critic,", agent.critic.state_dict()["l3.bias"])
@@ -263,12 +249,12 @@ if __name__ == "__main__":
             evolve = False
 
         if evolve:
-            print("before evolve actor 0,", agent.actors[0].state_dict()["l3.weight"][1][:5])
-            print("before evolve actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
-            print("before evolve actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
-            print("before evolve actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
-            print("before evolve actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
-
+            logger_main.info("before evolve actor 0,", agent.actors[0].state_dict()["l3.weight"][1][:5])
+            logger_main.info("before evolve actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
+            logger_main.info("before evolve actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
+            logger_main.info("before evolve actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
+            logger_main.info("before evolve actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
+            # print("before evolve actor 5,", agent.actors[4].state_dict()["l3.weight"][1][:5])
         if evolve:
             evolver.epoch(agent.actors, all_fitness)
             actors = [actor.state_dict() for actor in agent.actors]
@@ -276,21 +262,12 @@ if __name__ == "__main__":
             actors = [None for _ in range(args.pop_size)]
 
         if evolve:
-            print("after actor 0,", agent.actors[0].state_dict()["l3.weight"][1][:5])
-            print("after actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
-            print("after actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
-            print("after actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
-            print("after actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
-        #     print("elite_index,",elite_index)
-        # else:
+            logger_main.info("after actor 0,", agent.actors[0].state_dict()["l3.weight"][1][:5])
+            logger_main.info("after actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
+            logger_main.info("after actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
+            logger_main.info("after actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
+            logger_main.info("after actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
 
-        # exit(0)
-    # Final evaluation
-    # evaluations.append(ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict())))
-    # print("done")
-    # exit(0)
-    # if args.save_models: policy.save("%s" % (file_name), directory="./pytorch_models")
-    # np.save("./results/%s" % (file_name), evaluations)
 
 
 
