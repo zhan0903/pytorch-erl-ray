@@ -82,7 +82,7 @@ class Worker(object):
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
         # print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
-        print("set_weight self.policy.actor,id", self.policy.actor.state_dict()["l3.bias"],self.id)
+        # print("set_weight self.policy.actor,id", self.policy.actor.state_dict()["l3.bias"],self.id)
 
 
         done = False
@@ -179,7 +179,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     parser.add_argument("--save_models", action="store_true")
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
-    parser.add_argument("--pop_size", default=6, type=int)
+    parser.add_argument("--pop_size", default=5, type=int)
     parser.add_argument("--crossover_prob", default=0.0, type=float)
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)
@@ -273,11 +273,11 @@ if __name__ == "__main__":
             actors = [None for _ in range(args.pop_size)]
 
         if evolve:
-            print("actor 0,", agent.actors[0].state_dict()["l3.weight"][1][:5])
-            print("actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
-            print("actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
-            print("actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
-            print("actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
+            print("after actor 0,", agent.actors[0].state_dict()["l3.weight"][1][:5])
+            print("after actor 1,", agent.actors[1].state_dict()["l3.weight"][1][:5])
+            print("after actor 2,", agent.actors[2].state_dict()["l3.weight"][1][:5])
+            print("after actor 3,", agent.actors[3].state_dict()["l3.weight"][1][:5])
+            print("after actor 4,", agent.actors[4].state_dict()["l3.weight"][1][:5])
         #     print("elite_index,",elite_index)
         # else:
 
