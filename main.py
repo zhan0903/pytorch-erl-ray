@@ -252,18 +252,18 @@ if __name__ == "__main__":
             if pop is not None:
                 actor.load_state_dict(pop)
 
-        print("before evolve actor 0,", agent.actors[0].state_dict()["l3.weight"][:10])
-        print("before evolve actor 1,", agent.actors[1].state_dict()["l3.weight"][:10])
-        print("before evolve actor 2,", agent.actors[2].state_dict()["l3.weight"][:10])
-        print("before evolve actor 3,", agent.actors[3].state_dict()["l3.weight"][:10])
-        print("before evolve actor 4,", agent.actors[4].state_dict()["l3.weight"][:10])
+        print("before evolve actor 0,", agent.actors[0].state_dict()["l3.weight"][:1])
+        print("before evolve actor 1,", agent.actors[1].state_dict()["l3.weight"][:1])
+        print("before evolve actor 2,", agent.actors[2].state_dict()["l3.weight"][:1])
+        print("before evolve actor 3,", agent.actors[3].state_dict()["l3.weight"][:1])
+        print("before evolve actor 4,", agent.actors[4].state_dict()["l3.weight"][:1])
 
         elite_index = evolver.epoch(agent.actors, all_fitness)
-        print("actor 0,",agent.actors[0].state_dict()["l3.weight"][:10])
-        print("actor 1,", agent.actors[1].state_dict()["l3.weight"][:10])
-        print("actor 2,", agent.actors[2].state_dict()["l3.weight"][:10])
-        print("actor 3,", agent.actors[3].state_dict()["l3.weight"][:10])
-        print("actor 4,", agent.actors[4].state_dict()["l3.weight"][:10])
+        print("actor 0,",agent.actors[0].state_dict()["l3.weight"][:1])
+        print("actor 1,", agent.actors[1].state_dict()["l3.weight"][:1])
+        print("actor 2,", agent.actors[2].state_dict()["l3.weight"][:1])
+        print("actor 3,", agent.actors[3].state_dict()["l3.weight"][:1])
+        print("actor 4,", agent.actors[4].state_dict()["l3.weight"][:1])
         #     print("elite_index,",elite_index)
         # else:
 
