@@ -92,7 +92,7 @@ class SSNE:
                 ssne_prob = ssne_probabilities[i]
 
                 if random.random() < ssne_prob:
-                    print("before Mutation,weight,",model_params["l3.weight"][1][:5])
+                    print("before Mutation,weight,",model_params["l3.weight"][1][:20])
                     num_mutations = fastrand.pcg32bounded(int(math.ceil(num_mutation_frac * num_weights)))  # Number of mutation instances
                     for _ in range(num_mutations):
                         ind_dim1 = fastrand.pcg32bounded(W.shape[0])
@@ -108,7 +108,7 @@ class SSNE:
 
                         # Regularization hard limit
                         W[ind_dim1, ind_dim2] = self.regularize_weight(W[ind_dim1, ind_dim2], 1000000)
-                    print("after Mutation,weight,",model_params["l3.weight"][1][:5])
+                    print("after Mutation,weight,",model_params["l3.weight"][1][:20])
 
 
     def clone(self, master, replacee):  # Replace the replacee individual with master
