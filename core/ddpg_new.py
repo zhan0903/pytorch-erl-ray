@@ -58,6 +58,10 @@ class PERL(object):
     def evolve(self):
         pass
 
+    def select_action(self, state, actor_id):
+        state = torch.FloatTensor(state.reshape(1, -1)).to(device)
+        return self.actors[actor_id](state).cpu().data.numpy().flatten()
+
     def apply_grads(self, grads):
         self.critic_optimizer.zero_grad()
         # for worker_grad in critic_grad:

@@ -27,13 +27,35 @@ logger_worker = logging.getLogger('Worker')
 logger_main = logging.getLogger('Main')
 
 
+def select_action(state, actor):
+    state = torch.FloatTensor(state.reshape(1, -1)).to(device)
+    return actor(state).cpu().data.numpy().flatten()
+
+
+def evaluate_policy(env, policy, eval_episodes=3):
+    # self.set_weights(actor_weights,critic_weights)
+    actor = ddpg.Actor()
+    avg_reward = 0.
+    for _ in range(eval_episodes):
+        obs = env.reset()
+        done = False
+        while not done:
+            action = select_action(np.array(obs),policy)
+            obs, reward, done, _ = env.step(action)
+            avg_reward += reward
+
+    avg_reward /= eval_episodes
+    print("---------------------------------------")
+    print("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
+    print("---------------------------------------")
+    # print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
+    return avg_reward
+
+
+
 @ray.remote(num_gpus=0.5)
 class Worker(object):
     def __init__(self, args, id):
-
-
-        # global logger_worker
-        # self.env = utils.NormalizedActions(gym.make(env_tag))
         self.env = gym.make(args.env_name)
         self.id = id
         self.env.seed(args.seed)
@@ -53,15 +75,6 @@ class Worker(object):
         self.total_timesteps = 0
         self.episode_num = 0
         self.timesteps_since_eval = 0
-
-    # def init_nets(self, actor_weight_init, critic_weight_init):
-    #     self.policy.critic.load_state_dict(critic_weight_init)
-    #     self.policy.critic_target.load_state_dict(self.policy.critic.state_dict())
-    #
-    #     self.policy.actor.load_state_dict(actor_weight_init)
-    #     self.policy.actor_target.load_state_dict(self.policy.actor.state_dict())
-    #
-    #     return 1
 
     def set_weights(self,actor_weights, critic_weights):
         if actor_weights is not None:
@@ -91,14 +104,14 @@ class Worker(object):
                 avg_reward += reward
 
         avg_reward /= eval_episodes
-        print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
+        # print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
         return avg_reward
 
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
         # logger_main.info("test!!!")
         # print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
-        print("set_weight self.policy.actor.bias:{0},id:{1}".format(self.policy.actor.state_dict()["l3.bias"],self.id))
+        # print("set_weight self.policy.actor.bias:{0},id:{1}".format(self.policy.actor.state_dict()["l3.bias"],self.id))
         done = False
         episode_timesteps = 0
         episode_reward = 0
@@ -111,9 +124,7 @@ class Worker(object):
                     print("ID: %d Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     pop_reward_after = self.evaluate_policy()
-
-                    print("before self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
-
+                    # print("before self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
                     if pop_reward_after > episode_reward:
                         return self.total_timesteps, self.policy.grads_critic, pop_reward_after, self.id, self.policy.actor.state_dict()
                     else:
@@ -207,14 +218,15 @@ if __name__ == "__main__":
     ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30000000000)
 
     workers = [Worker.remote(args, i)
-               for i in range(args.pop_size+1)]
+               for i in range(args.pop_size)]
 
     # evaluations = [ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict()))]
     all_timesteps = 0
-    # timesteps_since_eval = 0
+    timesteps_since_eval = 0
     # episode_num = 0
     # episode_timesteps = 0
     # done = True
+    evaluations = []
     time_start = time.time()
     # debug = True
     episode = 0
@@ -233,32 +245,37 @@ if __name__ == "__main__":
         results = ray.get(train_id)
         all_timesteps, grads_critic, all_fitness, all_id, new_pop = process_results(results)
         agent.apply_grads(grads_critic)
-        logger_main.info("Time consumed:{}".format(time.time()-time_start))
-        logger_main.info("Max value:{}".format(max(all_fitness)))
-        logger_main.info("Workers:{0},timesteps in each worker:{1}".format(args.pop_size,results[0][0]))
+        logger_main.info("# Max:{0},Timesteps:{1},Time consumed:{2},".format(max(all_fitness), results[0][0],(time.time()-time_start)))
 
         average = sum(all_fitness)/args.pop_size
-        # print("average value,", average)
-        logger_main.info("Max value index:{}".format(all_fitness.index(max(all_fitness))))
-        # print("ids,", all_id)
-        episode += 1
-        # debug = False
-        # print("after apply_grads self.policy.critic,", agent.critic.state_dict()["l3.bias"])
-        # if episode // 3 == 0:
-        if all(v is None for v in new_pop) and episode >= 5:
-            # if sum(all_fitness)/args.pop_size
-            episode %= 5
-            evolve = True
+
+        # Evaluate episode
+        if timesteps_since_eval >= args.eval_freq:
+            timesteps_since_eval %= args.eval_freq
+            champ_index = all_fitness.index(max(all_fitness))
+            actor_input = ddpg.Actor(state_dim, action_dim, max_action)
+
+            if new_pop[champ_index] is None:
+                actor_input.load_state_dict(actors[champ_index])
+            else:
+                actor_input.load_state_dict(new_pop[champ_index])
+
+            evaluations.append(evaluate_policy(env, actor_input, eval_episodes=3))
+            np.save("./results/%s" % (file_name), evaluations)
+
+        if all(v is None for v in new_pop):
+            episode += 1
+            if episode >= 3:
+                episode %= 3
+                evolve = True
         else:
             evolve = False
 
         if evolve:
-            logger_main.info("before evolve actor 0:{}".format(agent.actors[0].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("before evolve actor 1:{}".format(agent.actors[1].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("before evolve actor 2:{}".format(agent.actors[2].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("before evolve actor 3:{}".format(agent.actors[3].state_dict()["l3.weight"][1][:5]))
-            # logger_main.info("before evolve actor 4:{}".format(agent.actors[4].state_dict()["l3.weight"][1][:5]))
-            # print("before evolve actor 5,", agent.actors[4].state_dict()["l3.weight"][1][:5])
+            logger_main.info("before evolve actor weight 0:{}".format(agent.actors[0].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("before evolve actor weight 1:{}".format(agent.actors[1].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("before evolve actor weight 2:{}".format(agent.actors[2].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("before evolve actor weight 3:{}".format(agent.actors[3].state_dict()["l3.weight"][1][:5]))
         if evolve:
             evolver.epoch(agent.actors, all_fitness)
             actors = [actor.state_dict() for actor in agent.actors]
@@ -266,11 +283,10 @@ if __name__ == "__main__":
             actors = [None for _ in range(args.pop_size)]
 
         if evolve:
-            logger_main.info("after actor 0:{}".format(agent.actors[0].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("after actor 1,{}".format(agent.actors[1].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("after actor 2,{}".format(agent.actors[2].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("after actor 3,{}".format(agent.actors[3].state_dict()["l3.weight"][1][:5]))
-            # logger_main.info("after actor 4,{}".format(agent.actors[4].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("after actor weight 0:{}".format(agent.actors[0].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("after actor weight 1,{}".format(agent.actors[1].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("after actor weight 2,{}".format(agent.actors[2].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("after actor weight 3,{}".format(agent.actors[3].state_dict()["l3.weight"][1][:5]))
 
 
 

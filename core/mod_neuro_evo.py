@@ -132,7 +132,7 @@ class SSNE:
         index_rank = self.list_argsort(fitness_evals); index_rank.reverse()
         elitist_index = index_rank[:self.num_elitists]  # Elitist indexes safeguard
 
-        print("in epoch, elitis_index,", elitist_index)
+        # print("in epoch, elitis_index,", elitist_index)
 
         # Selection step
         offsprings = self.selection_tournament(index_rank, num_offsprings=len(index_rank) - self.num_elitists,
@@ -145,7 +145,7 @@ class SSNE:
             else:
                 unselects.append(i)
         random.shuffle(unselects)
-        print("in epoch, unselects,", unselects)
+        # print("in epoch, unselects,", unselects)
 
         # #COMPUTE RL_SELECTION RATE
         # if self.rl_policy != None: #RL Transfer happened
@@ -166,7 +166,7 @@ class SSNE:
         if len(unselects) % 2 != 0:  # Number of unselects left should be even
             unselects.append(unselects[fastrand.pcg32bounded(len(unselects))])
 
-        print("offsprings,new_elitists,", offsprings, new_elitists)
+        # print("offsprings,new_elitists,", offsprings, new_elitists)
 
         for i, j in zip(unselects[0::2], unselects[1::2]):
             off_i = random.choice(new_elitists) ## change frome new_elitists to elitist_index ##
@@ -175,7 +175,7 @@ class SSNE:
             self.clone(master=pop[off_j], replacee=pop[j])
             self.crossover_inplace(pop[i], pop[j])
 
-        print("offsprings,new_elitists,", offsprings, new_elitists)
+        # print("offsprings,new_elitists,", offsprings, new_elitists)
 
         # Crossover for selected offsprings
         for i, j in zip(offsprings[0::2], offsprings[1::2]):
