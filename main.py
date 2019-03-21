@@ -27,7 +27,7 @@ logger_worker = logging.getLogger('Worker')
 logger_main = logging.getLogger('Main')
 
 
-@ray.remote(num_gpus=0.4)
+@ray.remote(num_gpus=0.5)
 class Worker(object):
     def __init__(self, args, id):
 
