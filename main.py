@@ -29,7 +29,7 @@ logger_main = logging.getLogger('Main')
 
 @ray.remote(num_gpus=0.4)
 class Worker(object):
-    def __init__(self, args, id,logger):
+    def __init__(self, args, id):
 
 
         # global logger_worker
@@ -48,7 +48,6 @@ class Worker(object):
         # print("in worker init critic,", self.policy.critic.state_dict()["l3.bias"])
 
         self.replay_buffer = utils.ReplayBuffer()
-        self.logger_worker = logger
 
         self.args = args
         self.total_timesteps = 0
@@ -209,7 +208,7 @@ if __name__ == "__main__":
     agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
     ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30000000000)
 
-    workers = [Worker.remote(args, i, logger_worker)
+    workers = [Worker.remote(args, i)
                for i in range(args.pop_size+1)]
 
     # evaluations = [ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict()))]
