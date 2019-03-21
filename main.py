@@ -12,6 +12,7 @@ from core import mod_neuro_evo as utils_ne
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
@@ -56,6 +57,19 @@ def evaluate_policy(env, policy, eval_episodes=3):
 @ray.remote(num_gpus=0.5)
 class Worker(object):
     def __init__(self, args, id):
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                            datefmt='%m-%d %H:%M',
+                            filename='./debug/output_4_debug_logger.log',
+                            filemode='w')
+        console = logging.StreamHandler()
+        console.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        console.setFormatter(formatter)
+        logging.getLogger('').addHandler(console)
+
+        self.logger_worker = logging.getLogger('Worker')
+
         self.env = gym.make(args.env_name)
         self.id = id
         self.env.seed(args.seed)
@@ -121,7 +135,7 @@ class Worker(object):
             if done:
                 self.episode_num += 1
                 if self.total_timesteps != 0:
-                    print("ID: %d Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
+                    self.logger_worker.info("ID: %d Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     pop_reward_after = self.evaluate_policy()
                     # print("before self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
@@ -151,7 +165,6 @@ class Worker(object):
 
             episode_timesteps += 1
             self.total_timesteps += 1
-            # self.timesteps_since_eval += 1
 
 
 def process_results(r):
@@ -246,8 +259,8 @@ if __name__ == "__main__":
         train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
         all_timesteps, grads_critic, all_fitness, all_id, new_pop = process_results(results)
-        agent.apply_grads(grads_critic)
-        logger_main.info("# Max:{0},Timesteps:{1},Time consumed:{2},".format(max(all_fitness), all_timesteps,(time.time()-time_start)))
+        agent.apply_grads(grads_critic,logger_main)
+        logger_main.info("#Max:{0},#TimeSteps:{1},#Time:{2},".format(max(all_fitness), all_timesteps, (time.time()-time_start)))
 
         average = sum(all_fitness)/args.pop_size
         # timesteps_since_eval +=
