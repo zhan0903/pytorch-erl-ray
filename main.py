@@ -259,7 +259,7 @@ if __name__ == "__main__":
             logger_main.info("before evolve actor 1:{}".format(agent.actors[1].state_dict()["l3.weight"][1][:5]))
             logger_main.info("before evolve actor 2:{}".format(agent.actors[2].state_dict()["l3.weight"][1][:5]))
             logger_main.info("before evolve actor 3:{}".format(agent.actors[3].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("before evolve actor 4:{}".format(agent.actors[4].state_dict()["l3.weight"][1][:5]))
+            # logger_main.info("before evolve actor 4:{}".format(agent.actors[4].state_dict()["l3.weight"][1][:5]))
             # print("before evolve actor 5,", agent.actors[4].state_dict()["l3.weight"][1][:5])
         if evolve:
             evolver.epoch(agent.actors, all_fitness)
@@ -272,7 +272,7 @@ if __name__ == "__main__":
             logger_main.info("after actor 1,{}".format(agent.actors[1].state_dict()["l3.weight"][1][:5]))
             logger_main.info("after actor 2,{}".format(agent.actors[2].state_dict()["l3.weight"][1][:5]))
             logger_main.info("after actor 3,{}".format(agent.actors[3].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("after actor 4,{}".format(agent.actors[4].state_dict()["l3.weight"][1][:5]))
+            # logger_main.info("after actor 4,{}".format(agent.actors[4].state_dict()["l3.weight"][1][:5]))
 
 
 
