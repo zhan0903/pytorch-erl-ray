@@ -30,6 +30,8 @@ logger_main = logging.getLogger('Main')
 @ray.remote(num_gpus=0.2)
 class Worker(object):
     def __init__(self, args, id,logger):
+
+
         # global logger_worker
         # self.env = utils.NormalizedActions(gym.make(env_tag))
         self.env = gym.make(args.env_name)
@@ -90,14 +92,14 @@ class Worker(object):
                 avg_reward += reward
 
         avg_reward /= eval_episodes
-        logger_worker.info("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
+        print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
         return avg_reward
 
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
         # logger_main.info("test!!!")
         # print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
-        self.logger_worker.info("set_weight self.policy.actor:{0},id:{1}".format(self.policy.actor.state_dict()["l3.bias"],self.id))
+        print("set_weight self.policy.actor:{0},id:{1}".format(self.policy.actor.state_dict()["l3.bias"],self.id))
         done = False
         episode_timesteps = 0
         episode_reward = 0
@@ -107,11 +109,11 @@ class Worker(object):
             if done:
                 self.episode_num += 1
                 if self.total_timesteps != 0:
-                    self.logger_worker.info("ID: %d Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
+                    print("ID: %d Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     pop_reward_after = self.evaluate_policy()
 
-                    logger_worker.debug("before self.policy.actor:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
+                    print("before self.policy.actor:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
 
                     if pop_reward_after > episode_reward:
                         return self.total_timesteps, self.policy.grads_critic, pop_reward_after, self.id, self.policy.actor.state_dict()
