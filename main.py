@@ -151,7 +151,7 @@ class Worker(object):
 
             episode_timesteps += 1
             self.total_timesteps += 1
-            self.timesteps_since_eval += 1
+            # self.timesteps_since_eval += 1
 
 
 def process_results(r):
@@ -247,9 +247,10 @@ if __name__ == "__main__":
         results = ray.get(train_id)
         all_timesteps, grads_critic, all_fitness, all_id, new_pop = process_results(results)
         agent.apply_grads(grads_critic)
-        logger_main.info("# Max:{0},Timesteps:{1},Time consumed:{2},".format(max(all_fitness), results[0][0],(time.time()-time_start)))
+        logger_main.info("# Max:{0},Timesteps:{1},Time consumed:{2},".format(max(all_fitness), all_timesteps,(time.time()-time_start)))
 
         average = sum(all_fitness)/args.pop_size
+        # timesteps_since_eval +=
 
         # Evaluate episode
         if timesteps_since_eval >= args.eval_freq:
