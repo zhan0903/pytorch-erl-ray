@@ -29,7 +29,7 @@ logger_main = logging.getLogger('Main')
 
 @ray.remote(num_gpus=0.2)
 class Worker(object):
-    def __init__(self, args, id):
+    def __init__(self, args, id,logger):
         global logger_worker
         # self.env = utils.NormalizedActions(gym.make(env_tag))
         self.env = gym.make(args.env_name)
@@ -46,7 +46,7 @@ class Worker(object):
         # print("in worker init critic,", self.policy.critic.state_dict()["l3.bias"])
 
         self.replay_buffer = utils.ReplayBuffer()
-        # self.logger = logger
+        self.logger_worker = logger
 
         self.args = args
         self.total_timesteps = 0
@@ -94,12 +94,10 @@ class Worker(object):
         return avg_reward
 
     def train(self, actor_weights, critic_weights):
-        global logger_worker
-        logging.info("dadfasf!!!!!!!")
         self.set_weights(actor_weights, critic_weights)
         # logger_main.info("test!!!")
         # print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
-        logger_worker.debug("set_weight self.policy.actor:{0},id:{1}".format(self.policy.actor.state_dict()["l3.bias"],self.id))
+        self.logger_worker.debug("set_weight self.policy.actor:{0},id:{1}".format(self.policy.actor.state_dict()["l3.bias"],self.id))
         done = False
         episode_timesteps = 0
         episode_reward = 0
@@ -109,7 +107,7 @@ class Worker(object):
             if done:
                 self.episode_num += 1
                 if self.total_timesteps != 0:
-                    logger_worker.info("ID: %d Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
+                    self.logger_worker.info("ID: %d Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     pop_reward_after = self.evaluate_policy()
 
@@ -209,7 +207,7 @@ if __name__ == "__main__":
     agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
     ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30000000000)
 
-    workers = [Worker.remote(args, i)
+    workers = [Worker.remote(args, i, logger_worker)
                for i in range(args.pop_size+1)]
 
     # evaluations = [ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict()))]
