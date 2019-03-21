@@ -232,7 +232,7 @@ if __name__ == "__main__":
     time_start = time.time()
     # debug = True
     episode = 0
-    evolve = True
+    evolve = False
     actors = [actor.state_dict() for actor in agent.actors]
     # actors = agent.actors
     average = None
