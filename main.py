@@ -30,7 +30,7 @@ logger_main = logging.getLogger('Main')
 @ray.remote(num_gpus=0.2)
 class Worker(object):
     def __init__(self, args, id,logger):
-        global logger_worker
+        # global logger_worker
         # self.env = utils.NormalizedActions(gym.make(env_tag))
         self.env = gym.make(args.env_name)
         self.id = id
@@ -97,7 +97,7 @@ class Worker(object):
         self.set_weights(actor_weights, critic_weights)
         # logger_main.info("test!!!")
         # print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
-        self.logger_worker.debug("set_weight self.policy.actor:{0},id:{1}".format(self.policy.actor.state_dict()["l3.bias"],self.id))
+        self.logger_worker.info("set_weight self.policy.actor:{0},id:{1}".format(self.policy.actor.state_dict()["l3.bias"],self.id))
         done = False
         episode_timesteps = 0
         episode_reward = 0
