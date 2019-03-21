@@ -213,7 +213,7 @@ if __name__ == "__main__":
                for i in range(args.pop_size+1)]
 
     # evaluations = [ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict()))]
-    total_timesteps = 0
+    all_timesteps = 0
     # timesteps_since_eval = 0
     # episode_num = 0
     # episode_timesteps = 0
