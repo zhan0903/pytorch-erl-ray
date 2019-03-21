@@ -131,6 +131,7 @@ class Worker(object):
                         return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id, None
 
             action = self.policy.select_action(np.array(obs))
+
             # # Select action randomly or according to policy
             # if self.total_timesteps < args.start_timesteps:
             #     action = self.env.action_space.sample()
