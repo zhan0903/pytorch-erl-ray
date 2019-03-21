@@ -119,16 +119,14 @@ class Worker(object):
                     else:
                         return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id, None
 
-
             # Select action randomly or according to policy
-            action = self.policy.select_action(np.array(obs))
+            if self.total_timesteps < args.start_timesteps:
+                action = self.env.action_space.sample()
+            else:
+                action = self.policy.select_action(np.array(obs))
+                if args.expl_noise != 0:
+                    action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(self.env.action_space.low, self.env.action_space.high)
 
-            # if self.total_timesteps < args.start_timesteps:
-            #     action = self.env.action_space.sample()
-            # else:
-            #     action = self.policy.select_action(np.array(obs))
-            #     if args.expl_noise != 0:
-            #         action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(self.env.action_space.low, self.env.action_space.high)
             # Perform action
             new_obs, reward, done, _ = self.env.step(action)
             done_bool = 0 if episode_timesteps + 1 == self.env._max_episode_steps else float(done)
