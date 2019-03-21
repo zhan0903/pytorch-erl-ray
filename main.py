@@ -99,7 +99,7 @@ class Worker(object):
         self.set_weights(actor_weights, critic_weights)
         # logger_main.info("test!!!")
         # print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
-        print("set_weight self.policy.actor:{0},id:{1}".format(self.policy.actor.state_dict()["l3.bias"],self.id))
+        print("set_weight self.policy.actor.bias:{0},id:{1}".format(self.policy.actor.state_dict()["l3.bias"],self.id))
         done = False
         episode_timesteps = 0
         episode_reward = 0
@@ -113,7 +113,7 @@ class Worker(object):
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     pop_reward_after = self.evaluate_policy()
 
-                    print("before self.policy.actor:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
+                    print("before self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
 
                     if pop_reward_after > episode_reward:
                         return self.total_timesteps, self.policy.grads_critic, pop_reward_after, self.id, self.policy.actor.state_dict()
@@ -226,7 +226,7 @@ if __name__ == "__main__":
     # actors = agent.actors
     average = None
 
-    while total_timesteps < args.max_timesteps:
+    while all_timesteps < args.max_timesteps:
         # if debug:
         #     actor_weight = actors[0].state_dict()
         # else:
@@ -234,13 +234,15 @@ if __name__ == "__main__":
         critic_id = ray.put(agent.critic.state_dict())
         train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers[:-1], actors)] # actor.state_dict()
         results = ray.get(train_id)
-        total_timesteps, grads_critic, all_fitness, all_id, new_pop = process_results(results)
-        agent.apply_grads_sequential(grads_critic)
-        logger_main.info(time.time()-time_start)
-        logger_main.info("max value:{}".format(max(all_fitness)))
+        all_timesteps, grads_critic, all_fitness, all_id, new_pop = process_results(results)
+        agent.apply_grads(grads_critic)
+        logger_main.info("Time consumed:{}".format(time.time()-time_start))
+        logger_main.info("Max value:{}".format(max(all_fitness)))
+        logger_main.info("Workers:{0},timesteps in each worker:{1}".format(args.pop_size,results[0][0]))
+
         average = sum(all_fitness)/args.pop_size
         # print("average value,", average)
-        logger_main.info("max value index:{}".format(all_fitness.index(max(all_fitness))))
+        logger_main.info("Max value index:{}".format(all_fitness.index(max(all_fitness))))
         # print("ids,", all_id)
         episode += 1
         # debug = False

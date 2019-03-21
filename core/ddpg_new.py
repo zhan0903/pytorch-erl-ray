@@ -83,6 +83,8 @@ class PERL(object):
         print(critic_grad[-1][-1])
         print(grads[0][-1][-1])
 
+        print("len of grads,",len(grads))
+
         for pop_grad in grads:
             for grad in pop_grad:
                 self.critic_optimizer.zero_grad()
