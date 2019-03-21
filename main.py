@@ -269,7 +269,7 @@ if __name__ == "__main__":
             episode += 1
             if episode >= 3:
                 episode %= 3
-                evolve = True
+                evolve = False # True
         else:
             evolve = False
 
