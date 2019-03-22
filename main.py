@@ -10,22 +10,22 @@ import utils
 import time
 from core import mod_neuro_evo as utils_ne
 
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                    datefmt='%m-%d %H:%M',
-                    filename='./debug/4_swimmer_debug_logger.log',
-                    filemode='w')
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-console.setFormatter(formatter)
-logging.getLogger('').addHandler(console)
-
-logger_worker = logging.getLogger('Worker')
-logger_main = logging.getLogger('Main')
+#
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#
+# logging.basicConfig(level=logging.DEBUG,
+#                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+#                     datefmt='%m-%d %H:%M',
+#                     filename='./debug/4_swimmer_debug_logger.log',
+#                     filemode='w')
+# console = logging.StreamHandler()
+# console.setLevel(logging.INFO)
+# formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+# console.setFormatter(formatter)
+# logging.getLogger('').addHandler(console)
+#
+# logger_worker = logging.getLogger('Worker')
+# logger_main = logging.getLogger('Main')
 
 
 def select_action(state, actor):
@@ -203,8 +203,21 @@ if __name__ == "__main__":
     parser.add_argument("--elite_fraction", default=0.1, type=float)
     args = parser.parse_args()
 
-    evolver = utils_ne.SSNE(args)
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                        datefmt='%m-%d %H:%M',
+                        filename='./debug/%s_%s' % (args.pop_size, args.env_name),
+                        filemode='w')
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(name)-8s: %(levelname)-8s %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
 
+    logger_worker = logging.getLogger('Worker')
+    logger_main = logging.getLogger('Main')
+
+    evolver = utils_ne.SSNE(args)
     file_name = "%s_%s_%s" % (args.policy_name, args.env_name, str(args.seed))
     print("---------------------------------------")
     print("Settings: %s" % file_name)
