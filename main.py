@@ -297,14 +297,17 @@ if __name__ == "__main__":
             else:
                 evolve = False
         else:
-            evolve = 0
+            episode = 0
             evolve = False
+
+        logger_main.debug("episode:{}".format(episode))
 
         if evolve: # evolve # True
             logger_main.info("before evolve actor weight 0:{}".format(agent.actors[0].state_dict()["w_l1.weight"][1][:5]))
             logger_main.info("before evolve actor weight 1:{}".format(agent.actors[1].state_dict()["w_l1.weight"][1][:5]))
             logger_main.info("before evolve actor weight 2:{}".format(agent.actors[2].state_dict()["w_l1.weight"][1][:5]))
             logger_main.info("before evolve actor weight 3:{}".format(agent.actors[3].state_dict()["w_l1.weight"][1][:5]))
+
         if evolve: # evolve
             evolver.epoch(agent.actors, all_fitness)
             actors = [actor.state_dict() for actor in agent.actors]
