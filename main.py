@@ -277,6 +277,7 @@ if __name__ == "__main__":
         if timesteps_since_eval >= args.eval_freq:
             timesteps_since_eval %= args.eval_freq
             champ_index = all_fitness.index(max(all_fitness))
+            logger_main.debug("champ_index in evaluate:{}".format(champ_index))
             actor_input = ddpg.Actor(state_dim, action_dim, max_action)
 
             if new_pop[champ_index] is None:
