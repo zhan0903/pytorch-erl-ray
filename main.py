@@ -287,9 +287,12 @@ if __name__ == "__main__":
         if all(v is None for v in new_pop):
             episode += 1
             if episode >= 3:
-                episode %= 3
+                episode = 0
                 evolve = True # True
+            else:
+                evolve = False
         else:
+            evolve = 0
             evolve = False
 
         if evolve:
