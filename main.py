@@ -284,7 +284,7 @@ if __name__ == "__main__":
             actor_input = ddpg.Actor(state_dim, action_dim, max_action)
 
             if new_pop[champ_index] is None:
-                actor_input.load_state_dict(actors[champ_index])
+                actor_input.load_state_dict(agent.actors[champ_index].state_dict())
             else:
                 actor_input.load_state_dict(new_pop[champ_index])
 
