@@ -160,8 +160,8 @@ class PERL(object):
 
 class DDPG(object):
     def __init__(self, state_dim, action_dim, max_action):
-        self.actor = Actor(state_dim, action_dim, max_action).to(device)
-        self.actor_target = Actor(state_dim, action_dim, max_action).to(device)
+        self.actor = Actor_erl(state_dim, action_dim, init=True).to(device)
+        self.actor_target = Actor_erl(state_dim, action_dim, init=True).to(device)
         self.actor_target.load_state_dict(self.actor.state_dict())
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
 
