@@ -12,6 +12,66 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Paper: https://arxiv.org/abs/1509.02971
 
 
+class LayerNorm(nn.Module):
+
+    def __init__(self, features, eps=1e-6):
+        super().__init__()
+        self.gamma = nn.Parameter(torch.ones(features))
+        self.beta = nn.Parameter(torch.zeros(features))
+        self.eps = eps
+
+    def forward(self, x):
+        mean = x.mean(-1, keepdim=True)
+        std = x.std(-1, keepdim=True)
+        return self.gamma * (x - mean) / (std + self.eps) + self.beta
+
+
+class Actor_erl(nn.Module):
+    def __init__(self, state_dim,action_dim, init=False):
+        super(Actor, self).__init__()
+        # self.args = args
+        l1 = 128; l2 = 128; l3 = l2
+
+        # Construct Hidden Layer 1
+        self.w_l1 = nn.Linear(state_dim, l1)
+        # if self.args.use_ln: self.lnorm1 = LayerNorm(l1)
+        self.lnorm1 = LayerNorm(l1)
+
+        #Hidden Layer 2
+        self.w_l2 = nn.Linear(l1, l2)
+        # if self.args.use_ln: self.lnorm2 = LayerNorm(l2)
+        self.lnorm2 = LayerNorm(l2)
+
+        #Out
+        self.w_out = nn.Linear(l3, action_dim)
+
+        #Init
+        if init:
+            self.w_out.weight.data.mul_(0.1)
+            self.w_out.bias.data.mul_(0.1)
+
+        # if args.is_cuda: self.cuda()
+        self.cuda()
+
+
+    def forward(self, input):
+
+        #Hidden Layer 1
+        out = self.w_l1(input)
+        out = self.lnorm1(out)
+        out = F.tanh(out)
+
+        #Hidden Layer 2
+        out = self.w_l2(out)
+        out = self.lnorm2(out)
+        out = F.tanh(out)
+
+
+        #Out
+        out = F.tanh(self.w_out(out))
+        return out
+
+
 class Actor(nn.Module):
     def __init__(self, state_dim, action_dim, max_action):
         super(Actor, self).__init__()
@@ -51,7 +111,7 @@ class Critic(nn.Module):
 class PERL(object):
     def __init__(self, state_dim, action_dim, max_action, pop_size):
         self.pop_size = pop_size
-        self.actors = [Actor(state_dim, action_dim, max_action) for _ in range(pop_size)]
+        self.actors = [Actor_erl(state_dim, action_dim, init=True) for _ in range(pop_size)]
         self.critic = Critic(state_dim, action_dim)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
