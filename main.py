@@ -16,7 +16,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename='./debug/output_5_sequential.log',
+                    filename='./debug/4_debug_logger.log',
                     filemode='w')
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
@@ -60,7 +60,7 @@ class Worker(object):
         logging.basicConfig(level=logging.DEBUG,
                             format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                             datefmt='%m-%d %H:%M',
-                            filename='./debug/output_4_debug_logger.log',
+                            filename='./debug/4_debug_logger.log',
                             filemode='w')
         console = logging.StreamHandler()
         console.setLevel(logging.INFO)
