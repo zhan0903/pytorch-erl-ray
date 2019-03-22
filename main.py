@@ -11,7 +11,7 @@ import time
 from core import mod_neuro_evo as utils_ne
 
 #
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #
 # logging.basicConfig(level=logging.DEBUG,
 #                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -33,7 +33,7 @@ def select_action(state, actor):
     return actor(state).cpu().data.numpy().flatten()
 
 
-def evaluate_policy(env, policy, eval_episodes=3):
+def evaluate_policy(env, policy, eval_episodes=5):
     # self.set_weights(actor_weights,critic_weights)
     avg_reward = 0
     for _ in range(eval_episodes):
@@ -184,7 +184,7 @@ def process_results(r):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default="OurDDPG")
-    parser.add_argument("--env_name", default="HalfCheetah-v1")
+    parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=1e4, type=int)
     parser.add_argument("--eval_freq", default=5e3, type=float)
