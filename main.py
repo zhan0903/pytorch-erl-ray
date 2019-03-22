@@ -248,6 +248,8 @@ if __name__ == "__main__":
     actors = [actor.state_dict() for actor in agent.actors]
     # actors = agent.actors
     average = None
+    get_value = True
+    value = 0
 
     while all_timesteps < args.max_timesteps:
         # if debug:
@@ -262,7 +264,11 @@ if __name__ == "__main__":
         logger_main.info("#Max:{0},#All_TimeSteps:{1},#Time:{2},".format(max(all_fitness), all_timesteps, (time.time()-time_start)))
 
         # average = sum(all_fitness)/args.pop_size
-        # timesteps_since_eval +=
+        if get_value:
+            value = results[0][0]
+            get_value = False
+
+        timesteps_since_eval += value
 
         # Evaluate episode
         if timesteps_since_eval >= args.eval_freq:
