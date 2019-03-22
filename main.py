@@ -300,10 +300,10 @@ if __name__ == "__main__":
             evolve = False
 
         if True: # evolve
-            logger_main.info("before evolve actor weight 0:{}".format(agent.actors[0].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("before evolve actor weight 1:{}".format(agent.actors[1].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("before evolve actor weight 2:{}".format(agent.actors[2].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("before evolve actor weight 3:{}".format(agent.actors[3].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("before evolve actor weight 0:{}".format(agent.actors[0].state_dict()["w_l1.weight"][1][:5]))
+            logger_main.info("before evolve actor weight 1:{}".format(agent.actors[1].state_dict()["w_l1.weight"][1][:5]))
+            logger_main.info("before evolve actor weight 2:{}".format(agent.actors[2].state_dict()["w_l1.weight"][1][:5]))
+            logger_main.info("before evolve actor weight 3:{}".format(agent.actors[3].state_dict()["w_l1.weight"][1][:5]))
         if True: # evolve
             evolver.epoch(agent.actors, all_fitness)
             actors = [actor.state_dict() for actor in agent.actors]
@@ -311,10 +311,10 @@ if __name__ == "__main__":
             actors = [None for _ in range(args.pop_size)]
 
         if True: # evolve
-            logger_main.info("after actor weight 0:{}".format(agent.actors[0].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("after actor weight 1,{}".format(agent.actors[1].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("after actor weight 2,{}".format(agent.actors[2].state_dict()["l3.weight"][1][:5]))
-            logger_main.info("after actor weight 3,{}".format(agent.actors[3].state_dict()["l3.weight"][1][:5]))
+            logger_main.info("after actor weight 0:{}".format(agent.actors[0].state_dict()["w_l1.weight"][1][:5]))
+            logger_main.info("after actor weight 1,{}".format(agent.actors[1].state_dict()["w_l1.weight"][1][:5]))
+            logger_main.info("after actor weight 2,{}".format(agent.actors[2].state_dict()["w_l1.weight"][1][:5]))
+            logger_main.info("after actor weight 3,{}".format(agent.actors[3].state_dict()["w_l1.weight"][1][:5]))
 
     logger_main.info("Finish! MaxValue:{}".format(MaxValue))
 
