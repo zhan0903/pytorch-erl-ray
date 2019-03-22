@@ -26,9 +26,9 @@ class LayerNorm(nn.Module):
         return self.gamma * (x - mean) / (std + self.eps) + self.beta
 
 
-class Actor_erl(nn.Module):
+class ActorErl(nn.Module):
     def __init__(self, state_dim,action_dim, init=False):
-        super(Actor_erl, self).__init__()
+        super(ActorErl, self).__init__()
         # self.args = args
         l1 = 128; l2 = 128; l3 = l2
 
@@ -53,22 +53,58 @@ class Actor_erl(nn.Module):
         # if args.is_cuda: self.cuda()
         self.cuda()
 
-
     def forward(self, input):
-
         #Hidden Layer 1
         out = self.w_l1(input)
         out = self.lnorm1(out)
         out = F.tanh(out)
-
         #Hidden Layer 2
         out = self.w_l2(out)
         out = self.lnorm2(out)
         out = F.tanh(out)
 
-
         #Out
         out = F.tanh(self.w_out(out))
+        return out
+
+
+class CriticErl(nn.Module):
+
+    def __init__(self, state_dim,action_dim):
+        super(CriticErl, self).__init__()
+        # self.args = args
+        l1 = 200; l2 = 300; l3 = l2
+
+        # Construct input interface (Hidden Layer 1)
+        self.w_state_l1 = nn.Linear(state_dim, l1)
+        self.w_action_l1 = nn.Linear(action_dim, l1)
+
+        #Hidden Layer 2
+        self.w_l2 = nn.Linear(2*l1, l2)
+        self.lnorm2 = LayerNorm(l2)
+
+        #Out
+        self.w_out = nn.Linear(l3, 1)
+        self.w_out.weight.data.mul_(0.1)
+        self.w_out.bias.data.mul_(0.1)
+
+        self.cuda()
+
+    def forward(self, input, action):
+
+        #Hidden Layer 1 (Input Interface)
+        out_state = F.elu(self.w_state_l1(input))
+        out_action = F.elu(self.w_action_l1(action))
+        out = torch.cat((out_state, out_action), 1)
+
+        # Hidden Layer 2
+        out = self.w_l2(out)
+        out = self.lnorm2(out)
+        out = F.elu(out)
+
+        # Output interface
+        out = self.w_out(out)
+
         return out
 
 
@@ -111,8 +147,8 @@ class Critic(nn.Module):
 class PERL(object):
     def __init__(self, state_dim, action_dim, max_action, pop_size):
         self.pop_size = pop_size
-        self.actors = [Actor_erl(state_dim, action_dim, init=True) for _ in range(pop_size)]
-        self.critic = Critic(state_dim, action_dim)
+        self.actors = [ActorErl(state_dim, action_dim, init=True) for _ in range(pop_size)]
+        self.critic = CriticErl(state_dim, action_dim)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
     def evolve(self):
@@ -160,13 +196,13 @@ class PERL(object):
 
 class DDPG(object):
     def __init__(self, state_dim, action_dim, max_action):
-        self.actor = Actor_erl(state_dim, action_dim, init=True).to(device)
-        self.actor_target = Actor_erl(state_dim, action_dim, init=True).to(device)
+        self.actor = ActorErl(state_dim, action_dim, init=True).to(device)
+        self.actor_target = ActorErl(state_dim, action_dim, init=True).to(device)
         self.actor_target.load_state_dict(self.actor.state_dict())
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
 
-        self.critic = Critic(state_dim, action_dim).to(device)
-        self.critic_target = Critic(state_dim, action_dim).to(device)
+        self.critic = CriticErl(state_dim, action_dim).to(device)
+        self.critic_target = CriticErl(state_dim, action_dim).to(device)
         self.critic_target.load_state_dict(self.critic.state_dict())
         # self.critic_optimizer = torch.optim.SGD(self.critic.parameters(), lr=0.001, momentum=0.8)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
