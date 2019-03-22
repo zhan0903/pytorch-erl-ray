@@ -35,20 +35,19 @@ def select_action(state, actor):
 
 def evaluate_policy(env, policy, eval_episodes=3):
     # self.set_weights(actor_weights,critic_weights)
-    actor = ddpg.Actor()
     avg_reward = 0.
     for _ in range(eval_episodes):
         obs = env.reset()
         done = False
         while not done:
-            action = select_action(np.array(obs),policy)
+            action = select_action(np.array(obs), policy)
             obs, reward, done, _ = env.step(action)
             avg_reward += reward
 
     avg_reward /= eval_episodes
-    print("---------------------------------------")
-    print("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
-    print("---------------------------------------")
+    logger_main.info("---------------------------------------")
+    logger_main.info("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
+    logger_main.info("---------------------------------------")
     # print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
     return avg_reward
 
@@ -57,18 +56,18 @@ def evaluate_policy(env, policy, eval_episodes=3):
 @ray.remote(num_gpus=0.5)
 class Worker(object):
     def __init__(self, args, id):
-        logging.basicConfig(level=logging.DEBUG,
-                            format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                            datefmt='%m-%d %H:%M',
-                            filename='./debug/4_debug_logger.log',
-                            filemode='w')
-        console = logging.StreamHandler()
-        console.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-        console.setFormatter(formatter)
-        logging.getLogger('').addHandler(console)
-
-        self.logger_worker = logging.getLogger('Worker')
+        # logging.basicConfig(level=logging.DEBUG,
+        #                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+        #                     datefmt='%m-%d %H:%M',
+        #                     filename='./debug/4__logger.log',
+        #                     filemode='w')
+        # console = logging.StreamHandler()
+        # console.setLevel(logging.INFO)
+        # formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        # console.setFormatter(formatter)
+        # logging.getLogger('').addHandler(console)
+        #
+        # self.logger_worker = logging.getLogger('Worker')
 
         self.env = gym.make(args.env_name)
         self.id = id
@@ -135,7 +134,7 @@ class Worker(object):
             if done:
                 self.episode_num += 1
                 if self.total_timesteps != 0:
-                    self.logger_worker.info("ID: %d Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
+                    print("ID: %d Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     pop_reward_after = self.evaluate_policy()
                     # print("before self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
@@ -260,9 +259,9 @@ if __name__ == "__main__":
         results = ray.get(train_id)
         all_timesteps, grads_critic, all_fitness, all_id, new_pop = process_results(results)
         agent.apply_grads(grads_critic,logger_main)
-        logger_main.info("#Max:{0},#TimeSteps:{1},#Time:{2},".format(max(all_fitness), all_timesteps, (time.time()-time_start)))
+        logger_main.info("#Max:{0},#All_TimeSteps:{1},#Time:{2},".format(max(all_fitness), all_timesteps, (time.time()-time_start)))
 
-        average = sum(all_fitness)/args.pop_size
+        # average = sum(all_fitness)/args.pop_size
         # timesteps_since_eval +=
 
         # Evaluate episode
@@ -283,7 +282,7 @@ if __name__ == "__main__":
             episode += 1
             if episode >= 3:
                 episode %= 3
-                evolve = False # True
+                evolve = True # True
         else:
             evolve = False
 
