@@ -28,7 +28,7 @@ class LayerNorm(nn.Module):
 
 class Actor_erl(nn.Module):
     def __init__(self, state_dim,action_dim, init=False):
-        super(Actor, self).__init__()
+        super(Actor_erl, self).__init__()
         # self.args = args
         l1 = 128; l2 = 128; l3 = l2
 
