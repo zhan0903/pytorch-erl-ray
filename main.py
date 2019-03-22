@@ -282,7 +282,7 @@ if __name__ == "__main__":
                 actor_input.load_state_dict(new_pop[champ_index])
 
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=3))
-            np.save("./results/%s" % (file_name), evaluations)
+            np.save("./results/%s" % file_name, evaluations)
 
         if all(v is None for v in new_pop):
             episode += 1
