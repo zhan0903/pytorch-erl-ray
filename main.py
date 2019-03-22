@@ -35,7 +35,7 @@ def select_action(state, actor):
 
 def evaluate_policy(env, policy, eval_episodes=3):
     # self.set_weights(actor_weights,critic_weights)
-    avg_reward = 0.
+    avg_reward = 0
     for _ in range(eval_episodes):
         obs = env.reset()
         done = False
@@ -53,7 +53,7 @@ def evaluate_policy(env, policy, eval_episodes=3):
 
 
 
-@ray.remote(num_gpus=0.5)
+@ray.remote(num_gpus=0.2)
 class Worker(object):
     def __init__(self, args, id):
         # logging.basicConfig(level=logging.DEBUG,
@@ -253,10 +253,6 @@ if __name__ == "__main__":
     MaxValue = None
 
     while all_timesteps < args.max_timesteps:
-        # if debug:
-        #     actor_weight = actors[0].state_dict()
-        # else:
-        #     actor_weight = None
         critic_id = ray.put(agent.critic.state_dict())
         train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
