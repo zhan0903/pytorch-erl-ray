@@ -53,7 +53,7 @@ def evaluate_policy(env, policy, eval_episodes=3):
 
 
 
-@ray.remote(num_gpus=0.2)
+@ray.remote(num_gpus=0.5)
 class Worker(object):
     def __init__(self, args, id):
         # logging.basicConfig(level=logging.DEBUG,
