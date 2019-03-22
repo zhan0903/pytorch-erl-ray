@@ -250,6 +250,7 @@ if __name__ == "__main__":
     average = None
     get_value = True
     value = 0
+    MaxValue = None
 
     while all_timesteps < args.max_timesteps:
         # if debug:
@@ -261,9 +262,15 @@ if __name__ == "__main__":
         results = ray.get(train_id)
         all_timesteps, grads_critic, all_fitness, all_id, new_pop = process_results(results)
         agent.apply_grads(grads_critic,logger_main)
+
         logger_main.info("#Max:{0},#All_TimeSteps:{1},#Time:{2},".format(max(all_fitness), all_timesteps, (time.time()-time_start)))
 
-        # average = sum(all_fitness)/args.pop_size
+        if MaxValue is None:
+            MaxValue = max(all_fitness)
+        else:
+            if max(all_fitness) > MaxValue:
+                MaxValue = max(all_fitness)
+
         if get_value:
             value = results[0][0]
             get_value = False
@@ -312,8 +319,7 @@ if __name__ == "__main__":
             logger_main.info("after actor weight 2,{}".format(agent.actors[2].state_dict()["l3.weight"][1][:5]))
             logger_main.info("after actor weight 3,{}".format(agent.actors[3].state_dict()["l3.weight"][1][:5]))
 
-
-
+    logger_main.info("Finish! MaxValue:{}".format(MaxValue))
 
 
 
