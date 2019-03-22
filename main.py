@@ -285,11 +285,12 @@ if __name__ == "__main__":
             else:
                 actor_input.load_state_dict(new_pop[champ_index])
 
-            evaluations.append(evaluate_policy(env, actor_input, eval_episodes=3))
+            evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
         if all(v is None for v in new_pop):
             episode += 1
+            logger_main.debug("episode:{}".format(episode))
             if episode >= 3:
                 episode = 0
                 evolve = True # True
