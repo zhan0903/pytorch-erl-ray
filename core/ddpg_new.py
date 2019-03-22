@@ -57,14 +57,14 @@ class ActorErl(nn.Module):
         #Hidden Layer 1
         out = self.w_l1(input)
         out = self.lnorm1(out)
-        out = F.tanh(out)
+        out = torch.tanh(out)
         #Hidden Layer 2
         out = self.w_l2(out)
         out = self.lnorm2(out)
-        out = F.tanh(out)
+        out = torch.tanh(out)
 
         #Out
-        out = F.tanh(self.w_out(out))
+        out = torch.tanh(self.w_out(out))
         return out
 
 

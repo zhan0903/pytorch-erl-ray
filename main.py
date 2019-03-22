@@ -278,7 +278,7 @@ if __name__ == "__main__":
             timesteps_since_eval %= args.eval_freq
             champ_index = all_fitness.index(max(all_fitness))
             logger_main.debug("champ_index in evaluate:{}".format(champ_index))
-            actor_input = ddpg.Actor_erl(state_dim, action_dim)
+            actor_input = ddpg.ActorErl(state_dim, action_dim)
 
             if new_pop[champ_index] is None:
                 actor_input.load_state_dict(agent.actors[champ_index].state_dict())
