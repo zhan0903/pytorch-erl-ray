@@ -252,6 +252,7 @@ if __name__ == "__main__":
     get_value = True
     value = 0
     MaxValue = None
+    maxvalue = None
     average_value_before = None
 
     while all_timesteps < args.max_timesteps:
@@ -274,6 +275,11 @@ if __name__ == "__main__":
             if max(all_fitness) > MaxValue:
                 MaxValue = max(all_fitness)
 
+        if maxvalue is None:
+            maxvalue = max(all_fitness)
+        else:
+
+
         if get_value:
             value = results[0][0]
             get_value = False
@@ -295,10 +301,10 @@ if __name__ == "__main__":
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
-        if average_value < average_value_before: # all(v is None for v in new_pop)
+        if maxvalue > max(all_fitness): # all(v is None for v in new_pop)
             episode += 1
             logger_main.debug("episode:{}".format(episode))
-            if episode >= 3:
+            if episode >= 2:
                 episode = 0
                 evolve = True # True
             else:
@@ -307,23 +313,26 @@ if __name__ == "__main__":
             episode = 0
             evolve = False
 
+
+        maxvalue = max(all_fitness)
+
         average_value_before = average_value
 
         logger_main.debug("episode:{}".format(episode))
 
-        if True: # evolve # True
+        if evolve: # evolve # True
             logger_main.info("before evolve actor weight 0:{}".format(agent.actors[0].state_dict()["w_l1.weight"][1][:5]))
             logger_main.info("before evolve actor weight 1:{}".format(agent.actors[1].state_dict()["w_l1.weight"][1][:5]))
             logger_main.info("before evolve actor weight 2:{}".format(agent.actors[2].state_dict()["w_l1.weight"][1][:5]))
             logger_main.info("before evolve actor weight 3:{}".format(agent.actors[3].state_dict()["w_l1.weight"][1][:5]))
 
-        if True: # evolve
+        if evolve: # evolve
             evolver.epoch(agent.actors, all_fitness)
             actors = [actor.state_dict() for actor in agent.actors]
         else:
             actors = [None for _ in range(args.pop_size)]
 
-        if True: # evolve
+        if evolve: # evolve
             logger_main.info("after actor weight 0:{}".format(agent.actors[0].state_dict()["w_l1.weight"][1][:5]))
             logger_main.info("after actor weight 1,{}".format(agent.actors[1].state_dict()["w_l1.weight"][1][:5]))
             logger_main.info("after actor weight 2,{}".format(agent.actors[2].state_dict()["w_l1.weight"][1][:5]))
