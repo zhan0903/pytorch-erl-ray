@@ -272,6 +272,8 @@ if __name__ == "__main__":
         all_timesteps, grads_critic, all_fitness, all_id, new_pop = process_results(results)
         agent.apply_grads(grads_critic,logger_main)
 
+        average_value = sum(all_fitness)/args.pop_size
+
         logger_main.info("#Max:{0},#All_TimeSteps:{1},#Time:{2},".format(max(all_fitness), all_timesteps, (time.time()-time_start)))
 
         if MaxValue is None:
@@ -301,7 +303,7 @@ if __name__ == "__main__":
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
-        if all(v is None for v in new_pop):
+        if average_value < average_value_before: # all(v is None for v in new_pop)
             episode += 1
             logger_main.debug("episode:{}".format(episode))
             if episode >= 3:
@@ -312,6 +314,8 @@ if __name__ == "__main__":
         else:
             episode = 0
             evolve = False
+
+        average_value_before = average_value
 
         logger_main.debug("episode:{}".format(episode))
 
