@@ -187,12 +187,14 @@ if __name__ == "__main__":
     parser.add_argument("--crossover_prob", default=0.0, type=float)
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)
+    parser.add_argument("--node_name", default="qcis5")
+
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt='%m-%d %H:%M',
-                        filename='./debug/%s_%s' % (args.pop_size, args.env_name),
+                        filename='./debug/%s_%s_%s' % (args.pop_size, args.env_name, args.node_name),
                         filemode='w')
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
@@ -204,7 +206,7 @@ if __name__ == "__main__":
     logger_main = logging.getLogger('Main')
 
     evolver = utils_ne.SSNE(args)
-    file_name = "%s_%s_%s" % (args.policy_name, args.env_name, str(args.seed))
+    file_name = "%s_%s_%s_%s" % (args.policy_name, args.env_name, str(args.seed), args.node_name)
     print("---------------------------------------")
     print("Settings: %s" % file_name)
     print("---------------------------------------")
