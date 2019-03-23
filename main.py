@@ -196,7 +196,7 @@ if __name__ == "__main__":
                         filemode='w')
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(name)-8s: %(levelname)-8s %(message)s')
+    formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
@@ -263,7 +263,8 @@ if __name__ == "__main__":
         if average_value_before is None:
             average_value_before = average_value
 
-        logger_main.info("#Max:{0},#All_TimeSteps:{1},#Time:{2},".format(max(all_fitness), all_timesteps, (time.time()-time_start)))
+        logger_main.info("#Max:{0},#Average:{1},#All_TimeSteps:{2},#Time:{3},".
+                         format(max(all_fitness), average_value, all_timesteps, (time.time()-time_start)))
 
         if MaxValue is None:
             MaxValue = max(all_fitness)
