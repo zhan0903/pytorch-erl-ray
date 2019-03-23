@@ -275,11 +275,6 @@ if __name__ == "__main__":
             if max(all_fitness) > MaxValue:
                 MaxValue = max(all_fitness)
 
-        if maxvalue is None:
-            maxvalue = max(all_fitness)
-        else:
-
-
         if get_value:
             value = results[0][0]
             get_value = False
@@ -301,7 +296,7 @@ if __name__ == "__main__":
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
-        if maxvalue > max(all_fitness): # all(v is None for v in new_pop)
+        if maxvalue is not None and (maxvalue > max(all_fitness)): # all(v is None for v in new_pop)
             episode += 1
             logger_main.debug("episode:{}".format(episode))
             if episode >= 2:
@@ -312,7 +307,6 @@ if __name__ == "__main__":
         else:
             episode = 0
             evolve = False
-
 
         maxvalue = max(all_fitness)
 
