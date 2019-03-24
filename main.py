@@ -174,7 +174,7 @@ if __name__ == "__main__":
     parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=1e4, type=int)
-    parser.add_argument("--eval_freq", default=8e3, type=float)
+    parser.add_argument("--eval_freq", default=1e5, type=float)
     parser.add_argument("--max_timesteps", default=1e6, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
     parser.add_argument("--discount", default=0.99, type=float)
@@ -268,6 +268,7 @@ if __name__ == "__main__":
         if average_value_before is None:
             average_value_before = average_value
 
+        logger_main.info("None in new pop:{}".format(all(v is None for v in new_pop)))
         logger_main.info("#Max:{0},#Average:{1},#All_TimeSteps:{2},#Time:{3},".
                          format(max(all_fitness), average_value, all_timesteps, (time.time()-time_start)))
 
@@ -293,10 +294,10 @@ if __name__ == "__main__":
             if new_pop[champ_index] is None:
                 actor_input.load_state_dict(agent.actors[champ_index].state_dict())
             else:
-                # if evolve_rate < 0.1:
-                #     evolve_rate = 0
-                # else:
-                # evolve_rate -= 0.1
+                if evolve_rate < 0.1:
+                    evolve_rate = 0
+                else:
+                    evolve_rate -= 0.1
                 actor_input.load_state_dict(new_pop[champ_index])
 
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
