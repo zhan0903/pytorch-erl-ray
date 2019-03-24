@@ -293,16 +293,22 @@ if __name__ == "__main__":
             if new_pop[champ_index] is None:
                 actor_input.load_state_dict(agent.actors[champ_index].state_dict())
             else:
-                evolve_rate /= 2
+                if evolve_rate < 0.1:
+                    evolve_rate = 0
+                else:
+                    evolve_rate /= 2
                 actor_input.load_state_dict(new_pop[champ_index])
 
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
+        logger_main.debug("evolve_rate:{}".format(evolve_rate))
         if random.random() < evolve_rate:
             evolve = True
         else:
             evolve = False
+
+
 
         # if maxvalue is not None and (maxvalue > max(all_fitness)): # all(v is None for v in new_pop)
         #     episode += 1
