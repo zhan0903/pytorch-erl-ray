@@ -293,13 +293,18 @@ if __name__ == "__main__":
             logger_main.debug("champ_index in evaluate:{}".format(champ_index))
             actor_input = ddpg.ActorErl(state_dim, action_dim)
 
+            if evolve_rate < 0.1:
+                evolve_rate = 0
+            else:
+                evolve_rate -= 0.1
+
             if new_pop[champ_index] is None:
                 actor_input.load_state_dict(agent.actors[champ_index].state_dict())
             else:
-                if evolve_rate < 0.1:
-                    evolve_rate = 0
-                else:
-                    evolve_rate -= 0.1
+                # if evolve_rate < 0.1:
+                #     evolve_rate = 0
+                # else:
+                #     evolve_rate -= 0.1
                 actor_input.load_state_dict(new_pop[champ_index])
 
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
