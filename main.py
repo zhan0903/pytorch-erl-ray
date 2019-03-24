@@ -125,7 +125,7 @@ class Worker(object):
                     pop_reward_after = self.evaluate_policy()
                     # print("before self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
 
-                    if pop_reward_after > episode_reward:
+                    if True:#pop_reward_after > episode_reward:
                         return self.total_timesteps, self.policy.grads_critic, pop_reward_after, self.id, self.policy.actor.state_dict()
                     else:
                         return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id, None
