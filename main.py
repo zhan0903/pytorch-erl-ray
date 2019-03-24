@@ -131,16 +131,17 @@ class Worker(object):
                 self.episode_num += 1
                 if self.total_timesteps != 0:
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
-                    pop_reward_after = self.evaluate_policy()
+                    episode_reward_after = self.evaluate_policy()
                     self.logger_worker.info("ID: %d Total T: %d Episode_Num: %d Episode T: %d Reward: %f  Reward_After: %f" %
-                          (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward, pop_reward_after))
-
+                          (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward, episode_reward_after))
                     # print("before self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
 
-                    if pop_reward_after > episode_reward:
-                        return self.total_timesteps, self.policy.grads_critic, pop_reward_after, self.id, self.policy.actor.state_dict()
+                    if episode_reward_after > episode_reward:
+                        return self.total_timesteps, self.policy.grads_critic, episode_reward, \
+                               episode_reward_after, self.id, self.policy.actor.state_dict()
                     else:
-                        return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id, None
+                        return self.total_timesteps, self.policy.grads_critic, episode_reward, \
+                               episode_reward_after, self.id, None
 
             action = self.policy.select_action(np.array(obs))
 
@@ -169,15 +170,18 @@ def process_results(r):
     total_t = []
     grads_c = []
     all_f = []
+    all_f_a = []
     all_id = []
     new_pop = []
+
     for result in r:
-        new_pop.append(result[4])
-        all_id.append(result[3])
+        new_pop.append(result[5])
+        all_id.append(result[4])
+        all_f_a.append(result[3])
         all_f.append(result[2])
         grads_c.append(result[1])
         total_t.append(result[0])
-    return sum(total_t), grads_c, all_f,all_id, new_pop
+    return sum(total_t), grads_c, all_f, all_f_a, all_id, new_pop
 
 
 if __name__ == "__main__":
@@ -276,16 +280,18 @@ if __name__ == "__main__":
         critic_id = ray.put(agent.critic.state_dict())
         train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
-        all_timesteps, grads_critic, all_fitness, all_id, new_pop = process_results(results)
+        all_timesteps, grads_critic, all_fitness, all_fitness_after, all_id, new_pop = process_results(results)
         agent.apply_grads(grads_critic,logger_main)
 
         average_value = sum(all_fitness)/args.pop_size
+        average_value_after = sum(all_fitness_after)/args.pop_size
+
         if average_value_before is None:
             average_value_before = average_value
 
         logger_main.info("All None in new pop:{}".format(all(v is None for v in new_pop)))
-        logger_main.info("#Max:{0},#Average:{1},#All_TimeSteps:{2},#Time:{3},".
-                         format(max(all_fitness), average_value, all_timesteps, (time.time()-time_start)))
+        logger_main.info("#Max:{0},#Average:{1},#Average_after:{2}, #All_TimeSteps:{3}, #Time:{4},".
+                         format(max(all_fitness), average_value, average_value_after, all_timesteps, (time.time()-time_start)))
 
         if MaxValue is None:
             MaxValue = max(all_fitness)
@@ -327,7 +333,7 @@ if __name__ == "__main__":
         if random.random() < evolve_rate:
             evolve = True
         else:
-            evolve = False
+            evolve = True#False
 
         # if maxvalue is not None and (maxvalue > max(all_fitness)): # all(v is None for v in new_pop)
         #     episode += 1
