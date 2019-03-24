@@ -108,9 +108,6 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
-        # logger_main.info("test!!!")
-        # print("set_weight self.policy.critic,id", self.policy.critic.state_dict()["l3.bias"],self.id)
-        # print("set_weight self.policy.actor.bias:{0},id:{1}".format(self.policy.actor.state_dict()["l3.bias"],self.id))
         done = False
         episode_timesteps = 0
         episode_reward = 0
@@ -120,9 +117,11 @@ class Worker(object):
             if done:
                 self.episode_num += 1
                 if self.total_timesteps != 0:
-                    print("ID: %d Total T: %d Episode Num: %d Episode T: %d Reward: %f" % (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward))
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     pop_reward_after = self.evaluate_policy()
+                    print("ID: %d Total T: %d Episode_Num: %d Episode T: %d Reward: %f  Reward_After: %f" %
+                          (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward, pop_reward_after))
+
                     # print("before self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
 
                     if pop_reward_after > episode_reward:
@@ -196,7 +195,7 @@ if __name__ == "__main__":
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt='%m-%d %H:%M',
                         filename='./debug/%s_%s_%s' % (args.pop_size, args.env_name, args.node_name),
-                        filemode='w')
+                        filemode='a+')
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
     formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
@@ -257,6 +256,9 @@ if __name__ == "__main__":
     average_value_before = None
     evolve_rate = 1.0
 
+    logger_main.info("*****************************************************")
+    logger_main.info("evovle: -0.1 for every 1e5")
+
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
         train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
@@ -282,7 +284,7 @@ if __name__ == "__main__":
             value = results[0][0]
             get_value = False
 
-        timesteps_since_eval += value
+        timesteps_since_eval += value * args.pop_size
 
         # Evaluate episode
         if timesteps_since_eval >= args.eval_freq:
