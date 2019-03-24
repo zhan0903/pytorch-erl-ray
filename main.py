@@ -174,7 +174,7 @@ if __name__ == "__main__":
     parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=1e4, type=int)
-    parser.add_argument("--eval_freq", default=5e3, type=float)
+    parser.add_argument("--eval_freq", default=8e3, type=float)
     parser.add_argument("--max_timesteps", default=1e6, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
     parser.add_argument("--discount", default=0.99, type=float)
@@ -307,8 +307,6 @@ if __name__ == "__main__":
             evolve = True
         else:
             evolve = False
-
-
 
         # if maxvalue is not None and (maxvalue > max(all_fitness)): # all(v is None for v in new_pop)
         #     episode += 1
