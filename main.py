@@ -125,7 +125,7 @@ class Worker(object):
                     pop_reward_after = self.evaluate_policy()
                     # print("before self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
 
-                    if True:#pop_reward_after > episode_reward:
+                    if pop_reward_after > episode_reward:
                         return self.total_timesteps, self.policy.grads_critic, pop_reward_after, self.id, self.policy.actor.state_dict()
                     else:
                         return self.total_timesteps, self.policy.grads_critic, episode_reward, self.id, None
@@ -255,6 +255,7 @@ if __name__ == "__main__":
     MaxValue = None
     maxvalue = None
     average_value_before = None
+    evolve_rate = 1.0
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
@@ -292,22 +293,28 @@ if __name__ == "__main__":
             if new_pop[champ_index] is None:
                 actor_input.load_state_dict(agent.actors[champ_index].state_dict())
             else:
+                evolve_rate /= 2
                 actor_input.load_state_dict(new_pop[champ_index])
 
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
-        if maxvalue is not None and (maxvalue > max(all_fitness)): # all(v is None for v in new_pop)
-            episode += 1
-            logger_main.debug("episode:{}".format(episode))
-            if episode >= 1:
-                episode = 0
-                evolve = True # True
-            else:
-                evolve = False
+        if random.random() < evolve_rate:
+            evolve = True
         else:
-            episode = 0
             evolve = False
+
+        # if maxvalue is not None and (maxvalue > max(all_fitness)): # all(v is None for v in new_pop)
+        #     episode += 1
+        #     logger_main.debug("episode:{}".format(episode))
+        #     if episode >= 1:
+        #         episode = 0
+        #         evolve = True # True
+        #     else:
+        #         evolve = False
+        # else:
+        #     episode = 0
+        #     evolve = False
 
         maxvalue = max(all_fitness)
 
