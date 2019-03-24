@@ -61,6 +61,19 @@ class Worker(object):
         torch.manual_seed(args.seed)
         np.random.seed(args.seed)
 
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                            datefmt='%m-%d %H:%M',
+                            filename='./debug/%s_%s_%s' % (args.pop_size, args.env_name, args.node_name),
+                            filemode='a+')
+        console = logging.StreamHandler()
+        console.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
+        console.setFormatter(formatter)
+        logging.getLogger('').addHandler(console)
+
+        self.logger_worker = logging.getLogger('Worker')
+
         state_dim = self.env.observation_space.shape[0]
         action_dim = self.env.action_space.shape[0]
         max_action = float(env.action_space.high[0])
@@ -119,7 +132,7 @@ class Worker(object):
                 if self.total_timesteps != 0:
                     self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     pop_reward_after = self.evaluate_policy()
-                    print("ID: %d Total T: %d Episode_Num: %d Episode T: %d Reward: %f  Reward_After: %f" %
+                    self.logger_worker.info("ID: %d Total T: %d Episode_Num: %d Episode T: %d Reward: %f  Reward_After: %f" %
                           (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward, pop_reward_after))
 
                     # print("before self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
