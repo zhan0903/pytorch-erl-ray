@@ -293,10 +293,10 @@ if __name__ == "__main__":
             if new_pop[champ_index] is None:
                 actor_input.load_state_dict(agent.actors[champ_index].state_dict())
             else:
-                if evolve_rate < 0.1:
-                    evolve_rate = 0
-                else:
-                    evolve_rate /= 2
+                # if evolve_rate < 0.1:
+                #     evolve_rate = 0
+                # else:
+                evolve_rate -= 0.1
                 actor_input.load_state_dict(new_pop[champ_index])
 
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
