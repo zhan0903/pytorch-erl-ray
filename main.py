@@ -90,7 +90,7 @@ class Worker(object):
         self.episode_timesteps = 0
         self.better_reward = None
 
-    def set_weights(self,actor_weights, critic_weights):
+    def set_weights(self, critic_weights):
         # if actor_weights is not None:
         #     # print("come here 1")
         #     self.policy.actor.load_state_dict(actor_weights)
