@@ -262,7 +262,7 @@ if __name__ == "__main__":
     time_start = time.time()
     # debug = True
     episode = 0
-    evolve = False
+    evolve = True
     actors = [actor.state_dict() for actor in agent.actors]
     # actors = agent.actors
     average = None
@@ -270,12 +270,12 @@ if __name__ == "__main__":
     value = 0
     MaxValue = None
     maxvalue = None
-    average_value_before = None
+    # average_value_before = None
     evolve_rate = 1.0
 
-    logger_main.info("*****************************************************")
-    logger_main.info("100% evovle, average before and after version")
-    logger_main.info("*****************************************************")
+    logger_main.info("*************************************************************")
+    logger_main.info("if average_before < average_after then no evolve else evolve")
+    logger_main.info("*************************************************************")
 
 
     while all_timesteps < args.max_timesteps:
@@ -288,12 +288,12 @@ if __name__ == "__main__":
         average_value = sum(all_fitness)/args.pop_size
         average_value_after = sum(all_fitness_after)/args.pop_size
 
-        if average_value_before is None:
-            average_value_before = average_value
+        # if average_value_before is None:
+        #     average_value_before = average_value
 
         logger_main.info("All None in new pop:{}".format(all(v is None for v in new_pop)))
-        logger_main.info("#Max:{0},#Average:{1},#Average_after:{2}, #All_TimeSteps:{3}, #Time:{4},".
-                         format(max(all_fitness), average_value, average_value_after, all_timesteps, (time.time()-time_start)))
+        logger_main.info("#Max:{0}, #Max_after:{1}, #Average:{2},#Average_after:{3}, #All_TimeSteps:{4}, #Time:{5},".
+                         format(max(all_fitness), max(all_fitness_after), average_value, average_value_after, all_timesteps, (time.time()-time_start)))
 
         if MaxValue is None:
             MaxValue = max(all_fitness)
@@ -314,28 +314,30 @@ if __name__ == "__main__":
             logger_main.debug("champ_index in evaluate:{}".format(champ_index))
             actor_input = ddpg.ActorErl(state_dim, action_dim)
 
-            if evolve_rate < 0.1:
-                evolve_rate = 0
-            else:
-                evolve_rate -= 0.1
-
+            # if evolve_rate < 0.1:
+            #     evolve_rate = 0
+            # else:
+            #     evolve_rate -= 0.1
             if new_pop[champ_index] is None:
                 actor_input.load_state_dict(agent.actors[champ_index].state_dict())
             else:
-                # if evolve_rate < 0.1:
-                #     evolve_rate = 0
-                # else:
-                #     evolve_rate -= 0.1
                 actor_input.load_state_dict(new_pop[champ_index])
 
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
         logger_main.debug("evolve_rate:{}".format(evolve_rate))
-        if random.random() < evolve_rate:
-            evolve = True
+
+        if average_value_after > average_value:
+            evolve = False
         else:
-            evolve = True#False
+            evolve = True
+
+
+        # if random.random() < evolve_rate:
+        #     evolve = True
+        # else:
+        #     evolve = True#False
 
         # if maxvalue is not None and (maxvalue > max(all_fitness)): # all(v is None for v in new_pop)
         #     episode += 1
@@ -351,7 +353,7 @@ if __name__ == "__main__":
 
         maxvalue = max(all_fitness)
 
-        average_value_before = average_value
+        # average_value_before = average_value
 
         logger_main.debug("episode:{}".format(episode))
 
