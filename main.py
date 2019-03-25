@@ -52,7 +52,7 @@ def evaluate_policy(env, policy, eval_episodes=5):
     return avg_reward
 
 
-@ray.remote(num_gpus=0.2)
+@ray.remote(num_gpus=0.5)
 class Worker(object):
     def __init__(self, args, id):
         self.env = gym.make(args.env_name)
