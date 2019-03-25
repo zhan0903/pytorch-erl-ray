@@ -158,6 +158,9 @@ class Worker(object):
 
         reward_learned = self.evaluate_policy(self.policy.actor)
 
+        self.logger_worker.info("ID: %d Total T: %d Episode_Num: %d Episode T: %d reward_evolved: %f  reward_learned: %f" %
+            (self.id, self.total_timesteps, self.episode_num, self.episode_timesteps, reward_evolved, reward_learned))
+
         if reward_evolved > reward_learned:
             self.policy.actor.load_state_dict(actor_weights) # drop new learned actor
             for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
