@@ -128,6 +128,7 @@ class Worker(object):
     def evaluate_policy(self, actor):
         obs = self.env.reset()
         episode_reward = 0
+        done = False
         while not done:
             action = select_action(np.array(obs), actor)
 
