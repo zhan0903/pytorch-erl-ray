@@ -200,7 +200,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     parser.add_argument("--save_models", action="store_true")
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
-    parser.add_argument("--pop_size", default=10, type=int)
+    parser.add_argument("--pop_size", default=4, type=int)
     parser.add_argument("--crossover_prob", default=0.0, type=float)
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)
@@ -274,7 +274,7 @@ if __name__ == "__main__":
     evolve_rate = 1.0
 
     logger_main.info("*************************************************************")
-    logger_main.info("if average_before < average_after then no evolve else evolve,fixed a serious problem")
+    logger_main.info("if average_before < average_after then no evolve else evolve,fixed a serious problem, pop size to 4")
     logger_main.info("*************************************************************")
 
 
@@ -337,9 +337,6 @@ if __name__ == "__main__":
         else:
             evolve = True
 
-
-
-
         # if random.random() < evolve_rate:
         #     evolve = True
         # else:
@@ -369,6 +366,7 @@ if __name__ == "__main__":
             logger_main.info("before evolve actor weight 2:{}".format(agent.actors[2].state_dict()["w_l1.weight"][1][:5]))
             logger_main.info("before evolve actor weight 3:{}".format(agent.actors[3].state_dict()["w_l1.weight"][1][:5]))
 
+        # the commond method, just total choose all evolved ones or trained ones
         if evolve: # evolve
             evolver.epoch(agent.actors, all_fitness)
         #     actors = [actor.state_dict() for actor in agent.actors]
