@@ -285,6 +285,10 @@ if __name__ == "__main__":
         all_timesteps, grads_critic, all_fitness, all_fitness_after, all_id, new_pop = process_results(results)
         agent.apply_grads(grads_critic,logger_main)
 
+        for new_actor, actor in zip(new_pop, agent.actors):
+            if new_actor is not None:
+                actor.load_state_dict(new_actor)
+
         average_value = sum(all_fitness)/args.pop_size
         average_value_after = sum(all_fitness_after)/args.pop_size
 
@@ -334,6 +338,8 @@ if __name__ == "__main__":
             evolve = True
 
 
+
+
         # if random.random() < evolve_rate:
         #     evolve = True
         # else:
@@ -365,9 +371,11 @@ if __name__ == "__main__":
 
         if evolve: # evolve
             evolver.epoch(agent.actors, all_fitness)
-            actors = [actor.state_dict() for actor in agent.actors]
-        else:
-            actors = [None for _ in range(args.pop_size)]
+        #     actors = [actor.state_dict() for actor in agent.actors]
+        # else:
+        #     actors = [None for _ in range(args.pop_size)]
+
+        actors = [actor.state_dict() for actor in agent.actors]
 
         if evolve: # evolve
             logger_main.info("after actor weight 0:{}".format(agent.actors[0].state_dict()["w_l1.weight"][1][:5]))
