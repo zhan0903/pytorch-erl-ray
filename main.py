@@ -80,13 +80,15 @@ class Worker(object):
 
         self.policy = ddpg.DDPG(state_dim, action_dim, max_action)
         # print("in worker init critic,", self.policy.critic.state_dict()["l3.bias"])
-
+        self.actor_evovlved = ddpg.ActorErl(state_dim, action_dim)
         self.replay_buffer = utils.ReplayBuffer()
 
         self.args = args
         self.total_timesteps = 0
         self.episode_num = 0
         self.timesteps_since_eval = 0
+        self.episode_timesteps = 0
+        self.better_reward = None
 
     def set_weights(self,actor_weights, critic_weights):
         if actor_weights is not None:
@@ -104,7 +106,7 @@ class Worker(object):
                 target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
     # Runs policy for X episodes and returns average reward
-    def evaluate_policy(self, eval_episodes=1):
+    def evaluate_policy_temp(self, eval_episodes=1):
         # self.set_weights(actor_weights,critic_weights)
         avg_reward = 0.
         for _ in range(eval_episodes):
@@ -119,51 +121,129 @@ class Worker(object):
         # print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
         return avg_reward
 
-    def train(self, actor_weights, critic_weights):
-        self.set_weights(actor_weights, critic_weights)
-        done = False
-        episode_timesteps = 0
-        episode_reward = 0
+    # def select_action(self, state, actor):
+    #     state = torch.FloatTensor(state.reshape(1, -1)).to(device)
+    #     return actor(state).cpu().data.numpy().flatten()
+
+    def evaluate_policy(self, actor):
         obs = self.env.reset()
-
-        while True:
-            if done:
-                self.episode_num += 1
-                if self.total_timesteps != 0:
-                    self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
-                    episode_reward_after = self.evaluate_policy()
-                    self.logger_worker.info("ID: %d Total T: %d Episode_Num: %d Episode T: %d Reward: %f  Reward_After: %f" %
-                          (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward, episode_reward_after))
-                    # print("before self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
-
-                    if episode_reward_after > episode_reward:
-                        return self.total_timesteps, self.policy.grads_critic, episode_reward, \
-                               episode_reward_after, self.id, self.policy.actor.state_dict()
-                    else:
-                        return self.total_timesteps, self.policy.grads_critic, episode_reward, \
-                               episode_reward_after, self.id, None
-
-            action = self.policy.select_action(np.array(obs))
-
-            # # Select action randomly or according to policy
-            # if self.total_timesteps < args.start_timesteps:
-            #     action = self.env.action_space.sample()
-            # else:
-            #     action = self.policy.select_action(np.array(obs))
-            #     if args.expl_noise != 0:
-            #         action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(self.env.action_space.low, self.env.action_space.high)
+        episode_reward = 0
+        while not done:
+            action = select_action(np.array(obs), actor)
 
             # Perform action
             new_obs, reward, done, _ = self.env.step(action)
-            done_bool = 0 if episode_timesteps + 1 == self.env._max_episode_steps else float(done)
+            done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
             episode_reward += reward
 
             # Store data in replay buffer
             self.replay_buffer.add((obs, new_obs, action, reward, done_bool))
             obs = new_obs
 
-            episode_timesteps += 1
+            self.episode_timesteps += 1
             self.total_timesteps += 1
+
+        return episode_reward
+
+    def train(self, actor_weights, critic_weights):
+        self.episode_timesteps = 0
+        self.set_weights(None, critic_weights)
+        self.actor_evovlved.load_state_dict(actor_weights)
+
+        reward_evolved = self.evaluate_policy(self.actor_evovlved)
+
+        self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
+                          self.args.tau)
+
+        reward_learned = self.evaluate_policy(self.policy.actor)
+
+        if reward_evolved > reward_learned:
+            self.policy.actor.load_state_dict(actor_weights) # drop new learned actor
+            for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
+                target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
+
+            return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
+                reward_learned, self.id, None
+
+        else:
+            return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
+                   reward_learned, self.id, self.policy.actor.state_dict()
+
+
+        # if episode_reward_after > episode_reward:
+        #     return self.total_timesteps, self.policy.grads_critic, episode_reward, \
+        #            episode_reward_after, self.id, self.policy.actor.state_dict()
+        # else:
+        #     return self.total_timesteps, self.policy.grads_critic, episode_reward, \
+        #            episode_reward_after, self.id, None
+
+
+
+        # drop bad reward
+        # if reward_evolved > self.better_reward:
+        #     self.policy.actor.load_state_dict(actor_weights)
+        #     for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
+        #         target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
+        #
+        # self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
+        #                   self.args.tau)
+        #
+        # episode_reward_after = self.evaluate_policy(self.policy.actor)
+        #
+        # if episode_reward_after > reward_evolved:
+        #     self.better_reward = episode_reward_after
+        #     self.better_actor.load_state_dict(self.policy.actor)
+        # else:
+        #
+        #
+        # self.logger_worker.info("ID: %d Total T: %d Episode_Num: %d Episode T: %d Reward: %f  Reward_After: %f" %
+        #                         (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward,
+        #                          episode_reward_after))
+
+        # if episode_reward_after > episode_reward:
+        #     return self.total_timesteps, self.policy.grads_critic, episode_reward, \
+        #            episode_reward_after, self.id, self.policy.actor.state_dict()
+        # else:
+        #     return self.total_timesteps, self.policy.grads_critic, episode_reward, \
+        #            episode_reward_after, self.id, None
+        #
+        # while True:
+        #     if done:
+        #         self.episode_num += 1
+        #         if self.total_timesteps != 0:
+        #             self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
+        #             episode_reward_after = self.evaluate_policy()
+        #             self.logger_worker.info("ID: %d Total T: %d Episode_Num: %d Episode T: %d Reward: %f  Reward_After: %f" %
+        #                   (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward, episode_reward_after))
+        #
+        #             if episode_reward_after > episode_reward:
+        #                 return self.total_timesteps, self.policy.grads_critic, episode_reward, \
+        #                        episode_reward_after, self.id, self.policy.actor.state_dict()
+        #             else:
+        #                 return self.total_timesteps, self.policy.grads_critic, episode_reward, \
+        #                        episode_reward_after, self.id, None
+        #
+        #     action = self.policy.select_action(np.array(obs))
+        #
+        #     # # Select action randomly or according to policy
+        #     # if self.total_timesteps < args.start_timesteps:
+        #     #     action = self.env.action_space.sample()
+        #     # else:
+        #     #     action = self.policy.select_action(np.array(obs))
+        #     #     if args.expl_noise != 0:
+        #     #         action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(self.env.action_space.low, self.env.action_space.high)
+        #
+        #     # Perform action
+        #     new_obs, reward, done, _ = self.env.step(action)
+        #     done_bool = 0 if episode_timesteps + 1 == self.env._max_episode_steps else float(done)
+        #     episode_reward += reward
+        #
+        #     # Store data in replay buffer
+        #     self.replay_buffer.add((obs, new_obs, action, reward, done_bool))
+        #     obs = new_obs
+        #
+        #     episode_timesteps += 1
+        #     self.total_timesteps += 1
 
 
 def process_results(r):
@@ -274,9 +354,8 @@ if __name__ == "__main__":
     evolve_rate = 1.0
 
     logger_main.info("*************************************************************")
-    logger_main.info("if average_before < average_after then no evolve else evolve,fixed a serious problem, pop size to 4")
+    logger_main.info("4 pop, two exporation evolve and gradient choose one")
     logger_main.info("*************************************************************")
-
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
@@ -330,12 +409,12 @@ if __name__ == "__main__":
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
-        logger_main.debug("evolve_rate:{}".format(evolve_rate))
-
-        if average_value_after > average_value:
-            evolve = False
-        else:
-            evolve = True
+        # logger_main.debug("evolve_rate:{}".format(evolve_rate))
+        #
+        # if average_value_after > average_value:
+        #     evolve = False
+        # else:
+        #     evolve = True
 
         # if random.random() < evolve_rate:
         #     evolve = True
