@@ -274,7 +274,9 @@ if __name__ == "__main__":
     evolve_rate = 1.0
 
     logger_main.info("*****************************************************")
-    logger_main.info("evovle: -0.1 for every 1e5")
+    logger_main.info("100% evovle, average before and after version")
+    logger_main.info("*****************************************************")
+
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
