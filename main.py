@@ -274,7 +274,7 @@ if __name__ == "__main__":
     evolve_rate = 1.0
 
     logger_main.info("*************************************************************")
-    logger_main.info("if average_before < average_after then no evolve else evolve")
+    logger_main.info("if average_before < average_after then no evolve else evolve,fixed a serious problem")
     logger_main.info("*************************************************************")
 
 
