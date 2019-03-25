@@ -91,19 +91,17 @@ class Worker(object):
         self.better_reward = None
 
     def set_weights(self,actor_weights, critic_weights):
-        if actor_weights is not None:
-            # print("come here 1")
-            self.policy.actor.load_state_dict(actor_weights)
+        # if actor_weights is not None:
+        #     # print("come here 1")
+        #     self.policy.actor.load_state_dict(actor_weights)
         self.policy.critic.load_state_dict(critic_weights)
-        # self.policy.critic.zero_grad()
-
         for param, target_param in zip(self.policy.critic.parameters(), self.policy.critic_target.parameters()):
             target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
-        if actor_weights is not None:
-            # print("come here 2")
-            for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
-                target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
+        # if actor_weights is not None:
+        #     # print("come here 2")
+        #     for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
+        #         target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
     # Runs policy for X episodes and returns average reward
     def evaluate_policy_temp(self, eval_episodes=1):
@@ -148,18 +146,18 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights):
         self.episode_timesteps = 0
-        self.set_weights(None, critic_weights)
+        self.set_weights(critic_weights)
         self.actor_evovlved.load_state_dict(actor_weights)
 
         reward_evolved = self.evaluate_policy(self.actor_evovlved)
-
-        self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
+        self.policy.train(self.replay_buffer, 2*self.episode_timesteps, self.args.batch_size, self.args.discount,
                           self.args.tau)
-
         reward_learned = self.evaluate_policy(self.policy.actor)
 
-        self.logger_worker.info("ID: %d Total T: %d Episode_Num: %d Episode T: %d reward_evolved: %f  reward_learned: %f" %
-            (self.id, self.total_timesteps, self.episode_num, self.episode_timesteps, reward_evolved, reward_learned))
+        self.logger_worker.info("ID: %d Total T: %d Episode_Num: %d Episode T: "
+                                "%d reward_evolved: %f  reward_learned: %f" % (self.id, self.total_timesteps,
+                                                                               self.episode_num, self.episode_timesteps,
+                                                                               reward_evolved, reward_learned))
 
         if reward_evolved > reward_learned:
             self.policy.actor.load_state_dict(actor_weights) # drop new learned actor
@@ -168,86 +166,9 @@ class Worker(object):
 
             return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
                 reward_learned, self.id, None
-
         else:
             return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
                    reward_learned, self.id, self.policy.actor.state_dict()
-
-
-        # if episode_reward_after > episode_reward:
-        #     return self.total_timesteps, self.policy.grads_critic, episode_reward, \
-        #            episode_reward_after, self.id, self.policy.actor.state_dict()
-        # else:
-        #     return self.total_timesteps, self.policy.grads_critic, episode_reward, \
-        #            episode_reward_after, self.id, None
-
-
-
-        # drop bad reward
-        # if reward_evolved > self.better_reward:
-        #     self.policy.actor.load_state_dict(actor_weights)
-        #     for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
-        #         target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
-        #
-        # self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
-        #                   self.args.tau)
-        #
-        # episode_reward_after = self.evaluate_policy(self.policy.actor)
-        #
-        # if episode_reward_after > reward_evolved:
-        #     self.better_reward = episode_reward_after
-        #     self.better_actor.load_state_dict(self.policy.actor)
-        # else:
-        #
-        #
-        # self.logger_worker.info("ID: %d Total T: %d Episode_Num: %d Episode T: %d Reward: %f  Reward_After: %f" %
-        #                         (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward,
-        #                          episode_reward_after))
-
-        # if episode_reward_after > episode_reward:
-        #     return self.total_timesteps, self.policy.grads_critic, episode_reward, \
-        #            episode_reward_after, self.id, self.policy.actor.state_dict()
-        # else:
-        #     return self.total_timesteps, self.policy.grads_critic, episode_reward, \
-        #            episode_reward_after, self.id, None
-        #
-        # while True:
-        #     if done:
-        #         self.episode_num += 1
-        #         if self.total_timesteps != 0:
-        #             self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
-        #             episode_reward_after = self.evaluate_policy()
-        #             self.logger_worker.info("ID: %d Total T: %d Episode_Num: %d Episode T: %d Reward: %f  Reward_After: %f" %
-        #                   (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward, episode_reward_after))
-        #
-        #             if episode_reward_after > episode_reward:
-        #                 return self.total_timesteps, self.policy.grads_critic, episode_reward, \
-        #                        episode_reward_after, self.id, self.policy.actor.state_dict()
-        #             else:
-        #                 return self.total_timesteps, self.policy.grads_critic, episode_reward, \
-        #                        episode_reward_after, self.id, None
-        #
-        #     action = self.policy.select_action(np.array(obs))
-        #
-        #     # # Select action randomly or according to policy
-        #     # if self.total_timesteps < args.start_timesteps:
-        #     #     action = self.env.action_space.sample()
-        #     # else:
-        #     #     action = self.policy.select_action(np.array(obs))
-        #     #     if args.expl_noise != 0:
-        #     #         action = (action + np.random.normal(0, args.expl_noise, size=self.env.action_space.shape[0])).clip(self.env.action_space.low, self.env.action_space.high)
-        #
-        #     # Perform action
-        #     new_obs, reward, done, _ = self.env.step(action)
-        #     done_bool = 0 if episode_timesteps + 1 == self.env._max_episode_steps else float(done)
-        #     episode_reward += reward
-        #
-        #     # Store data in replay buffer
-        #     self.replay_buffer.add((obs, new_obs, action, reward, done_bool))
-        #     obs = new_obs
-        #
-        #     episode_timesteps += 1
-        #     self.total_timesteps += 1
 
 
 def process_results(r):
@@ -274,7 +195,7 @@ if __name__ == "__main__":
     parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=1e4, type=int)
-    parser.add_argument("--eval_freq", default=1e5, type=float)
+    parser.add_argument("--eval_freq", default=1e4, type=float)
     parser.add_argument("--max_timesteps", default=1e6, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
     parser.add_argument("--discount", default=0.99, type=float)
@@ -336,26 +257,20 @@ if __name__ == "__main__":
     workers = [Worker.remote(args, i)
                for i in range(args.pop_size)]
 
-    # evaluations = [ray.get(workers[-1].evaluate_policy.remote(policy.actor.state_dict(),policy.critic.state_dict()))]
     all_timesteps = 0
     timesteps_since_eval = 0
-    # episode_num = 0
-    # episode_timesteps = 0
-    # done = True
+
     evaluations = []
     time_start = time.time()
-    # debug = True
+
     episode = 0
     evolve = True
     actors = [actor.state_dict() for actor in agent.actors]
-    # actors = agent.actors
     average = None
     get_value = True
     value = 0
     MaxValue = None
     maxvalue = None
-    # average_value_before = None
-    evolve_rate = 1.0
 
     logger_main.info("*************************************************************")
     logger_main.info("4 pop, two exporation evolve and gradient choose one")
@@ -375,10 +290,7 @@ if __name__ == "__main__":
         average_value = sum(all_fitness)/args.pop_size
         average_value_after = sum(all_fitness_after)/args.pop_size
 
-        # if average_value_before is None:
-        #     average_value_before = average_value
-
-        logger_main.info("All None in new pop:{}".format(all(v is None for v in new_pop)))
+        # logger_main.info("All None in new pop:{}".format(all(v is None for v in new_pop)))
         logger_main.info("#Max:{0}, #Max_after:{1}, #Average:{2},#Average_after:{3}, #All_TimeSteps:{4}, #Time:{5},".
                          format(max(all_fitness), max(all_fitness_after), average_value, average_value_after, all_timesteps, (time.time()-time_start)))
 
@@ -401,10 +313,6 @@ if __name__ == "__main__":
             logger_main.debug("champ_index in evaluate:{}".format(champ_index))
             actor_input = ddpg.ActorErl(state_dim, action_dim)
 
-            # if evolve_rate < 0.1:
-            #     evolve_rate = 0
-            # else:
-            #     evolve_rate -= 0.1
             if new_pop[champ_index] is None:
                 actor_input.load_state_dict(agent.actors[champ_index].state_dict())
             else:
@@ -413,56 +321,8 @@ if __name__ == "__main__":
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
-        # logger_main.debug("evolve_rate:{}".format(evolve_rate))
-        #
-        # if average_value_after > average_value:
-        #     evolve = False
-        # else:
-        #     evolve = True
-
-        # if random.random() < evolve_rate:
-        #     evolve = True
-        # else:
-        #     evolve = True#False
-
-        # if maxvalue is not None and (maxvalue > max(all_fitness)): # all(v is None for v in new_pop)
-        #     episode += 1
-        #     logger_main.debug("episode:{}".format(episode))
-        #     if episode >= 1:
-        #         episode = 0
-        #         evolve = True # True
-        #     else:
-        #         evolve = False
-        # else:
-        #     episode = 0
-        #     evolve = False
-
-        maxvalue = max(all_fitness)
-
-        # average_value_before = average_value
-
-        logger_main.debug("episode:{}".format(episode))
-
-        if evolve: # evolve # True
-            logger_main.info("before evolve actor weight 0:{}".format(agent.actors[0].state_dict()["w_l1.weight"][1][:5]))
-            logger_main.info("before evolve actor weight 1:{}".format(agent.actors[1].state_dict()["w_l1.weight"][1][:5]))
-            logger_main.info("before evolve actor weight 2:{}".format(agent.actors[2].state_dict()["w_l1.weight"][1][:5]))
-            logger_main.info("before evolve actor weight 3:{}".format(agent.actors[3].state_dict()["w_l1.weight"][1][:5]))
-
-        # the commond method, just total choose all evolved ones or trained ones
-        if evolve: # evolve
-            evolver.epoch(agent.actors, all_fitness)
-        #     actors = [actor.state_dict() for actor in agent.actors]
-        # else:
-        #     actors = [None for _ in range(args.pop_size)]
-
+        evolver.epoch(agent.actors, all_fitness)
         actors = [actor.state_dict() for actor in agent.actors]
-
-        if evolve: # evolve
-            logger_main.info("after actor weight 0:{}".format(agent.actors[0].state_dict()["w_l1.weight"][1][:5]))
-            logger_main.info("after actor weight 1,{}".format(agent.actors[1].state_dict()["w_l1.weight"][1][:5]))
-            logger_main.info("after actor weight 2,{}".format(agent.actors[2].state_dict()["w_l1.weight"][1][:5]))
-            logger_main.info("after actor weight 3,{}".format(agent.actors[3].state_dict()["w_l1.weight"][1][:5]))
 
     logger_main.info("Finish! MaxValue:{}".format(MaxValue))
 
