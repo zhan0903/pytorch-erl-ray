@@ -288,8 +288,12 @@ if __name__ == "__main__":
         if MaxValue is None:
             MaxValue = max(all_fitness)
         else:
-            if max(all_fitness) > MaxValue:
-                MaxValue = max(all_fitness)
+            if max(all_fitness) > max(all_fitness_after):
+                if max(all_fitness) > MaxValue:
+                    MaxValue = max(all_fitness)
+            else:
+                if max(all_fitness_after) > MaxValue:
+                    MaxValue = max(all_fitness_after)
 
         if get_value:
             value = results[0][0]
