@@ -79,7 +79,6 @@ class Worker(object):
         max_action = float(env.action_space.high[0])
 
         self.policy = ddpg.DDPG(state_dim, action_dim, max_action)
-        # print("in worker init critic,", self.policy.critic.state_dict()["l3.bias"])
         self.actor_evovlved = ddpg.ActorErl(state_dim, action_dim)
         self.replay_buffer = utils.ReplayBuffer()
 
@@ -91,17 +90,9 @@ class Worker(object):
         self.better_reward = None
 
     def set_weights(self, critic_weights):
-        # if actor_weights is not None:
-        #     # print("come here 1")
-        #     self.policy.actor.load_state_dict(actor_weights)
         self.policy.critic.load_state_dict(critic_weights)
         for param, target_param in zip(self.policy.critic.parameters(), self.policy.critic_target.parameters()):
             target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
-
-        # if actor_weights is not None:
-        #     # print("come here 2")
-        #     for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
-        #         target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
     # Runs policy for X episodes and returns average reward
     def evaluate_policy_temp(self, eval_episodes=1):
@@ -195,8 +186,8 @@ if __name__ == "__main__":
     parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=1e4, type=int)
-    parser.add_argument("--eval_freq", default=1e4, type=float)
-    parser.add_argument("--max_timesteps", default=1e6, type=float)
+    parser.add_argument("--eval_freq", default=4e4, type=float)
+    parser.add_argument("--max_timesteps", default=2e6, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
     parser.add_argument("--discount", default=0.99, type=float)
     parser.add_argument("--tau", default=0.005, type=float)
