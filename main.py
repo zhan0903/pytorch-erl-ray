@@ -87,6 +87,7 @@ class Worker(object):
         self.total_timesteps = 0
         self.episode_num = 0
         self.timesteps_since_eval = 0
+        self.episode_timesteps = 0
 
     def set_weights(self,actor_weights, critic_weights):
         if actor_weights is not None:
@@ -112,8 +113,12 @@ class Worker(object):
             done = False
             while not done:
                 action = self.policy.select_action(np.array(obs))
-                obs, reward, done, _ = self.env.step(action)
+                new_obs, reward, done, _ = self.env.step(action)
                 avg_reward += reward
+                done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
+
+                self.replay_buffer.add((obs, new_obs, action, reward, done_bool))
+                obs = new_obs
 
         avg_reward /= eval_episodes
         # print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
@@ -122,26 +127,26 @@ class Worker(object):
     def train(self, actor_weights, critic_weights):
         self.set_weights(actor_weights, critic_weights)
         done = False
-        episode_timesteps = 0
-        episode_reward = 0
+        self.episode_timesteps = 0
+        reward_evolved = 0
         obs = self.env.reset()
 
         while True:
             if done:
                 self.episode_num += 1
                 if self.total_timesteps != 0:
-                    self.policy.train(self.replay_buffer, episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
-                    episode_reward_after = self.evaluate_policy()
+                    self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
+                    reward_learned = self.evaluate_policy()
                     self.logger_worker.info("ID: %d Total T: %d Episode_Num: %d Episode T: %d Reward: %f  Reward_After: %f" %
-                          (self.id, self.total_timesteps, self.episode_num, episode_timesteps, episode_reward, episode_reward_after))
+                          (self.id, self.total_timesteps, self.episode_num, self.episode_timesteps, reward_evolved, reward_learned))
                     # print("before self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
 
-                    if episode_reward_after > episode_reward:
-                        return self.total_timesteps, self.policy.grads_critic, episode_reward, \
-                               episode_reward_after, self.id, self.policy.actor.state_dict()
+                    if reward_learned > reward_evolved:
+                        return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
+                               reward_learned, self.id, self.policy.actor.state_dict()
                     else:
-                        return self.total_timesteps, self.policy.grads_critic, episode_reward, \
-                               episode_reward_after, self.id, None
+                        return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
+                               reward_learned, self.id, None
 
             action = self.policy.select_action(np.array(obs))
 
@@ -155,14 +160,14 @@ class Worker(object):
 
             # Perform action
             new_obs, reward, done, _ = self.env.step(action)
-            done_bool = 0 if episode_timesteps + 1 == self.env._max_episode_steps else float(done)
-            episode_reward += reward
+            done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
+            reward_evolved += reward
 
             # Store data in replay buffer
             self.replay_buffer.add((obs, new_obs, action, reward, done_bool))
             obs = new_obs
 
-            episode_timesteps += 1
+            self.episode_timesteps += 1
             self.total_timesteps += 1
 
 
@@ -318,10 +323,6 @@ if __name__ == "__main__":
             logger_main.debug("champ_index in evaluate:{}".format(champ_index))
             actor_input = ddpg.ActorErl(state_dim, action_dim)
 
-            # if evolve_rate < 0.1:
-            #     evolve_rate = 0
-            # else:
-            #     evolve_rate -= 0.1
             if new_pop[champ_index] is None:
                 actor_input.load_state_dict(agent.actors[champ_index].state_dict())
             else:
