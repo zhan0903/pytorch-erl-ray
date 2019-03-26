@@ -9,6 +9,7 @@ import torch
 import utils
 import time
 from core import mod_neuro_evo as utils_ne
+import math
 
 #
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -80,6 +81,7 @@ class Worker(object):
 
         self.policy = ddpg.DDPG(state_dim, action_dim, max_action)
         self.actor_evovlved = ddpg.ActorErl(state_dim, action_dim)
+        self.better_actor = ddpg.ActorErl(state_dim, action_dim)
         self.replay_buffer = utils.ReplayBuffer()
 
         self.args = args
@@ -88,7 +90,7 @@ class Worker(object):
         self.timesteps_since_eval = 0
         self.episode_timesteps = 0
         self.training_times = 0
-        self.better_reward = None
+        self.better_reward = -math.inf
 
     def set_weights(self, critic_weights):
         self.policy.critic.load_state_dict(critic_weights)
@@ -142,6 +144,8 @@ class Worker(object):
         self.actor_evovlved.load_state_dict(actor_weights)
 
         reward_evolved = self.evaluate_policy(self.actor_evovlved)
+        # if reward_evolved > self.better_reward:
+
         self.episode_num += 1
 
         self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
@@ -151,20 +155,42 @@ class Worker(object):
         self.episode_num += 1
 
         self.logger_worker.info("ID: %d Total T: %d  Training_times: %d  Episode_Num: %d Episode T: "
-                                "%d reward_evolved: %f  reward_learned: %f" %
+                                "%d reward_evolved: %f  reward_learned: %f  better_reward:  %d" %
                                 (self.id, self.total_timesteps, self.training_times, self.episode_num,
-                                 self.episode_timesteps, reward_evolved, reward_learned))
+                                 self.episode_timesteps, reward_evolved, reward_learned, self.better_reward))
 
-        if reward_evolved > reward_learned:
+        list_rewards = [self.better_reward, reward_evolved, reward_learned]
+        max_index = list_rewards.index(max(list_rewards))
+        self.logger_worker.debug("max index:{}".format(max_index))
+
+        if max_index == 0:
+            return self.total_timesteps, self.policy.grads_critic, self.better_reward, self.better_actor.state_dict()
+
+        if max_index == 1:
+            self.better_reward = list_rewards[max_index]
+            self.better_actor.load_state_dict(actor_weights)
+
             self.policy.actor.load_state_dict(actor_weights) # drop new learned actor
             for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
                 target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
-            return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
-                reward_learned, self.id, None
-        else:
-            return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
-                   reward_learned, self.id, self.policy.actor.state_dict()
+            return self.total_timesteps, self.policy.grads_critic, reward_evolved, None
+
+        if max_index == 2:
+            self.better_reward = list_rewards[max_index]
+            self.better_actor.load_state_dict(self.policy.actor.state_dict())
+            return self.total_timesteps, self.policy.grads_critic, reward_learned, self.policy.actor.state_dict()
+
+
+        # if reward_evolved > reward_learned:
+        #     self.policy.actor.load_state_dict(actor_weights) # drop new learned actor
+        #     for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
+        #         target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
+        #
+        #     return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
+        #         reward_learned, self.id, None
+        # else:
+        #     return self.total_timesteps, self.policy.grads_critic, self.policy.actor.state_dict()
 
 
 def process_results(r):
@@ -176,13 +202,13 @@ def process_results(r):
     new_pop = []
 
     for result in r:
-        new_pop.append(result[5])
-        all_id.append(result[4])
-        all_f_a.append(result[3])
+        new_pop.append(result[3])
+        # all_id.append(result[4])
+        # all_f_a.append(result[3])
         all_f.append(result[2])
         grads_c.append(result[1])
         total_t.append(result[0])
-    return sum(total_t), grads_c, all_f, all_f_a, all_id, new_pop
+    return sum(total_t), grads_c, all_f, new_pop
 
 
 if __name__ == "__main__":
@@ -270,36 +296,26 @@ if __name__ == "__main__":
     maxvalue = None
 
     logger_main.info("*************************************************************")
-    logger_main.info("4 pop, two exporation evolve and gradient choose one, increate to 2e6 to increate training step to 250")
+    logger_main.info("4 pop 3261 version")
     logger_main.info("*************************************************************")
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
         train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
-        all_timesteps, grads_critic, all_fitness, all_fitness_after, all_id, new_pop = process_results(results)
+        all_timesteps, grads_critic, all_fitness, new_pop = process_results(results)
         agent.apply_grads(grads_critic, logger_main)
 
         for new_actor, actor in zip(new_pop, agent.actors):
             if new_actor is not None:
                 actor.load_state_dict(new_actor)
 
-        average_value = sum(all_fitness)/args.pop_size
-        average_value_after = sum(all_fitness_after)/args.pop_size
+        # average_value = sum(all_fitness)/args.pop_size
+        # average_value_after = sum(all_fitness_after)/args.pop_size
 
         # logger_main.info("All None in new pop:{}".format(all(v is None for v in new_pop)))
-        logger_main.info("#Max:{0}, #Max_after:{1}, #Average:{2},#Average_after:{3}, #All_TimeSteps:{4}, #Time:{5},".
-                         format(max(all_fitness), max(all_fitness_after), average_value, average_value_after, all_timesteps, (time.time()-time_start)))
-
-        if MaxValue is None:
-            MaxValue = max(all_fitness)
-        else:
-            if max(all_fitness) > max(all_fitness_after):
-                if max(all_fitness) > MaxValue:
-                    MaxValue = max(all_fitness)
-            else:
-                if max(all_fitness_after) > MaxValue:
-                    MaxValue = max(all_fitness_after)
+        logger_main.info("#Max:{0}, #All_TimeSteps:{1}, #Time:{2},".
+                         format(max(all_fitness), all_timesteps, (time.time()-time_start)))
 
         if get_value:
             value = results[0][0]
