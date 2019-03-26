@@ -87,6 +87,7 @@ class Worker(object):
         self.episode_num = 0
         self.timesteps_since_eval = 0
         self.episode_timesteps = 0
+        self.training_times = 0
         self.better_reward = None
 
     def set_weights(self, critic_weights):
@@ -141,24 +142,28 @@ class Worker(object):
         self.actor_evovlved.load_state_dict(actor_weights)
 
         reward_evolved = self.evaluate_policy(self.actor_evovlved)
+        self.episode_num += 1
+
         self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
                           self.args.tau)
+        self.training_times += 1
         reward_learned = self.evaluate_policy(self.policy.actor)
+        self.episode_num += 1
 
-        self.logger_worker.info("ID: %d Total T: %d Episode_Num: %d Episode T: "
-                                "%d reward_evolved: %f  reward_learned: %f" % (self.id, self.total_timesteps,
-                                                                               self.episode_num, self.episode_timesteps,
-                                                                               reward_evolved, reward_learned))
+        self.logger_worker.info("ID: %d Total T: %d  Training_times: %d  Episode_Num: %d Episode T: "
+                                "%d reward_evolved: %f  reward_learned: %f" %
+                                (self.id, self.total_timesteps, self.training_times, self.episode_num,
+                                 self.episode_timesteps, reward_evolved, reward_learned))
 
         if reward_evolved > reward_learned:
             self.policy.actor.load_state_dict(actor_weights) # drop new learned actor
             for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
                 target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
-            return self.total_timesteps-1000, self.policy.grads_critic, reward_evolved, \
+            return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
                 reward_learned, self.id, None
         else:
-            return self.total_timesteps-1000, self.policy.grads_critic, reward_evolved, \
+            return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
                    reward_learned, self.id, self.policy.actor.state_dict()
 
 
@@ -272,7 +277,7 @@ if __name__ == "__main__":
         train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
         all_timesteps, grads_critic, all_fitness, all_fitness_after, all_id, new_pop = process_results(results)
-        agent.apply_grads(grads_critic,logger_main)
+        agent.apply_grads(grads_critic, logger_main)
 
         for new_actor, actor in zip(new_pop, agent.actors):
             if new_actor is not None:
