@@ -206,13 +206,14 @@ if __name__ == "__main__":
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)
     parser.add_argument("--node_name", default="qcis5")
+    parser.add_argument("--version_name")
 
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt='%m-%d %H:%M',
-                        filename='./debug/%s_%s_%s' % (args.pop_size, args.env_name, args.node_name),
+                        filename='./debug/%s_%s_%s_%s' % (args.pop_size, args.env_name, args.node_name, args.version_name),
                         filemode='a+')
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
