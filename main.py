@@ -141,7 +141,7 @@ class Worker(object):
         self.actor_evovlved.load_state_dict(actor_weights)
 
         reward_evolved = self.evaluate_policy(self.actor_evovlved)
-        self.policy.train(self.replay_buffer, 2*self.episode_timesteps, self.args.batch_size, self.args.discount,
+        self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
                           self.args.tau)
         reward_learned = self.evaluate_policy(self.policy.actor)
 
@@ -155,10 +155,10 @@ class Worker(object):
             for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
                 target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
-            return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
+            return self.total_timesteps-1000, self.policy.grads_critic, reward_evolved, \
                 reward_learned, self.id, None
         else:
-            return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
+            return self.total_timesteps-1000, self.policy.grads_critic, reward_evolved, \
                    reward_learned, self.id, self.policy.actor.state_dict()
 
 
