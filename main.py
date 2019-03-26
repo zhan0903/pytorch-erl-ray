@@ -155,7 +155,7 @@ class Worker(object):
         self.episode_num += 1
 
         self.logger_worker.info("ID: %d Total T: %d  Training_times: %d  Episode_Num: %d Episode T: "
-                                "%d reward_evolved: %f  reward_learned: %f  better_reward:  %d" %
+                                "%d reward_evolved: %f  reward_learned: %f  better_reward:  %f" %
                                 (self.id, self.total_timesteps, self.training_times, self.episode_num,
                                  self.episode_timesteps, reward_evolved, reward_learned, self.better_reward))
 
@@ -296,7 +296,7 @@ if __name__ == "__main__":
     maxvalue = None
 
     logger_main.info("*************************************************************")
-    logger_main.info("4 pop 3261 version")
+    logger_main.info("")
     logger_main.info("*************************************************************")
 
     while all_timesteps < args.max_timesteps:
