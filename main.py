@@ -92,10 +92,18 @@ class Worker(object):
         self.training_times = 0
         self.better_reward = -math.inf
 
-    def set_weights(self, critic_weights):
+    def set_weights(self, actor_weights, critic_weights):
+        self.policy.actor.load_state_dict(actor_weights)
         self.policy.critic.load_state_dict(critic_weights)
+
         for param, target_param in zip(self.policy.critic.parameters(), self.policy.critic_target.parameters()):
             target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
+
+        for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
+            target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
+
+
+
 
     # Runs policy for X episodes and returns average reward
     def evaluate_policy_temp(self, eval_episodes=1):
@@ -140,10 +148,10 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights):
         self.episode_timesteps = 0
-        self.set_weights(critic_weights)
-        self.actor_evovlved.load_state_dict(actor_weights)
+        self.set_weights(actor_weights, critic_weights)
+        # self.actor_evovlved.load_state_dict(actor_weights)
 
-        reward_evolved = self.evaluate_policy(self.actor_evovlved)
+        reward_evolved = self.evaluate_policy(self.policy.actor)
         # if reward_evolved > self.better_reward:
 
         self.episode_num += 1
@@ -155,32 +163,40 @@ class Worker(object):
         self.episode_num += 1
 
         self.logger_worker.info("ID: %d Total T: %d  Training_times: %d  Episode_Num: %d Episode T: "
-                                "%d reward_evolved: %f  reward_learned: %f  better_reward:  %f" %
+                                "%d reward_evolved: %f  reward_learned: %f" %
                                 (self.id, self.total_timesteps, self.training_times, self.episode_num,
-                                 self.episode_timesteps, reward_evolved, reward_learned, self.better_reward))
+                                 self.episode_timesteps, reward_evolved, reward_learned))
 
-        list_rewards = [self.better_reward, reward_evolved, reward_learned]
-        max_index = list_rewards.index(max(list_rewards))
-        self.logger_worker.debug("max index:{}".format(max_index))
+        # list_rewards = [self.better_reward, reward_evolved, reward_learned]
+        # max_index = list_rewards.index(max(list_rewards))
+        # self.logger_worker.debug("max index:{}".format(max_index))
+        if reward_evolved > reward_learned:
+            return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, reward_evolved, None
+        else:
+            return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, \
+                   reward_learned, self.policy.actor.state_dict()
 
-        if max_index == 0:
-            return self.total_timesteps, self.policy.grads_critic, self.better_reward, self.better_actor.state_dict()
 
-        if max_index == 1:
-            self.better_reward = list_rewards[max_index]
-            self.better_actor.load_state_dict(actor_weights)
 
-            self.policy.actor.load_state_dict(actor_weights) # drop new learned actor
-            for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
-                target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
-            return self.total_timesteps, self.policy.grads_critic, reward_evolved, None
-
-        if max_index == 2:
-            self.better_reward = list_rewards[max_index]
-            self.better_actor.load_state_dict(self.policy.actor.state_dict())
-            return self.total_timesteps, self.policy.grads_critic, reward_learned, self.policy.actor.state_dict()
-
+        # if max_index == 0:
+        #     return self.total_timesteps, self.policy.grads_critic, self.better_reward, self.better_actor.state_dict()
+        #
+        # if max_index == 1:
+        #     self.better_reward = list_rewards[max_index]
+        #     self.better_actor.load_state_dict(actor_weights)
+        #
+        #     self.policy.actor.load_state_dict(actor_weights) # drop new learned actor
+        #     for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
+        #         target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
+        #
+        #     return self.total_timesteps, self.policy.grads_critic, reward_evolved, None
+        #
+        # if max_index == 2:
+        #     self.better_reward = list_rewards[max_index]
+        #     self.better_actor.load_state_dict(self.policy.actor.state_dict())
+        #     return self.total_timesteps, self.policy.grads_critic, reward_learned, self.policy.actor.state_dict()
+        #
 
         # if reward_evolved > reward_learned:
         #     self.policy.actor.load_state_dict(actor_weights) # drop new learned actor
@@ -198,17 +214,17 @@ def process_results(r):
     grads_c = []
     all_f = []
     all_f_a = []
-    all_id = []
+    all_rewards = []
     new_pop = []
 
     for result in r:
-        new_pop.append(result[3])
-        # all_id.append(result[4])
-        # all_f_a.append(result[3])
+        new_pop.append(result[5])
+        all_rewards.append(result[4])
+        all_f_a.append(result[3])
         all_f.append(result[2])
         grads_c.append(result[1])
         total_t.append(result[0])
-    return sum(total_t), grads_c, all_f, new_pop
+    return sum(total_t), grads_c, all_f, all_f_a, all_rewards, new_pop
 
 
 if __name__ == "__main__":
@@ -247,7 +263,6 @@ if __name__ == "__main__":
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
 
-    logger_worker = logging.getLogger('Worker')
     logger_main = logging.getLogger('Main')
 
     evolver = utils_ne.SSNE(args)
@@ -296,26 +311,22 @@ if __name__ == "__main__":
     maxvalue = None
 
     logger_main.info("*************************************************************")
-    logger_main.info("3261")
+    logger_main.info("3271")
     logger_main.info("*************************************************************")
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
         train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
-        all_timesteps, grads_critic, all_fitness, new_pop = process_results(results)
+        all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, rewards, new_pop = process_results(results)
         agent.apply_grads(grads_critic, logger_main)
 
         for new_actor, actor in zip(new_pop, agent.actors):
             if new_actor is not None:
                 actor.load_state_dict(new_actor)
 
-        # average_value = sum(all_fitness)/args.pop_size
-        # average_value_after = sum(all_fitness_after)/args.pop_size
-
-        # logger_main.info("All None in new pop:{}".format(all(v is None for v in new_pop)))
         logger_main.info("#Max:{0}, #All_TimeSteps:{1}, #Time:{2},".
-                         format(max(all_fitness), all_timesteps, (time.time()-time_start)))
+                         format(max(rewards), all_timesteps, (time.time()-time_start)))
 
         if get_value:
             value = results[0][0]
@@ -324,15 +335,15 @@ if __name__ == "__main__":
         timesteps_since_eval += value * args.pop_size
 
         if MaxValue is None:
-            MaxValue = max(all_fitness)
+            MaxValue = max(rewards)
         else:
-            if MaxValue < max(all_fitness):
-                MaxValue = max(all_fitness)
+            if MaxValue < max(rewards):
+                MaxValue = max(rewards)
 
         # Evaluate episode
         if timesteps_since_eval >= args.eval_freq:
             timesteps_since_eval %= args.eval_freq
-            champ_index = all_fitness.index(max(all_fitness))
+            champ_index = rewards.index(max(rewards))
             logger_main.debug("champ_index in evaluate:{}".format(champ_index))
             actor_input = ddpg.ActorErl(state_dim, action_dim)
 
@@ -344,7 +355,7 @@ if __name__ == "__main__":
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
-        evolver.epoch(agent.actors, all_fitness)
+        evolver.epoch(agent.actors, rewards)
         actors = [actor.state_dict() for actor in agent.actors]
 
     logger_main.info("Finish! MaxValue:{}".format(MaxValue))
