@@ -137,7 +137,7 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights):
         self.episode_timesteps = 0
-        self.set_weights(critic_weights)
+        # self.set_weights(critic_weights)
         self.actor_evovlved.load_state_dict(actor_weights)
 
         reward_evolved = self.evaluate_policy(self.actor_evovlved)
@@ -155,10 +155,10 @@ class Worker(object):
             for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
                 target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
-            return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
+            return self.total_timesteps, reward_evolved, \
                 reward_learned, self.id, None
         else:
-            return self.total_timesteps, self.policy.grads_critic, reward_evolved, \
+            return self.total_timesteps, reward_evolved, \
                    reward_learned, self.id, self.policy.actor.state_dict()
 
 
@@ -171,13 +171,13 @@ def process_results(r):
     new_pop = []
 
     for result in r:
-        new_pop.append(result[5])
-        all_id.append(result[4])
-        all_f_a.append(result[3])
-        all_f.append(result[2])
-        grads_c.append(result[1])
+        new_pop.append(result[4])
+        all_id.append(result[3])
+        all_f_a.append(result[2])
+        all_f.append(result[1])
+        # grads_c.append(result[1])
         total_t.append(result[0])
-    return sum(total_t), grads_c, all_f, all_f_a, all_id, new_pop
+    return sum(total_t), all_f, all_f_a, all_id, new_pop
 
 
 if __name__ == "__main__":
@@ -271,8 +271,8 @@ if __name__ == "__main__":
         critic_id = ray.put(agent.critic.state_dict())
         train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
-        all_timesteps, grads_critic, all_fitness, all_fitness_after, all_id, new_pop = process_results(results)
-        agent.apply_grads(grads_critic,logger_main)
+        all_timesteps, all_fitness, all_fitness_after, all_id, new_pop = process_results(results)
+        # agent.apply_grads(grads_critic,logger_main)
 
         for new_actor, actor in zip(new_pop, agent.actors):
             if new_actor is not None:
