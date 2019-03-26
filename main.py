@@ -65,7 +65,7 @@ class Worker(object):
         logging.basicConfig(level=logging.DEBUG,
                             format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                             datefmt='%m-%d %H:%M',
-                            filename='./debug/%s_%s_%s' % (args.pop_size, args.env_name, args.node_name),
+                            filename='./debug/%s_%s_%s_%s' % (args.version_name, args.node_name, args.env_name, args.pop_size),
                             filemode='a+')
         console = logging.StreamHandler()
         console.setLevel(logging.INFO)
@@ -239,7 +239,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt='%m-%d %H:%M',
-                        filename='./debug/%s_%s_%s_%s' % (args.pop_size, args.env_name, args.node_name, args.version_name),
+                        filename='./debug/%s_%s_%s_%s' % (args.version_name, args.node_name, args.env_name, args.pop_size),
                         filemode='a+')
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
@@ -296,7 +296,7 @@ if __name__ == "__main__":
     maxvalue = None
 
     logger_main.info("*************************************************************")
-    logger_main.info("")
+    logger_main.info("3261")
     logger_main.info("*************************************************************")
 
     while all_timesteps < args.max_timesteps:
@@ -322,6 +322,12 @@ if __name__ == "__main__":
             get_value = False
 
         timesteps_since_eval += value * args.pop_size
+
+        if MaxValue is None:
+            MaxValue = max(all_fitness)
+        else:
+            if MaxValue < max(all_fitness):
+                MaxValue = max(all_fitness)
 
         # Evaluate episode
         if timesteps_since_eval >= args.eval_freq:
