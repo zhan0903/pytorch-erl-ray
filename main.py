@@ -264,7 +264,7 @@ if __name__ == "__main__":
     maxvalue = None
 
     logger_main.info("*************************************************************")
-    logger_main.info("4 pop, two exporation evolve and gradient choose one, training step*2")
+    logger_main.info("4 pop, two exporation evolve and gradient choose one, training step, 1000 steps")
     logger_main.info("*************************************************************")
 
     while all_timesteps < args.max_timesteps:
