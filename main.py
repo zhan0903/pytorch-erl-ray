@@ -157,8 +157,8 @@ class Worker(object):
             reward_evolved = -math.inf
 
         if train:
-            self.episode_timesteps = 1000
-            self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
+            # self.episode_timesteps = 1000
+            self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
             self.training_times += 1
 
         reward_learned = self.evaluate_policy(self.policy.actor)
