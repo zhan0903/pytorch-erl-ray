@@ -148,14 +148,14 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights):
         self.episode_timesteps = 0
-        self.set_weights(actor_weights, critic_weights)
+        self.set_weights(None, critic_weights)
         # self.actor_evovlved.load_state_dict(actor_weights)
 
-        if actor_weights is not None:
-            reward_evolved = self.evaluate_policy(self.policy.actor)
-            self.episode_num += 1
-        else:
-            reward_evolved = -math.inf
+        # if actor_weights is not None:
+        #     reward_evolved = self.evaluate_policy(self.policy.actor)
+        #     self.episode_num += 1
+        # else:
+        #     reward_evolved = -math.inf
 
         self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
                           self.args.tau)
@@ -164,15 +164,14 @@ class Worker(object):
         self.episode_num += 1
 
         self.logger_worker.info("ID: %d Total T: %d  Training_times: %d  Episode_Num: %d Episode T: "
-                                "%f reward_evolved: %f  reward_learned: %f" %
+                                "%d eward_learned: %f" %
                                 (self.id, self.total_timesteps, self.training_times, self.episode_num,
-                                 self.episode_timesteps, reward_evolved, reward_learned))
+                                 self.episode_timesteps, reward_learned))
 
         # if reward_evolved > reward_learned:
         #     return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, reward_evolved, None
         # else:
-        return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, \
-                   reward_learned, self.policy.actor.state_dict()
+        return self.total_timesteps, self.policy.grads_critic, reward_learned, self.policy.actor.state_dict()
 
 
 def process_results(r):
@@ -184,13 +183,13 @@ def process_results(r):
     new_pop = []
 
     for result in r:
-        new_pop.append(result[5])
-        all_rewards.append(result[4])
-        all_f_a.append(result[3])
-        all_f.append(result[2])
+        new_pop.append(result[4])
+        all_rewards.append(result[3])
+        # all_f_a.append(result[3])
+        # all_f.append(result[2])
         grads_c.append(result[1])
         total_t.append(result[0])
-    return sum(total_t), grads_c, all_f, all_f_a, all_rewards, new_pop
+    return sum(total_t), grads_c, all_rewards, new_pop
 
 
 if __name__ == "__main__":

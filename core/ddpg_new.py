@@ -161,6 +161,7 @@ class PERL(object):
     def apply_grads(self, grads, logger):
         self.critic_optimizer.zero_grad()
         # for worker_grad in critic_grad:
+        logger.debug("size of grads:{}".format(len(grads)))
         critic_grad = np.sum(grads, axis=0)/self.pop_size
 
         logger.debug("gradient average:{}".format(critic_grad[-1][-1]))
