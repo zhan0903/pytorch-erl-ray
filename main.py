@@ -301,28 +301,31 @@ if __name__ == "__main__":
             if new_actor is not None:
                 actor.load_state_dict(new_actor)
 
-        logger_main.info("#Max:{0}, #All_TimeSteps:{1}, #Time:{2},".
-                         format(max(rewards), all_timesteps, (time.time()-time_start)))
-        logger_main.info("#rewards:{}".format(rewards))
+        # logger_main.info("#Max:{0}, #All_TimeSteps:{1}, #Time:{2},".
+        #                  format(max(rewards), all_timesteps, (time.time()-time_start)))
+        # logger_main.info("#rewards:{}".format(rewards))
 
         average_evolved = sum(all_reward_evolved)/args.pop_size
         average_learned = sum(all_reward_learned)/args.pop_size
 
+        logger_main.info("#Max:{0}, #All_TimeSteps:{1}, #Average_evolved:{2},#Average_learned:{3} ##Time:{4},".
+                         format(max(rewards), all_timesteps, average_evolved, average_learned, (time.time() - time_start)))
+        logger_main.info("#rewards:{}".format(rewards))
+
         logger_main.debug("evolve_count:{0}, gradient_count:{1}".format(evolve_count,gradient_count))
 
-        if all_timesteps >= args.start_timesteps:
+        if 1e5 < all_timesteps < 2e5:
+            if average_evolved > average_learned:
+                evolve_count += 1
+            else:
+                gradient_count += 1
+        else:
             if evolve_count > gradient_count:
                 evolve = True
                 train = False
             else:
                 evolve = False
                 train = True
-        else:
-            if average_evolved > average_learned:
-                evolve_count += 1
-            else:
-                gradient_count += 1
-            # evolve = True
 
         if get_value:
             value = results[0][0]
