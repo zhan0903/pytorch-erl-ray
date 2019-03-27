@@ -183,8 +183,8 @@ def process_results(r):
     new_pop = []
 
     for result in r:
-        new_pop.append(result[4])
-        all_rewards.append(result[3])
+        new_pop.append(result[3])
+        all_rewards.append(result[2])
         # all_f_a.append(result[3])
         # all_f.append(result[2])
         grads_c.append(result[1])
@@ -324,11 +324,11 @@ if __name__ == "__main__":
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
-        if False: # average_learned < average_evolved:
-            evolver.epoch(agent.actors, rewards)
-            actors = [actor.state_dict() for actor in agent.actors]
-        else:
-            actors = [None for _ in range(args.pop_size)]
+        # if False: # average_learned < average_evolved:
+        #     evolver.epoch(agent.actors, rewards)
+        #     actors = [actor.state_dict() for actor in agent.actors]
+        # else:
+        actors = [None for _ in range(args.pop_size)]
 
     logger_main.info("Finish! MaxValue:{}".format(MaxValue))
 
