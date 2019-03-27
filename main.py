@@ -327,6 +327,7 @@ if __name__ == "__main__":
 
         logger_main.info("#Max:{0}, #All_TimeSteps:{1}, #Time:{2},".
                          format(max(rewards), all_timesteps, (time.time()-time_start)))
+        logger_main.info("#rewards:{}".format(rewards))
 
         if get_value:
             value = results[0][0]
