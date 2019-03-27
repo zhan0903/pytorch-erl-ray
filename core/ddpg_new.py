@@ -162,6 +162,8 @@ class PERL(object):
         self.critic_optimizer.zero_grad()
         # for worker_grad in critic_grad:
         logger.debug("size of grads:{}".format(len(grads)))
+        logger.debug("grads:{}".format(grads))
+
         critic_grad = np.sum(grads, axis=0)/self.pop_size
         logger.debug("size of critic_grad:{}".format(len(critic_grad)))
         logger.debug("size of critic_grad:{}".format(len(critic_grad)))
