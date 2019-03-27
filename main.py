@@ -191,7 +191,7 @@ def process_results(r):
     all_new_pop = []
 
     for result in r:
-        new_pop.append(result[5])
+        all_new_pop.append(result[5])
         all_rewards.append(result[4])
         all_f_a.append(result[3])
         all_f.append(result[2])
