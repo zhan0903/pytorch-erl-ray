@@ -146,7 +146,7 @@ class Worker(object):
 
         return episode_reward
 
-    def train(self, actor_weights, critic_weights, evolve,train):
+    def train(self, actor_weights, critic_weights, evolve, train):
         self.episode_timesteps = 0
         self.set_weights(actor_weights, critic_weights)
         # self.actor_evovlved.load_state_dict(actor_weights)
@@ -319,7 +319,11 @@ if __name__ == "__main__":
                 evolve_count += 1
             else:
                 gradient_count += 1
-        else:
+        # elsif all_timesteps <= 1e5:
+        #     pass
+        # else:
+
+        if all_timesteps >= 2e5:
             if evolve_count > gradient_count:
                 evolve = True
                 train = False
