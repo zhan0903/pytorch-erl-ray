@@ -283,7 +283,7 @@ if __name__ == "__main__":
         critic_id = ray.put(agent.critic.state_dict())
         train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
-        all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, rewards, new_pop = process_results(results)
+        all_timesteps, grads_critic, rewards, new_pop = process_results(results)
         agent.apply_grads(grads_critic, logger_main)
 
         for new_actor, actor in zip(new_pop, agent.actors):
@@ -294,8 +294,8 @@ if __name__ == "__main__":
                          format(max(rewards), all_timesteps, (time.time()-time_start)))
         logger_main.info("#rewards:{}".format(rewards))
 
-        average_evolved = sum(all_reward_evolved)/args.pop_size
-        average_learned = sum(all_reward_learned)/args.pop_size
+        # average_evolved = sum(all_reward_evolved)/args.pop_size
+        # average_learned = sum(all_reward_learned)/args.pop_size
 
         if get_value:
             value = results[0][0]
