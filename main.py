@@ -146,7 +146,7 @@ class Worker(object):
 
         return episode_reward
 
-    def train(self, actor_weights, critic_weights):
+    def train(self, actor_weights, critic_weights, evolve,train):
         self.episode_timesteps = 0
         self.set_weights(actor_weights, critic_weights)
         # self.actor_evovlved.load_state_dict(actor_weights)
@@ -156,15 +156,17 @@ class Worker(object):
         # else:
         #     reward_evolved = -math.inf
         # self.logger_worker.info("self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["w_l2.bias"], self.id))
-        if actor_weights is not None:
+        if evolve:
             reward_evolved = self.evaluate_policy(self.policy.actor)
             self.episode_num += 1
         else:
             reward_evolved = -math.inf
 
-        self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
+        if train:
+            self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
                           self.args.tau)
-        self.training_times += 1
+            self.training_times += 1
+
         reward_learned = self.evaluate_policy(self.policy.actor)
         self.episode_num += 1
 
@@ -274,6 +276,7 @@ if __name__ == "__main__":
 
     episode = 0
     evolve = True
+    train = True
     actors = [actor.state_dict() for actor in agent.actors]
     average = None
     get_value = True
@@ -289,7 +292,7 @@ if __name__ == "__main__":
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
-        train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
+        train_id = [worker.train.remote(actor, critic_id,evolve,train) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
         all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, rewards, new_pop = process_results(results)
         agent.apply_grads(grads_critic, logger_main)
@@ -310,8 +313,10 @@ if __name__ == "__main__":
         if all_timesteps >= args.start_timesteps:
             if evolve_count > gradient_count:
                 evolve = True
+                train = False
             else:
                 evolve = False
+                train = True
         else:
             if average_evolved > average_learned:
                 evolve_count += 1
@@ -346,7 +351,7 @@ if __name__ == "__main__":
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
-        if evolve: # average_learned < average_evolved:
+        if evolve:
             evolver.epoch(agent.actors, rewards)
             actors = [actor.state_dict() for actor in agent.actors]
         else:
