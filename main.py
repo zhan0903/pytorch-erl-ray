@@ -156,7 +156,7 @@ class Worker(object):
         #     self.episode_num += 1
         # else:
         #     reward_evolved = -math.inf
-        self.logger_worker.info("self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["w_l2.bias"], self.id))
+        # self.logger_worker.info("self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["w_l2.bias"], self.id))
         reward_learned = self.evaluate_policy(self.policy.actor)
 
         self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
