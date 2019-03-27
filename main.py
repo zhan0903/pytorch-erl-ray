@@ -150,30 +150,34 @@ class Worker(object):
         self.episode_timesteps = 0
         self.set_weights(actor_weights, critic_weights)
         # self.actor_evovlved.load_state_dict(actor_weights)
-
         # if actor_weights is not None:
         #     reward_evolved = self.evaluate_policy(self.policy.actor)
         #     self.episode_num += 1
         # else:
         #     reward_evolved = -math.inf
         # self.logger_worker.info("self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["w_l2.bias"], self.id))
-        reward_learned = self.evaluate_policy(self.policy.actor)
+        if actor_weights is not None:
+            reward_evolved = self.evaluate_policy(self.policy.actor)
+            self.episode_num += 1
+        else:
+            reward_evolved = -math.inf
 
         self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
                           self.args.tau)
         self.training_times += 1
-        # reward_learned = self.evaluate_policy(self.policy.actor)
+        reward_learned = self.evaluate_policy(self.policy.actor)
         self.episode_num += 1
 
         self.logger_worker.info("ID: %d Total T: %d  Training_times: %d  Episode_Num: %d Episode T: "
-                                "%d reward_learned: %f" %
+                                "%d reward_evolved: %f  reward_learned: %f" %
                                 (self.id, self.total_timesteps, self.training_times, self.episode_num,
-                                 self.episode_timesteps, reward_learned))
+                                 self.episode_timesteps, reward_evolved, reward_learned))
 
-        # if reward_evolved > reward_learned:
-        #     return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, reward_evolved, None
-        # else:
-        return self.total_timesteps, self.policy.grads_critic, reward_learned, self.policy.actor.state_dict()
+        if reward_evolved > reward_learned:
+            return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, reward_evolved, None
+        else:
+            return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, \
+                   reward_learned, self.policy.actor.state_dict()
 
 
 def process_results(r):
@@ -182,16 +186,16 @@ def process_results(r):
     all_f = []
     all_f_a = []
     all_rewards = []
-    new_pop = []
+    all_new_pop = []
 
     for result in r:
-        new_pop.append(result[3])
-        all_rewards.append(result[2])
-        # all_f_a.append(result[3])
-        # all_f.append(result[2])
+        new_pop.append(result[5])
+        all_rewards.append(result[4])
+        all_f_a.append(result[3])
+        all_f.append(result[2])
         grads_c.append(result[1])
         total_t.append(result[0])
-    return sum(total_t), grads_c, all_rewards, new_pop
+    return sum(total_t), grads_c, all_f, all_f_a, all_rewards, all_new_pop
 
 
 if __name__ == "__main__":
@@ -199,9 +203,9 @@ if __name__ == "__main__":
     parser.add_argument("--policy_name", default="OurDDPG")
     parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
-    parser.add_argument("--start_timesteps", default=1e4, type=int)
+    parser.add_argument("--start_timesteps", default=1e5, type=int)
     parser.add_argument("--eval_freq", default=4e4, type=float)
-    parser.add_argument("--max_timesteps", default=2e6, type=float)
+    parser.add_argument("--max_timesteps", default=1e6, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
     parser.add_argument("--discount", default=0.99, type=float)
     parser.add_argument("--tau", default=0.005, type=float)
@@ -276,16 +280,18 @@ if __name__ == "__main__":
     value = 0
     MaxValue = None
     maxvalue = None
+    evolve_count = 0
+    gradient_count = 0
 
     logger_main.info("*************************************************************")
-    logger_main.info("3272, no evolve at all")
+    logger_main.info("3274, evolve and gradients happens with 1e5, then choose one")
     logger_main.info("*************************************************************")
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
         train_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
-        all_timesteps, grads_critic, rewards, new_pop = process_results(results)
+        all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, rewards, new_pop = process_results(results)
         agent.apply_grads(grads_critic, logger_main)
 
         for new_actor, actor in zip(new_pop, agent.actors):
@@ -296,8 +302,22 @@ if __name__ == "__main__":
                          format(max(rewards), all_timesteps, (time.time()-time_start)))
         logger_main.info("#rewards:{}".format(rewards))
 
-        # average_evolved = sum(all_reward_evolved)/args.pop_size
-        # average_learned = sum(all_reward_learned)/args.pop_size
+        average_evolved = sum(all_reward_evolved)/args.pop_size
+        average_learned = sum(all_reward_learned)/args.pop_size
+
+        logger_main.debug("evolve_count:{0}, gradient_count:{1}".format(evolve_count,gradient_count))
+
+        if all_timesteps >= args.start_timesteps:
+            if evolve_count > gradient_count:
+                evolve = True
+            else:
+                evolve = False
+        else:
+            if average_evolved > average_learned:
+                evolve_count += 1
+            else:
+                gradient_count += 1
+            # evolve = True
 
         if get_value:
             value = results[0][0]
@@ -326,11 +346,11 @@ if __name__ == "__main__":
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
-        # if False: # average_learned < average_evolved:
-        #     evolver.epoch(agent.actors, rewards)
-        #     actors = [actor.state_dict() for actor in agent.actors]
-        # else:
-        actors = [None for _ in range(args.pop_size)]
+        if evolve: # average_learned < average_evolved:
+            evolver.epoch(agent.actors, rewards)
+            actors = [actor.state_dict() for actor in agent.actors]
+        else:
+            actors = [None for _ in range(args.pop_size)]
 
     logger_main.info("Finish! MaxValue:{}".format(MaxValue))
 
