@@ -160,9 +160,12 @@ class Worker(object):
             # self.episode_timesteps = 1000
             self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
             self.training_times += 1
-
-        reward_learned = self.evaluate_policy(self.policy.actor)
-        self.episode_num += 1
+            reward_learned = self.evaluate_policy(self.policy.actor)
+            self.episode_num += 1
+        else:
+            reward_learned = -math.inf
+        # reward_learned = self.evaluate_policy(self.policy.actor)
+        # self.episode_num += 1
 
         self.logger_worker.info("ID: %d Total T: %d  Training_times: %d  Episode_Num: %d Episode T: "
                                 "%d reward_evolved: %f  reward_learned: %f" %
