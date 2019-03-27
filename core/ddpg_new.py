@@ -250,7 +250,7 @@ class DDPG(object):
         self.grads_critic.append(grads_critic)
 
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005):
-        self.grads_critic = [] # []
+        self.grads_critic = []
 
         for it in range(iterations):
 

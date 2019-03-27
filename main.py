@@ -149,13 +149,7 @@ class Worker(object):
     def train(self, actor_weights, critic_weights, evolve, train):
         self.episode_timesteps = 0
         self.set_weights(actor_weights, critic_weights)
-        # self.actor_evovlved.load_state_dict(actor_weights)
-        # if actor_weights is not None:
-        #     reward_evolved = self.evaluate_policy(self.policy.actor)
-        #     self.episode_num += 1
-        # else:
-        #     reward_evolved = -math.inf
-        # self.logger_worker.info("self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["w_l2.bias"], self.id))
+
         if evolve:
             reward_evolved = self.evaluate_policy(self.policy.actor)
             self.episode_num += 1
@@ -163,8 +157,8 @@ class Worker(object):
             reward_evolved = -math.inf
 
         if train:
-            self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
-                          self.args.tau)
+            self.episode_timesteps = 1000
+            self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
             self.training_times += 1
 
         reward_learned = self.evaluate_policy(self.policy.actor)
@@ -292,7 +286,9 @@ if __name__ == "__main__":
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
-        train_id = [worker.train.remote(actor, critic_id,evolve,train) for worker, actor in zip(workers, actors)] # actor.state_dict()
+        evolve_id = ray.put(evolve)
+        train_id = ray.put(train)
+        train_id = [worker.train.remote(actor, critic_id, evolve_id, train_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
         all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, rewards, new_pop = process_results(results)
         agent.apply_grads(grads_critic, logger_main)
@@ -319,6 +315,7 @@ if __name__ == "__main__":
                 evolve_count += 1
             else:
                 gradient_count += 1
+
         # elsif all_timesteps <= 1e5:
         #     pass
         # else:
