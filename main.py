@@ -166,7 +166,7 @@ class Worker(object):
         self.episode_num += 1
 
         self.logger_worker.info("ID: %d Total T: %d  Training_times: %d  Episode_Num: %d Episode T: "
-                                "%d eward_learned: %f" %
+                                "%d reward_learned: %f" %
                                 (self.id, self.total_timesteps, self.training_times, self.episode_num,
                                  self.episode_timesteps, reward_learned))
 
