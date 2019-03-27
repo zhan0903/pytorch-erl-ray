@@ -148,7 +148,7 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights):
         self.episode_timesteps = 0
-        self.set_weights(None, critic_weights)
+        self.set_weights(actor_weights, critic_weights)
         # self.actor_evovlved.load_state_dict(actor_weights)
 
         # if actor_weights is not None:
@@ -156,11 +156,13 @@ class Worker(object):
         #     self.episode_num += 1
         # else:
         #     reward_evolved = -math.inf
+        self.logger_worker.info("self.policy.actor.bias:{0},id:{1},".format(self.policy.actor.state_dict()["l3.bias"], self.id))
+        reward_learned = self.evaluate_policy(self.policy.actor)
 
         self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
                           self.args.tau)
         self.training_times += 1
-        reward_learned = self.evaluate_policy(self.policy.actor)
+        # reward_learned = self.evaluate_policy(self.policy.actor)
         self.episode_num += 1
 
         self.logger_worker.info("ID: %d Total T: %d  Training_times: %d  Episode_Num: %d Episode T: "
