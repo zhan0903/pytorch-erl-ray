@@ -294,7 +294,9 @@ if __name__ == "__main__":
         train_id = [worker.train.remote(actor, critic_id, evolve_id, train_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
         all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, rewards, new_pop = process_results(results)
-        agent.apply_grads(grads_critic, logger_main)
+
+        champ_index = rewards.index(max(rewards))
+        agent.apply_grads(grads_critic, logger_main, champ_index)
 
         for new_actor, actor in zip(new_pop, agent.actors):
             if new_actor is not None:
@@ -342,7 +344,7 @@ if __name__ == "__main__":
         # Evaluate episode
         if timesteps_since_eval >= args.eval_freq:
             timesteps_since_eval %= args.eval_freq
-            champ_index = rewards.index(max(rewards))
+            # champ_index = rewards.index(max(rewards))
             logger_main.debug("champ_index in evaluate:{}".format(champ_index))
             actor_input = ddpg.ActorErl(state_dim, action_dim)
 
