@@ -146,7 +146,7 @@ class Worker(object):
 
         return episode_reward
 
-    def train(self, actor_weights, critic_weights, evolve, train):
+    def train(self, actor_weights, critic_weights, evolve=True, train=True):
         self.episode_timesteps = 0
         self.set_weights(actor_weights, critic_weights)
 
@@ -288,7 +288,7 @@ if __name__ == "__main__":
     gradient_count = 0
 
     logger_main.info("*************************************************************")
-    logger_main.info("3274, evolve and gradients happens with 8e4-1.25e5, then choose one")
+    logger_main.info("3275, choose better one, evolve for exploration, ga for exploitation")
     logger_main.info("*************************************************************")
 
     while all_timesteps < args.max_timesteps:
@@ -315,11 +315,11 @@ if __name__ == "__main__":
                          format(max(rewards), all_timesteps, average_evolved, average_learned, (time.time() - time_start)))
         logger_main.info("#rewards:{}".format(rewards))
 
-        if 8e4 <= all_timesteps <= 1.2e5:
-            if average_evolved > average_learned:
-                evolve_count += 1
-            else:
-                gradient_count += 1
+        # if 8e4 <= all_timesteps <= 1.2e5:
+        #     if average_evolved > average_learned:
+        #         evolve_count += 1
+        #     else:
+        #         gradient_count += 1
 
         logger_main.info("evolve_count:{0}, gradient_count:{1}".format(evolve_count, gradient_count))
 
@@ -358,15 +358,14 @@ if __name__ == "__main__":
             evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
-        if evolve:
-            if all_timesteps > 1.2e5:
-                evolver.epoch(agent.actors, rewards)
-            else:
-                evolver.explore(agent.actors, rewards)
-            actors = [actor.state_dict() for actor in agent.actors]
-        else:
-            actors = [None for _ in range(args.pop_size)]
-
+        # if evolve:
+        #     if all_timesteps > 1.2e5:
+        #         evolver.epoch(agent.actors, rewards)
+        #     else:
+        evolver.explore(agent.actors, rewards)
+        actors = [actor.state_dict() for actor in agent.actors]
+        # else:
+        #     actors = [None for _ in range(args.pop_size)]
     logger_main.info("Finish! MaxValue:{}".format(MaxValue))
 
 
