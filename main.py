@@ -172,7 +172,7 @@ class Worker(object):
                                 (self.id, self.total_timesteps, self.training_times, self.episode_num,
                                  self.episode_timesteps, reward_evolved, reward_learned))
 
-        self.logger_worker.info("ID: {0},net:{1}".format(self.id, self.policy.actor.state_dict()["w_out.weight"][:10]))
+        self.logger_worker.info("ID: {0},net:{1}".format(self.id, self.policy.actor.state_dict()["w_out.weight"][-1][:5]))
 
         if reward_evolved > reward_learned:
             return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, reward_evolved, None
