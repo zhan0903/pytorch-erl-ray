@@ -104,7 +104,6 @@ class Worker(object):
             for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
                 target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
-
     # Runs policy for X episodes and returns average reward
     def evaluate_policy_temp(self, eval_episodes=1):
         # self.set_weights(actor_weights,critic_weights)
@@ -150,7 +149,7 @@ class Worker(object):
         self.episode_timesteps = 0
         self.set_weights(actor_weights, critic_weights)
 
-        self.logger_worker.info("After Evolved: ID: {0},net:{1}".
+        self.logger_worker.info("After Evolved: ID: {0},net_weight:{1}".
                                 format(self.id, self.policy.actor.state_dict()["w_out.weight"][-1][:5]))
 
         if evolve:
@@ -170,7 +169,7 @@ class Worker(object):
         # reward_learned = self.evaluate_policy(self.policy.actor)
         # self.episode_num += 1
 
-        self.logger_worker.info("After Learned: ID: {0},net:{1}".
+        self.logger_worker.info("After Learned: ID: {0},net_weight:{1}".
                                 format(self.id, self.policy.actor.state_dict()["w_out.weight"][-1][:5]))
 
         self.logger_worker.info("ID: %d Total T: %d  Training_times: %d  Episode_Num: %d Episode T: "
@@ -268,7 +267,7 @@ if __name__ == "__main__":
 
     # policy = ddpg.DDPG(state_dim, action_dim, max_action)
     agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
-    ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30000000000)
+    ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=30000000000)
 
     workers = [Worker.remote(args, i)
                for i in range(args.pop_size)]
@@ -291,9 +290,9 @@ if __name__ == "__main__":
     evolve_count = 0
     gradient_count = 0
 
-    logger_main.info("*************************************************************")
+    logger_main.info("************************************************************************************")
     logger_main.info("3275, choose better one, evolve for exploration, ga for exploitation")
-    logger_main.info("*************************************************************")
+    logger_main.info("************************************************************************************")
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
