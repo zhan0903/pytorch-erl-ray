@@ -311,7 +311,7 @@ if __name__ == "__main__":
                          format(max(rewards), all_timesteps, average_evolved, average_learned, (time.time() - time_start)))
         logger_main.info("#rewards:{}".format(rewards))
 
-        if 8e4 <= all_timesteps <= 9.6e4:
+        if 8e4 <= all_timesteps <= 1.2e5:
             if average_evolved > average_learned:
                 evolve_count += 1
             else:
