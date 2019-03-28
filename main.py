@@ -286,7 +286,7 @@ if __name__ == "__main__":
     gradient_count = 0
 
     logger_main.info("*************************************************************")
-    logger_main.info("3274, evolve and gradients happens with 8e4-9.6e4, then choose one")
+    logger_main.info("3274, evolve and gradients happens with 8e4-1.25e5, then choose one")
     logger_main.info("*************************************************************")
 
     while all_timesteps < args.max_timesteps:
@@ -321,7 +321,7 @@ if __name__ == "__main__":
 
         logger_main.info("evolve_count:{0}, gradient_count:{1}".format(evolve_count, gradient_count))
 
-        if all_timesteps > 9.6e4:
+        if all_timesteps > 1.2e5:
             if evolve_count > gradient_count:
                 evolve = True
                 train = False
