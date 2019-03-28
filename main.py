@@ -311,15 +311,15 @@ if __name__ == "__main__":
                          format(max(rewards), all_timesteps, average_evolved, average_learned, (time.time() - time_start)))
         logger_main.info("#rewards:{}".format(rewards))
 
-        logger_main.debug("evolve_count:{0}, gradient_count:{1}".format(evolve_count,gradient_count))
-
-        if 6.4e4 < all_timesteps < 1.28e5:
+        if 8e4 <= all_timesteps <= 9.6e4:
             if average_evolved > average_learned:
                 evolve_count += 1
             else:
                 gradient_count += 1
 
-        if all_timesteps >= 1.28e5:
+        logger_main.debug("evolve_count:{0}, gradient_count:{1}".format(evolve_count,gradient_count))
+
+        if all_timesteps > 9.6e4:
             if evolve_count > gradient_count:
                 evolve = True
                 train = False
