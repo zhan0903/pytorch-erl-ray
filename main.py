@@ -172,6 +172,9 @@ class Worker(object):
                                 (self.id, self.total_timesteps, self.training_times, self.episode_num,
                                  self.episode_timesteps, reward_evolved, reward_learned))
 
+        self.logger_worker.debug("ID: {0},net[w_out.bias]:{1}".
+                                 format(self.id, self.policy.actor.state_dict()["w_out.bias"]))
+
         if reward_evolved > reward_learned:
             return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, reward_evolved, None
         else:
@@ -317,7 +320,7 @@ if __name__ == "__main__":
             else:
                 gradient_count += 1
 
-        logger_main.debug("evolve_count:{0}, gradient_count:{1}".format(evolve_count,gradient_count))
+        logger_main.info("evolve_count:{0}, gradient_count:{1}".format(evolve_count, gradient_count))
 
         if all_timesteps > 9.6e4:
             if evolve_count > gradient_count:
