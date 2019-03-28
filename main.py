@@ -147,21 +147,23 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights, evolve=True, train=True):
         self.episode_timesteps = 0
-        self.set_weights(actor_weights, critic_weights)
+        self.set_weights(None, critic_weights)
+        if evolve:
+            self.actor_evovlved.load_state_dict(actor_weights)
 
         self.logger_worker.info("After Evolved: ID: {0},net_weight:{1}".
                                 format(self.id, self.policy.actor.state_dict()["w_out.weight"][-1][:5]))
 
         if evolve:
-            reward_evolved = self.evaluate_policy(self.policy.actor)
+            reward_evolved = self.evaluate_policy(self.actor_evovlved)
             self.episode_num += 1
         else:
             reward_evolved = -math.inf
 
         if train:
-            # self.episode_timesteps = 1000
-            self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
-            self.training_times += 1
+            self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
+            if self.episode_timesteps:
+                self.training_times += 1
             reward_learned = self.evaluate_policy(self.policy.actor)
             self.episode_num += 1
         else:
@@ -176,8 +178,6 @@ class Worker(object):
                                 "%d reward_evolved: %f  reward_learned: %f" %
                                 (self.id, self.total_timesteps, self.training_times, self.episode_num,
                                  self.episode_timesteps, reward_evolved, reward_learned))
-
-        # self.logger_worker.info("ID: {0},net:{1}".format(self.id, self.policy.actor.state_dict()["w_out.weight"][-1][:5]))
 
         if reward_evolved > reward_learned:
             return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, reward_evolved, None
@@ -279,7 +279,7 @@ if __name__ == "__main__":
     time_start = time.time()
 
     episode = 0
-    evolve = True
+    evolve = False
     train = True
     actors = [actor.state_dict() for actor in agent.actors]
     average = None
@@ -289,9 +289,10 @@ if __name__ == "__main__":
     maxvalue = None
     evolve_count = 0
     gradient_count = 0
+    generation = 0
 
     logger_main.info("************************************************************************************")
-    logger_main.info("3275, choose better one, evolve for exploration, ga for exploitation")
+    logger_main.info("3276, choose better one, evolve for exploration+every 5 generation, ga for exploitation")
     logger_main.info("************************************************************************************")
 
     while all_timesteps < args.max_timesteps:
@@ -302,6 +303,7 @@ if __name__ == "__main__":
         results = ray.get(train_id)
         all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, rewards, new_pop = process_results(results)
         agent.apply_grads(grads_critic, logger_main)
+        generation += 1
 
         for new_actor, actor in zip(new_pop, agent.actors):
             if new_actor is not None:
@@ -365,10 +367,15 @@ if __name__ == "__main__":
         #     if all_timesteps > 1.2e5:
         #         evolver.epoch(agent.actors, rewards)
         #     else:
-        evolver.explore(agent.actors, rewards)
-        actors = [actor.state_dict() for actor in agent.actors]
-        # else:
-        #     actors = [None for _ in range(args.pop_size)]
+
+        if generation >= 5:
+            evolver.explore(agent.actors, rewards)
+            generation %= 5
+            evolve = True
+            actors = [actor.state_dict() for actor in agent.actors]
+        else:
+            evolve = False
+            actors = [None for _ in range(args.pop_size)]
     logger_main.info("Finish! MaxValue:{}".format(MaxValue))
 
 
