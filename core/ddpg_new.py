@@ -162,9 +162,9 @@ class PERL(object):
         logger.debug("champ gradient 0:{}".format(grads[champ_index][-1][-1]))
         for index, grad in enumerate(grads):
             if index == champ_index:
-                grads *= 0.4
+                grad *= 0.4
             else:
-                grads *= 0.2
+                grad *= 0.2
 
         logger.debug("champ gradient 0:{}".format(grads[champ_index][-1][-1]))
 
