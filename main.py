@@ -150,7 +150,8 @@ class Worker(object):
         self.episode_timesteps = 0
         self.set_weights(actor_weights, critic_weights)
 
-        self.logger_worker.info("ID: {0},net:{1}".format(self.id, self.policy.actor.state_dict()["w_out.weight"][-1][:5]))
+        self.logger_worker.info("After Evolved: ID: {0},net:{1}".
+                                format(self.id, self.policy.actor.state_dict()["w_out.weight"][-1][:5]))
 
         if evolve:
             reward_evolved = self.evaluate_policy(self.policy.actor)
@@ -168,6 +169,9 @@ class Worker(object):
             reward_learned = -math.inf
         # reward_learned = self.evaluate_policy(self.policy.actor)
         # self.episode_num += 1
+
+        self.logger_worker.info("After Learned: ID: {0},net:{1}".
+                                format(self.id, self.policy.actor.state_dict()["w_out.weight"][-1][:5]))
 
         self.logger_worker.info("ID: %d Total T: %d  Training_times: %d  Episode_Num: %d Episode T: "
                                 "%d reward_evolved: %f  reward_learned: %f" %
@@ -323,13 +327,13 @@ if __name__ == "__main__":
 
         logger_main.info("evolve_count:{0}, gradient_count:{1}".format(evolve_count, gradient_count))
 
-        if all_timesteps > 1.2e5:
-            if evolve_count > gradient_count:
-                evolve = True
-                train = False
-            else:
-                evolve = False
-                train = True
+        # if all_timesteps > 1.2e5:
+        #     if evolve_count > gradient_count:
+        #         evolve = True
+        #         train = False
+        #     else:
+        #         evolve = False
+        #         train = True
 
         if get_value:
             value = results[0][0]

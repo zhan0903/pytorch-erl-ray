@@ -144,6 +144,8 @@ class SSNE:
                 unselects.append(i)
         random.shuffle(unselects)
 
+        print("elitist_index,", elitist_index)
+
         # Mutate all genes in the population except the new elitists
         for i in range(self.population_size):
             if i not in elitist_index:  # Spare the new elitists
