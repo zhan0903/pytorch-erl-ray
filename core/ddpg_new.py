@@ -160,18 +160,18 @@ class PERL(object):
 
     def apply_grads(self, grads, logger, champ_index):
         logger.debug("champ gradient 0:{}".format(grads[champ_index][-1][-1]))
-        for index, grad in enumerate(grads):
-            if index == champ_index:
-                for item in grad:
-                    logger.debug("item:{}".format(item))
-                    item *= 0.4
-            else:
-                for item in grad:
-                    item *= 0.2
+        # for index, grad in enumerate(grads):
+        #     if index == champ_index:
+        #             # logger.debug("item:{}".format(item))
+        #         item *= 0.4
+        #         np.matmul(grad, 0.4)
+        #     else:
+        #         for item in grad:
+        #             item *= 0.2
 
         logger.debug("champ gradient 0:{}".format(grads[champ_index][-1][-1]))
 
-        critic_grad = np.sum(grads, axis=0)
+        critic_grad = np.sum(grads, axis=0)/self.pop_size
 
         logger.debug("gradient weighted:{}".format(critic_grad[-1][-1]))
         # logger.debug("gradient 0:{}".format(grads[0][-1][-1]))
