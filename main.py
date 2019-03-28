@@ -152,7 +152,6 @@ class Worker(object):
 
         self.logger_worker.info("ID: {0},net:{1}".format(self.id, self.policy.actor.state_dict()["w_out.weight"][-1][:5]))
 
-
         if evolve:
             reward_evolved = self.evaluate_policy(self.policy.actor)
             self.episode_num += 1
@@ -360,7 +359,10 @@ if __name__ == "__main__":
             np.save("./results/%s" % file_name, evaluations)
 
         if evolve:
-            evolver.epoch(agent.actors, rewards)
+            if all_timesteps > 1.2e5:
+                evolver.epoch(agent.actors, rewards)
+            else:
+                evolver.explore(agent.actors, rewards)
             actors = [actor.state_dict() for actor in agent.actors]
         else:
             actors = [None for _ in range(args.pop_size)]

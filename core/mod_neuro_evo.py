@@ -126,8 +126,30 @@ class SSNE:
         for param in (gene.parameters()):
             param.data.copy_(param.data)
 
-    def epoch(self, pop, fitness_evals):
+    def explore(self,pop,fitness):
+        index_rank = self.list_argsort(fitness); index_rank.reverse()
+        elitist_index = index_rank[:self.num_elitists]  # Elitist indexes safeguard
 
+        # print("in epoch, elitis_index,", elitist_index)
+
+        # Selection step
+        offsprings = self.selection_tournament(index_rank, num_offsprings=len(index_rank) - self.num_elitists,
+                                               tournament_size=3)
+        # Figure out unselected candidates
+        unselects = []; new_elitists = []
+        for i in range(self.population_size):
+            if i in offsprings or i in elitist_index:
+                continue
+            else:
+                unselects.append(i)
+        random.shuffle(unselects)
+
+        # Mutate all genes in the population except the new elitists
+        for i in range(self.population_size):
+            if i not in elitist_index:  # Spare the new elitists
+                if random.random() < self.args.mutation_prob: self.mutate_inplace(pop[i])
+
+    def epoch(self, pop, fitness_evals):
         # Entire epoch is handled with indices; Index rank nets by fitness evaluation (0 is the best after reversing)
         index_rank = self.list_argsort(fitness_evals); index_rank.reverse()
         elitist_index = index_rank[:self.num_elitists]  # Elitist indexes safeguard
