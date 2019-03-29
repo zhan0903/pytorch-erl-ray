@@ -168,7 +168,7 @@ class Worker(object):
             else:
                 iteration = 1000
             self.policy.train(self.replay_buffer, iteration, self.args.batch_size, self.args.discount, self.args.tau)
-            if self.episode_timesteps:
+            if iteration:
                 self.training_times += 1
             reward_learned = self.evaluate_policy(self.policy.actor)
             self.episode_num += 1
@@ -217,7 +217,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=1e5, type=int)
     parser.add_argument("--eval_freq", default=4e4, type=float)
-    parser.add_argument("--max_timesteps", default=1e6, type=float)
+    parser.add_argument("--max_timesteps", default=2.5e5, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
     parser.add_argument("--discount", default=0.99, type=float)
     parser.add_argument("--tau", default=0.005, type=float)
