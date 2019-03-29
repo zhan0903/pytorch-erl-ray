@@ -305,7 +305,7 @@ if __name__ == "__main__":
         results = ray.get(train_id)
         all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, rewards, new_pop = process_results(results)
         logger_main.info("grads_critic:{}".format(grads_critic))
-        if grads_critic:
+        if grads_critic[0]:
             agent.apply_grads(grads_critic, logger_main)
         generation += 1
 
