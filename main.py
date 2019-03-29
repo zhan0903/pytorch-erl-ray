@@ -159,6 +159,7 @@ class Worker(object):
         if train:
             self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
             reward_learned = self.evaluate_policy(self.policy.actor)
+            self.training_times += 1
             self.episode_num += 1
         else:
             reward_learned = -math.inf
@@ -216,6 +217,9 @@ if __name__ == "__main__":
     parser.add_argument("--elite_fraction", default=0.1, type=float)
     parser.add_argument("--node_name", default="qcis5")
     parser.add_argument("--version_name")
+
+    up_limit = 2e5
+    down_limit = 1e5
 
     args = parser.parse_args()
 
@@ -310,15 +314,15 @@ if __name__ == "__main__":
                          format(all_timesteps, average_evolved, average_learned, (time.time() - time_start)))
         # logger_main.info("#rewards:{}".format(rewards))
 
-        if 8e4 <= all_timesteps <= 1.28e5:
+        if down_limit <= all_timesteps <= up_limit:
             if average_evolved > average_learned:
                 evolve_count += 1
             else:
                 gradient_count += 1
 
-        logger_main.debug("evolve_count:{0}, gradient_count:{1}".format(evolve_count, gradient_count))
+        logger_main.info("evolve_count:{0}, gradient_count:{1}".format(evolve_count, gradient_count))
 
-        if all_timesteps > 1.28e5:
+        if all_timesteps > up_limit:
             if evolve_count > gradient_count:
                 evolve = True
                 train = False
