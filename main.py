@@ -185,13 +185,13 @@ def process_results(r):
     all_new_pop = []
 
     for result in r:
-        all_new_pop.append(result[5])
-        all_rewards.append(result[4])
+        all_new_pop.append(result[4])
+        # all_rewards.append(result[4])
         all_f_a.append(result[3])
         all_f.append(result[2])
         grads_c.append(result[1])
         total_t.append(result[0])
-    return sum(total_t), grads_c, all_f, all_f_a, all_rewards, all_new_pop
+    return sum(total_t), grads_c, all_f, all_f_a, all_new_pop
 
 
 if __name__ == "__main__":
@@ -257,7 +257,7 @@ if __name__ == "__main__":
 
     # policy = ddpg.DDPG(state_dim, action_dim, max_action)
     agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
-    ray.init(include_webui=False, ignore_reinit_error=True,object_store_memory=30000000000)
+    ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=30000000000)
 
     workers = [Worker.remote(args, i)
                for i in range(args.pop_size)]
@@ -293,7 +293,7 @@ if __name__ == "__main__":
         all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, new_pop = process_results(results)
 
         # champ_index = rewards.index(max(rewards))
-        agent.apply_grads(grads_critic, logger_main, champ_index)
+        agent.apply_grads(grads_critic, logger_main)
 
         for new_actor, actor in zip(new_pop, agent.actors):
             if new_actor is not None:
@@ -306,9 +306,9 @@ if __name__ == "__main__":
         average_evolved = sum(all_reward_evolved)/args.pop_size
         average_learned = sum(all_reward_learned)/args.pop_size
 
-        logger_main.info("#Max:{0}, #All_TimeSteps:{1}, #Average_evolved:{2},#Average_learned:{3} ##Time:{4},".
-                         format(max(rewards), all_timesteps, average_evolved, average_learned, (time.time() - time_start)))
-        logger_main.info("#rewards:{}".format(rewards))
+        logger_main.info("#All_TimeSteps:{0}, #Average_evolved:{1},#Average_learned:{2} ##Time:{3},".
+                         format(all_timesteps, average_evolved, average_learned, (time.time() - time_start)))
+        # logger_main.info("#rewards:{}".format(rewards))
 
         if 8e4 <= all_timesteps <= 1.28e5:
             if average_evolved > average_learned:
@@ -332,34 +332,34 @@ if __name__ == "__main__":
 
         timesteps_since_eval += value * args.pop_size
 
-        if MaxValue is None:
-            MaxValue = max(rewards)
-        else:
-            if MaxValue < max(rewards):
-                MaxValue = max(rewards)
+        # if MaxValue is None:
+        #     MaxValue = max(rewards)
+        # else:
+        #     if MaxValue < max(rewards):
+        #         MaxValue = max(rewards)
 
         # Evaluate episode
-        if timesteps_since_eval >= args.eval_freq:
-            timesteps_since_eval %= args.eval_freq
-            # champ_index = rewards.index(max(rewards))
-            logger_main.debug("champ_index in evaluate:{}".format(champ_index))
-            actor_input = ddpg.ActorErl(state_dim, action_dim)
-
-            if new_pop[champ_index] is None:
-                actor_input.load_state_dict(agent.actors[champ_index].state_dict())
-            else:
-                actor_input.load_state_dict(new_pop[champ_index])
-
-            evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
-            np.save("./results/%s" % file_name, evaluations)
+        # if timesteps_since_eval >= args.eval_freq:
+        #     timesteps_since_eval %= args.eval_freq
+        #     # champ_index = rewards.index(max(rewards))
+        #     logger_main.debug("champ_index in evaluate:{}".format(champ_index))
+        #     actor_input = ddpg.ActorErl(state_dim, action_dim)
+        #
+        #     # if new_pop[champ_index] is None:
+        #     #     actor_input.load_state_dict(agent.actors[champ_index].state_dict())
+        #     # else:
+        #     #     actor_input.load_state_dict(new_pop[champ_index])
+        #
+        #     evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
+        #     np.save("./results/%s" % file_name, evaluations)
 
         if evolve:
-            evolver.epoch(agent.actors, rewards)
+            evolver.epoch(agent.actors, all_reward_evolved)
             actors = [actor.state_dict() for actor in agent.actors]
         else:
             actors = [None for _ in range(args.pop_size)]
 
-    logger_main.info("Finish! MaxValue:{}".format(MaxValue))
+    # logger_main.info("Finish! MaxValue:{}".format(MaxValue))
 
 
 
