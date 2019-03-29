@@ -158,8 +158,8 @@ class PERL(object):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
         return self.actors[actor_id](state).cpu().data.numpy().flatten()
 
-    def apply_grads(self, grads, logger, champ_index):
-        logger.debug("champ gradient 0:{}".format(grads[champ_index][-1][-1]))
+    def apply_grads(self, grads, logger):
+        # logger.debug("champ gradient 0:{}".format(grads[champ_index][-1][-1]))
         # for index, grad in enumerate(grads):
         #     if index == champ_index:
         #             # logger.debug("item:{}".format(item))
@@ -169,12 +169,12 @@ class PERL(object):
         #         for item in grad:
         #             item *= 0.2
 
-        logger.debug("champ gradient 0:{}".format(grads[champ_index][-1][-1]))
+        # logger.debug("champ gradient 0:{}".format(grads[champ_index][-1][-1]))
 
         critic_grad = np.sum(grads, axis=0)/self.pop_size
 
         logger.debug("gradient weighted:{}".format(critic_grad[-1][-1]))
-        # logger.debug("gradient 0:{}".format(grads[0][-1][-1]))
+        logger.debug("gradient 0:{}".format(grads[0][-1][-1]))
 
         # for pop_grad inn grads:
 

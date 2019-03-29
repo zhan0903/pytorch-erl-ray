@@ -280,9 +280,9 @@ if __name__ == "__main__":
     evolve_count = 0
     gradient_count = 0
 
-    logger_main.info("*************************************************************")
-    logger_main.info("3281, 4 evolve and 4 gradients happens Synchronously with 8e4-9.6e4, ")
-    logger_main.info("*************************************************************")
+    logger_main.info("*********************************************************************")
+    logger_main.info("3281, 4 evolve and 4 gradients happens Synchronously with 8e4-1.28e5 ")
+    logger_main.info("*********************************************************************")
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
@@ -290,9 +290,9 @@ if __name__ == "__main__":
         train_id = ray.put(train)
         train_id = [worker.train.remote(actor, critic_id, evolve_id, train_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
-        all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, rewards, new_pop = process_results(results)
+        all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, new_pop = process_results(results)
 
-        champ_index = rewards.index(max(rewards))
+        # champ_index = rewards.index(max(rewards))
         agent.apply_grads(grads_critic, logger_main, champ_index)
 
         for new_actor, actor in zip(new_pop, agent.actors):
