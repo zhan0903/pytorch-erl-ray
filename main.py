@@ -309,6 +309,7 @@ if __name__ == "__main__":
             agent.apply_grads(grads_critic, logger_main)
         generation += 1
 
+        logger_main.info("generation:{}".format(generation))
         for new_actor, actor in zip(new_pop, agent.actors):
             if new_actor is not None:
                 actor.load_state_dict(new_actor)
