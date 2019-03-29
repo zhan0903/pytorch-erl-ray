@@ -104,7 +104,6 @@ class Worker(object):
             for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
                 target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
-
     # Runs policy for X episodes and returns average reward
     def evaluate_policy_temp(self, eval_episodes=1):
         # self.set_weights(actor_weights,critic_weights)
@@ -148,35 +147,33 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights, evolve, train):
         self.episode_timesteps = 0
-        self.set_weights(actor_weights, critic_weights)
+        self.set_weights(None, critic_weights)
 
         if evolve:
-            reward_evolved = self.evaluate_policy(self.policy.actor)
+            self.actor_evovlved.load_state_dict(actor_weights)
+            reward_evolved = self.evaluate_policy(self.actor_evovlved)
             self.episode_num += 1
         else:
             reward_evolved = -math.inf
 
         if train:
-            # self.episode_timesteps = 1000
             self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
-            self.training_times += 1
             reward_learned = self.evaluate_policy(self.policy.actor)
             self.episode_num += 1
         else:
             reward_learned = -math.inf
-        # reward_learned = self.evaluate_policy(self.policy.actor)
-        # self.episode_num += 1
 
-        self.logger_worker.info("ID: %d Total T: %d  Training_times: %d  Episode_Num: %d Episode T: "
+        self.logger_worker.info("ID: %d Total T: %d  Episode_Num: %d Episode T: "
                                 "%d reward_evolved: %f  reward_learned: %f" %
-                                (self.id, self.total_timesteps, self.training_times, self.episode_num,
+                                (self.id, self.total_timesteps, self.episode_num,
                                  self.episode_timesteps, reward_evolved, reward_learned))
 
-        if reward_evolved > reward_learned:
-            return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, reward_evolved, None
+        if evolve:
+            return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, \
+                   self.actor_evovlved.state_dict()
         else:
             return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, \
-                   reward_learned, self.policy.actor.state_dict()
+                   None
 
 
 def process_results(r):
@@ -284,7 +281,7 @@ if __name__ == "__main__":
     gradient_count = 0
 
     logger_main.info("*************************************************************")
-    logger_main.info("3281, evolve and gradients happens with 8e4-9.6e4, then choose one, weight gradient")
+    logger_main.info("3281, 4 evolve and 4 gradients happens Synchronously with 8e4-9.6e4, ")
     logger_main.info("*************************************************************")
 
     while all_timesteps < args.max_timesteps:
@@ -303,8 +300,8 @@ if __name__ == "__main__":
                 actor.load_state_dict(new_actor)
 
         # logger_main.info("#Max:{0}, #All_TimeSteps:{1}, #Time:{2},".
-        #                  format(max(rewards), all_timesteps, (time.time()-time_start)))
-        # logger_main.info("#rewards:{}".format(rewards))
+        #         #                  format(max(rewards), all_timesteps, (time.time()-time_start)))
+        #         # logger_main.info("#rewards:{}".format(rewards))
 
         average_evolved = sum(all_reward_evolved)/args.pop_size
         average_learned = sum(all_reward_learned)/args.pop_size
@@ -313,15 +310,15 @@ if __name__ == "__main__":
                          format(max(rewards), all_timesteps, average_evolved, average_learned, (time.time() - time_start)))
         logger_main.info("#rewards:{}".format(rewards))
 
-        if 8e4 <= all_timesteps <= 9.6e4:
+        if 8e4 <= all_timesteps <= 1.28e5:
             if average_evolved > average_learned:
                 evolve_count += 1
             else:
                 gradient_count += 1
 
-        logger_main.debug("evolve_count:{0}, gradient_count:{1}".format(evolve_count,gradient_count))
+        logger_main.debug("evolve_count:{0}, gradient_count:{1}".format(evolve_count, gradient_count))
 
-        if all_timesteps > 9.6e4:
+        if all_timesteps > 1.28e5:
             if evolve_count > gradient_count:
                 evolve = True
                 train = False
