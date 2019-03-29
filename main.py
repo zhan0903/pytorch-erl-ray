@@ -163,7 +163,7 @@ class Worker(object):
             reward_evolved = -math.inf
 
         if train:
-            if len(self.replay_buffer) == 0:
+            if len(self.replay_buffer.storage) == 0:
                 iteration = 0
             else:
                 iteration = 1000
