@@ -218,7 +218,7 @@ if __name__ == "__main__":
     parser.add_argument("--node_name", default="qcis5")
     parser.add_argument("--version_name")
 
-    up_limit = 2e5
+    up_limit = 1.5e5
     down_limit = 1e5
 
     args = parser.parse_args()
@@ -259,7 +259,6 @@ if __name__ == "__main__":
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
 
-    # policy = ddpg.DDPG(state_dim, action_dim, max_action)
     agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
     ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=30000000000)
 
@@ -280,12 +279,11 @@ if __name__ == "__main__":
     get_value = True
     value = 0
     MaxValue = None
-    maxvalue = None
     evolve_count = 0
     gradient_count = 0
 
     logger_main.info("*********************************************************************")
-    logger_main.info("3281, 4 evolve and 4 gradients happens Synchronously with 8e4-1.28e5 ")
+    logger_main.info("3281, 4 evolve and 4 gradients happens Synchronously with up-down limit ")
     logger_main.info("*********************************************************************")
 
     while all_timesteps < args.max_timesteps:
