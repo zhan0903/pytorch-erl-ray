@@ -171,6 +171,8 @@ class PERL(object):
 
         # logger.debug("champ gradient 0:{}".format(grads[champ_index][-1][-1]))
 
+        logger.info("grads,",grads)
+
         critic_grad = np.sum(grads, axis=0)/self.pop_size
 
         logger.debug("gradient weighted:{}".format(critic_grad[-1][-1]))
