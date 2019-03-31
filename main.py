@@ -222,7 +222,7 @@ if __name__ == "__main__":
     parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=1e5, type=int)
-    parser.add_argument("--eval_freq", default=4e4, type=float)
+    parser.add_argument("--eval_freq", default=2e4, type=float)
     parser.add_argument("--max_timesteps", default=1e6, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
     parser.add_argument("--discount", default=0.99, type=float)
@@ -258,7 +258,7 @@ if __name__ == "__main__":
     logger_main = logging.getLogger('Main')
 
     evolver = utils_ne.SSNE(args)
-    file_name = "%s_%s_%s_%s" % (args.policy_name, args.env_name, str(args.seed), args.node_name)
+    file_name = "%s_%s_%s" % (args.env_name, str(args.seed), args.node_name)
     print("---------------------------------------")
     print("Settings: %s" % file_name)
     print("---------------------------------------")
@@ -303,9 +303,9 @@ if __name__ == "__main__":
     evolve_count = 0
     gradient_count = 0
 
-    logger_main.info("*********************************************************************")
+    logger_main.info("************************************************************************")
     logger_main.info("3281, 4 evolve and 4 gradients happens Synchronously with up-down limit ")
-    logger_main.info("*********************************************************************")
+    logger_main.info("************************************************************************")
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
