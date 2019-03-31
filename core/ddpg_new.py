@@ -172,7 +172,7 @@ class PERL(object):
         # logger.debug("champ gradient 0:{}".format(grads[champ_index][-1][-1]))
 
         logger.info("type grads[0] size:{}".format(type(grads[0])))
-        logger.info("shape grads[0] size:{}".format((grads[0])))
+        # logger.info("shape grads[0] size:{}".format((grads[0])))
 
 
 
