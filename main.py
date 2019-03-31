@@ -53,7 +53,7 @@ def evaluate_policy(env, policy, eval_episodes=5):
     return avg_reward
 
 
-@ray.remote(num_gpus=0.5)
+@ray.remote(num_gpus=1)
 class Worker(object):
     def __init__(self, args, id):
         self.env = gym.make(args.env_name)
@@ -173,18 +173,19 @@ class Worker(object):
                 self.total_timesteps += 1
 
                 if done:
+                    self.training_times += 1
                     self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     break
             # self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
             # reward_learned = self.evaluate_policy(self.policy.actor)
             # self.training_times += 1
-            self.episode_num += 1
+            # self.episode_num += 1
         else:
             reward_learned = -math.inf
 
-        self.logger_worker.info("ID: %d Total T: %d  Episode_Num: %d Episode T: "
+        self.logger_worker.info("ID: %d Total T: %d  training_times: %d Episode T: "
                                 "%d reward_evolved: %f  reward_learned: %f" %
-                                (self.id, self.total_timesteps, self.episode_num,
+                                (self.id, self.total_timesteps, self.training_times,
                                  self.episode_timesteps, reward_evolved, reward_learned))
 
         if evolve:
@@ -229,7 +230,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     parser.add_argument("--save_models", action="store_true")
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
-    parser.add_argument("--pop_size", default=4, type=int)
+    parser.add_argument("--pop_size", default=2, type=int)
     parser.add_argument("--crossover_prob", default=0.0, type=float)
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)
