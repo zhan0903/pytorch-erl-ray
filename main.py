@@ -149,6 +149,8 @@ class Worker(object):
         self.episode_timesteps = 0
         self.set_weights(actor_weights, critic_weights)
         reward_learned = 0
+        self.logger_worker.info("ID: {0},net_w_out.weight:{1}".
+                                format(self.id, self.policy.actor.state_dict()["w_out.weight"][-1][:5]))
 
         if evolve:
             self.actor_evovlved.load_state_dict(actor_weights)
