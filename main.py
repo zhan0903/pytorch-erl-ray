@@ -147,7 +147,7 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights, evolve, train):
         self.episode_timesteps = 0
-        self.set_weights(None, critic_weights)
+        self.set_weights(actor_weights, critic_weights)
         reward_learned = 0
 
         if evolve:
