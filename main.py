@@ -152,6 +152,9 @@ class Worker(object):
         if self.init:
             self.set_weights(actor_weights, critic_weights)
             self.init = False
+        else:
+            self.set_weights(None, critic_weights)
+
         self.logger_worker.info("ID: {0},net_w_out.weight:{1}".
                                 format(self.id, self.policy.actor.state_dict()["w_out.weight"][-1][:5]))
 
