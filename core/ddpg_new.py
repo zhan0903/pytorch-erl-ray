@@ -173,7 +173,12 @@ class PERL(object):
 
         logger.info("grads size:{}".format(len(grads)))
 
-        critic_grad = np.sum(grads, axis=0)/self.pop_size
+        critic_grad = np.sum(grads, axis=0)#/self.pop_size
+
+        logger.info("type of critic grad:{}".format(critic_grad))
+        logger.info("type of critic grad[0]:{}".format(critic_grad[0]))
+
+        exit(0)
 
         logger.debug("gradient weighted:{}".format(critic_grad[-1][-1]))
         logger.debug("gradient 0:{}".format(grads[0][-1][-1]))
