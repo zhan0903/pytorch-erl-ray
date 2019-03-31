@@ -27,7 +27,7 @@ class LayerNorm(nn.Module):
 
 
 class ActorErl(nn.Module):
-    def __init__(self, state_dim,action_dim, init=False):
+    def __init__(self, state_dim, action_dim, init=False):
         super(ActorErl, self).__init__()
         # self.args = args
         l1 = 128; l2 = 128; l3 = l2
@@ -70,7 +70,7 @@ class ActorErl(nn.Module):
 
 class CriticErl(nn.Module):
 
-    def __init__(self, state_dim,action_dim):
+    def __init__(self, state_dim, action_dim):
         super(CriticErl, self).__init__()
         # self.args = args
         l1 = 200; l2 = 300; l3 = l2
@@ -172,6 +172,9 @@ class PERL(object):
         # logger.debug("champ gradient 0:{}".format(grads[champ_index][-1][-1]))
 
         logger.info("type grads[0] size:{}".format(type(grads[0])))
+        logger.info("shape grads[0] size:{}".format((grads[0])))
+
+
 
         critic_grad = np.sum(grads, axis=0)#/self.pop_size
 

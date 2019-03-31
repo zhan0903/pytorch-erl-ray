@@ -211,7 +211,7 @@ def process_results(r):
         # all_rewards.append(result[4])
         all_f_a.append(result[3])
         all_f.append(result[2])
-        grads_c.append(result[1])
+        grads_c.append(np.array(result[1]))
         total_t.append(result[0])
     return sum(total_t), grads_c, all_f, all_f_a, all_new_pop
 
