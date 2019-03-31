@@ -91,6 +91,7 @@ class Worker(object):
         self.episode_timesteps = 0
         self.training_times = 0
         self.better_reward = -math.inf
+        self.init = True
 
     def set_weights(self, actor_weights, critic_weights):
         if actor_weights is not None:
@@ -147,26 +148,43 @@ class Worker(object):
 
     def train(self, actor_weights, critic_weights, evolve, train):
         self.episode_timesteps = 0
-        self.set_weights(None, critic_weights)
+        reward_learned = 0
+        if self.init:
+            self.set_weights(actor_weights, critic_weights)
+            self.init = False
+        self.logger_worker.info("ID: {0},net_w_out.weight:{1}".
+                                format(self.id, self.policy.actor.state_dict()["w_out.weight"][-1][:5]))
 
         if evolve:
             self.actor_evovlved.load_state_dict(actor_weights)
             reward_evolved = self.evaluate_policy(self.actor_evovlved)
-            self.episode_num += 1
+            # self.episode_num += 1
         else:
             reward_evolved = -math.inf
 
         if train:
-            self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
-            reward_learned = self.evaluate_policy(self.policy.actor)
-            self.training_times += 1
-            self.episode_num += 1
+            obs = self.env.reset()
+
+            while True:
+                action = select_action(np.array(obs), self.policy.actor)
+                new_obs, reward, done, _ = self.env.step(action)
+                done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
+                reward_learned += reward
+                self.replay_buffer.add((obs, new_obs, action, reward, done_bool))
+                obs = new_obs
+                self.episode_timesteps += 1
+                self.total_timesteps += 1
+
+                if done:
+                    self.training_times += 1
+                    self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
+                    break
         else:
             reward_learned = -math.inf
 
-        self.logger_worker.info("ID: %d Total T: %d  Episode_Num: %d Episode T: "
+        self.logger_worker.info("ID: %d Total T: %d  training_times: %d Episode T: "
                                 "%d reward_evolved: %f  reward_learned: %f" %
-                                (self.id, self.total_timesteps, self.episode_num,
+                                (self.id, self.total_timesteps, self.training_times,
                                  self.episode_timesteps, reward_evolved, reward_learned))
 
         if evolve:
