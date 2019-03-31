@@ -175,8 +175,8 @@ class PERL(object):
 
         critic_grad = np.sum(grads, axis=0)#/self.pop_size
 
-        logger.info("type of critic grad:{}".format(critic_grad))
-        logger.info("type of critic grad[0]:{}".format(critic_grad[0]))
+        logger.info("type of critic grad:{}".format(type(critic_grad)))
+        logger.info("type of critic grad[0]:{}".format(type(critic_grad[0])))
 
         exit(0)
 
