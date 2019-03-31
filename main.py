@@ -148,6 +148,7 @@ class Worker(object):
     def train(self, actor_weights, critic_weights, evolve, train):
         self.episode_timesteps = 0
         self.set_weights(None, critic_weights)
+        reward_learned = 0
 
         if evolve:
             self.actor_evovlved.load_state_dict(actor_weights)
@@ -157,9 +158,24 @@ class Worker(object):
             reward_evolved = -math.inf
 
         if train:
-            self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
-            reward_learned = self.evaluate_policy(self.policy.actor)
-            self.training_times += 1
+            obs = self.env.reset()
+
+            while True:
+                action = select_action(np.array(obs), self.policy.actor)
+                new_obs, reward, done, _ = self.env.step(action)
+                done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
+                reward_learned += reward
+                self.replay_buffer.add((obs, new_obs, action, reward, done_bool))
+                obs = new_obs
+                self.episode_timesteps += 1
+                self.total_timesteps += 1
+
+                if done:
+                    self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
+                    break
+            # self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
+            # reward_learned = self.evaluate_policy(self.policy.actor)
+            # self.training_times += 1
             self.episode_num += 1
         else:
             reward_learned = -math.inf
@@ -272,7 +288,7 @@ if __name__ == "__main__":
     time_start = time.time()
 
     episode = 0
-    evolve = True
+    evolve = False
     train = True
     actors = [actor.state_dict() for actor in agent.actors]
     average = None
@@ -282,9 +298,9 @@ if __name__ == "__main__":
     evolve_count = 0
     gradient_count = 0
 
-    logger_main.info("*********************************************************************")
-    logger_main.info("3281, 4 evolve and 4 gradients happens Synchronously with up-down limit ")
-    logger_main.info("*********************************************************************")
+    logger_main.info("***********************************************************************************")
+    logger_main.info("3282, 4 evolve and 4 gradients happens Synchronously with up-down limit, no evolve ")
+    logger_main.info("***********************************************************************************")
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
@@ -320,13 +336,13 @@ if __name__ == "__main__":
 
         logger_main.info("evolve_count:{0}, gradient_count:{1}".format(evolve_count, gradient_count))
 
-        if all_timesteps > up_limit:
-            if evolve_count > gradient_count:
-                evolve = True
-                train = False
-            else:
-                evolve = False
-                train = True
+        # if all_timesteps > up_limit:
+        #     if evolve_count > gradient_count:
+        #         evolve = True
+        #         train = False
+        #     else:
+        #         evolve = False
+        #         train = True
 
         if get_value:
             value = results[0][0]
