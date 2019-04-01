@@ -247,8 +247,8 @@ if __name__ == "__main__":
     parser.add_argument("--node_name", default="qcis5")
     parser.add_argument("--version_name")
 
-    up_limit = 3e5
-    down_limit = 2e5
+    up_limit = 1.5e5
+    down_limit = 1e5
 
     args = parser.parse_args()
 
