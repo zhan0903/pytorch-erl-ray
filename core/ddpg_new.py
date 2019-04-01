@@ -252,13 +252,14 @@ class DDPG(object):
 
         # print(grads_critic)
         # print(grads_actor)
-        print("len grads_critic,", len(grads_critic))
+        print("grads_critic len,", len(grads_critic))
 
         # self.grads_actor.append(grads_actor)
         self.grads_critic.append(grads_critic)
 
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005):
         self.grads_critic = []
+        print("iterations,",iterations)
 
         for it in range(iterations):
 
