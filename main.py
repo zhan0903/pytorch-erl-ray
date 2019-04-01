@@ -171,7 +171,7 @@ class Worker(object):
             obs = self.env.reset()
             # done = False
 
-            if len(self.replay_buffer.storage) < 1000:
+            if len(self.replay_buffer.storage) < 2000:
                 iteration = 100
             else:
                 iteration = 1000
