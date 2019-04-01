@@ -171,10 +171,10 @@ class Worker(object):
             obs = self.env.reset()
             # done = False
 
-            if self.training_times < 5:
+            if self.training_times < 10:
                 iteration = 100
             else:
-                iteration = 500
+                iteration = 1000
 
             while True:
                 action = select_action(np.array(obs), self.policy.actor)
