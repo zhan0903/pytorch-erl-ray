@@ -188,7 +188,7 @@ class Worker(object):
 
                 if done:
                     self.training_times += 1
-                    self.policy.train(self.replay_buffer, iteration, self.args.batch_size, self.args.discount, self.args.tau)
+                    self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     break
         else:
             reward_learned = -math.inf
@@ -213,15 +213,17 @@ def process_results(r):
     all_f_a = []
     all_rewards = []
     all_new_pop = []
+    grads_len = []
 
     for result in r:
+        grads_len.append(len(result[1]))
         all_new_pop.append(result[4])
         # all_rewards.append(result[4])
         all_f_a.append(result[3])
         all_f.append(result[2])
         grads_c.append(np.array(result[1]))
         total_t.append(result[0])
-    return sum(total_t), np.array(grads_c), all_f, all_f_a, all_new_pop
+    return sum(total_t), np.array(grads_c), all_f, all_f_a, all_new_pop, grads_len
 
 
 if __name__ == "__main__":
@@ -323,10 +325,10 @@ if __name__ == "__main__":
         train_id = ray.put(train)
         train_id = [worker.train.remote(actor, critic_id, evolve_id, train_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(train_id)
-        all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, new_pop = process_results(results)
+        all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, new_pop, grads_len = process_results(results)
 
         # champ_index = rewards.index(max(rewards))
-        agent.apply_grads(grads_critic, logger_main)
+        agent.apply_grads(grads_critic, grads_len, logger_main)
 
         for new_actor, actor in zip(new_pop, agent.actors):
             if new_actor is not None:

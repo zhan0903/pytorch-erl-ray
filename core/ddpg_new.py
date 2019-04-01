@@ -158,7 +158,7 @@ class PERL(object):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
         return self.actors[actor_id](state).cpu().data.numpy().flatten()
 
-    def apply_grads(self, grads, logger):
+    def apply_grads(self, grads, grads_len, logger):
 
         logger.info("shape grads[0] size:{}".format(grads[0].shape))
         logger.info("shape grads[1] size:{}".format(grads[1].shape))
@@ -166,10 +166,17 @@ class PERL(object):
         logger.info("shape grads[2] size:{}".format(grads[2].shape))
         logger.info("shape grads[3] size:{}".format(grads[3].shape))
 
+        len_min = min(grads_len)
+        shorter_grads = []
 
-        # logger.info("shape grads[0] size:{}".format((grads[0])))
+        logger.debug("len_min:{}".format(len_min))
 
-        critic_grad = np.sum(grads, axis=0)/self.pop_size
+        for item in grads:
+            shorter_grads.append(item[:len_min])
+
+        logger.info("shape grads[0] size:{}".format(shorter_grads[0]))
+
+        critic_grad = np.sum(shorter_grads, axis=0)/self.pop_size
 
         logger.info("shape of critic grad:{}".format(critic_grad.shape))
         # logger.info("type of critic grad[0]:{}".format(type(critic_grad[0])))
