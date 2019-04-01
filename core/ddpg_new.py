@@ -252,7 +252,7 @@ class DDPG(object):
 
         # print(grads_critic)
         # print(grads_actor)
-        print("grads_critic.shape,", grads_critic.shape)
+        print("len grads_critic,", len(grads_critic))
 
         # self.grads_actor.append(grads_actor)
         self.grads_critic.append(grads_critic)
