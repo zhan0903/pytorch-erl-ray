@@ -282,7 +282,7 @@ if __name__ == "__main__":
 
     logger_main.info("state_dim:{0},action_dim:{1},max_action:{2}".format(state_dim, action_dim, max_action))
 
-    agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
+    agent = ddpg.PERL(state_dim, action_dim, args.pop_size)
     ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=30000000000)
 
     workers = [Worker.remote(args, i)

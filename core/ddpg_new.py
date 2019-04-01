@@ -145,7 +145,7 @@ class Critic(nn.Module):
 
 
 class PERL(object):
-    def __init__(self, state_dim, action_dim, max_action, pop_size):
+    def __init__(self, state_dim, action_dim, pop_size):
         self.pop_size = pop_size
         self.actors = [ActorErl(state_dim, action_dim, init=True) for _ in range(pop_size)]
         self.critic = CriticErl(state_dim, action_dim)
@@ -159,17 +159,6 @@ class PERL(object):
         return self.actors[actor_id](state).cpu().data.numpy().flatten()
 
     def apply_grads(self, grads, logger):
-        # logger.debug("champ gradient 0:{}".format(grads[champ_index][-1][-1]))
-        # for index, grad in enumerate(grads):
-        #     if index == champ_index:
-        #             # logger.debug("item:{}".format(item))
-        #         item *= 0.4
-        #         np.matmul(grad, 0.4)
-        #     else:
-        #         for item in grad:
-        #             item *= 0.2
-
-        # logger.debug("champ gradient 0:{}".format(grads[champ_index][-1][-1]))
 
         logger.info("shape grads[0] size:{}".format(grads[0].shape))
         logger.info("shape grads[1] size:{}".format(grads[1].shape))
@@ -263,6 +252,7 @@ class DDPG(object):
 
         # print(grads_critic)
         # print(grads_actor)
+        print("grads_critic.shape,", grads_critic.shape)
 
         # self.grads_actor.append(grads_actor)
         self.grads_critic.append(grads_critic)
