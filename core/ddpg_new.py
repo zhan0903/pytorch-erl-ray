@@ -160,11 +160,11 @@ class PERL(object):
 
     def apply_grads(self, grads, logger):
 
-        logger.info("shape grads[0] size:{}".format(grads[0].shape))
-        logger.info("shape grads[1] size:{}".format(grads[1].shape))
-
-        logger.info("shape grads[2] size:{}".format(grads[2].shape))
-        logger.info("shape grads[3] size:{}".format(grads[3].shape))
+        # logger.info("shape grads[0] size:{}".format(grads[0].shape))
+        # logger.info("shape grads[1] size:{}".format(grads[1].shape))
+        #
+        # logger.info("shape grads[2] size:{}".format(grads[2].shape))
+        # logger.info("shape grads[3] size:{}".format(grads[3].shape))
 
 
         # logger.info("shape grads[0] size:{}".format((grads[0])))
