@@ -62,7 +62,7 @@ class Worker(object):
         torch.manual_seed(args.seed)
         np.random.seed(args.seed)
 
-        logging.basicConfig(level=logging.WARNING,
+        logging.basicConfig(level=logging.INFO,
                             format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                             datefmt='%m-%d %H:%M',
                             filename='./debug/%s_%s_%s_%s' % (args.version_name, args.node_name, args.env_name, args.pop_size),
