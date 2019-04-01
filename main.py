@@ -171,6 +171,11 @@ class Worker(object):
             obs = self.env.reset()
             # done = False
 
+            if len(self.replay_buffer.storage) < 1000:
+                iteration = 100
+            else:
+                iteration = 1000
+
             while True:
                 action = select_action(np.array(obs), self.policy.actor)
                 new_obs, reward, done, _ = self.env.step(action)
@@ -183,7 +188,7 @@ class Worker(object):
 
                 if done:
                     self.training_times += 1
-                    self.policy.train(self.replay_buffer, 100, self.args.batch_size, self.args.discount, self.args.tau)
+                    self.policy.train(self.replay_buffer, iteration, self.args.batch_size, self.args.discount, self.args.tau)
                     break
         else:
             reward_learned = -math.inf
