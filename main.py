@@ -165,7 +165,7 @@ class Worker(object):
         else:
             reward_evolved = -math.inf
 
-        # self.logger_worker.info("self.episode_timesteps:{}".format(self.episode_timesteps))
+        self.logger_worker.info("self.episode_timesteps:{}".format(self.episode_timesteps))
 
         if train:
             obs = self.env.reset()
