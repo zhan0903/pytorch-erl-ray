@@ -160,24 +160,24 @@ class PERL(object):
 
     def apply_grads(self, grads, logger):
 
-        # logger.info("shape grads[0] size:{}".format(grads[0].shape))
-        # logger.info("shape grads[1] size:{}".format(grads[1].shape))
+        # logger.debug("shape grads[0] size:{}".format(grads[0].shape))
+        # logger.debug("shape grads[1] size:{}".format(grads[1].shape))
         #
-        # logger.info("shape grads[2] size:{}".format(grads[2].shape))
-        # logger.info("shape grads[3] size:{}".format(grads[3].shape))
+        # logger.debug("shape grads[2] size:{}".format(grads[2].shape))
+        # logger.debug("shape grads[3] size:{}".format(grads[3].shape))
 
 
         # logger.info("shape grads[0] size:{}".format((grads[0])))
 
         critic_grad = np.sum(grads, axis=0)/self.pop_size
 
-        logger.info("shape of critic grad:{}".format(critic_grad.shape))
-        # logger.info("type of critic grad[0]:{}".format(type(critic_grad[0])))
-
-        # exit(0)
-
-        logger.debug("gradient weighted:{}".format(critic_grad[-1][-1]))
-        logger.debug("gradient 0:{}".format(grads[0][-1][-1]))
+        # logger.info("shape of critic grad:{}".format(critic_grad.shape))
+        # # logger.info("type of critic grad[0]:{}".format(type(critic_grad[0])))
+        #
+        # # exit(0)
+        #
+        # logger.debug("gradient weighted:{}".format(critic_grad[-1][-1]))
+        # logger.debug("gradient 0:{}".format(grads[0][-1][-1]))
 
         # for pop_grad inn grads:
 

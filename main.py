@@ -68,7 +68,7 @@ class Worker(object):
                             filename='./debug/%s_%s_%s_%s' % (args.version_name, args.node_name, args.env_name, args.pop_size),
                             filemode='a+')
         console = logging.StreamHandler()
-        console.setLevel(logging.INFO)
+        console.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
         console.setFormatter(formatter)
         logging.getLogger('').addHandler(console)
@@ -339,9 +339,13 @@ if __name__ == "__main__":
         average_evolved = sum(all_reward_evolved)/args.pop_size
         average_learned = sum(all_reward_learned)/args.pop_size
 
+        Max_evolved = max(all_reward_evolved)
+        Max_learned = max(all_reward_learned)
+
         logger_main.info("#All_TimeSteps:{0}, #Average_evolved:{1},#Average_learned:{2} ##Time:{3},".
                          format(all_timesteps, average_evolved, average_learned, (time.time() - time_start)))
         # logger_main.info("#rewards:{}".format(rewards))
+        logger_main.info("#MaxEvolved:{0}, #MaxLearned:{1}".format(Max_evolved, Max_learned))
 
         if down_limit <= all_timesteps <= up_limit:
             if average_evolved > average_learned:
