@@ -188,7 +188,7 @@ class Worker(object):
 
                 if done:
                     self.training_times += 1
-                    self.policy.train(self.replay_buffer, 100, self.args.batch_size, self.args.discount, self.args.tau)
+                    self.policy.train(self.replay_buffer,1000,self.args.batch_size, self.args.discount, self.args.tau)
                     break
         else:
             reward_learned = -math.inf
