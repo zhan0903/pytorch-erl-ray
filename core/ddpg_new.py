@@ -166,29 +166,32 @@ class PERL(object):
         logger.info("shape grads[2] size:{}".format(grads[2].shape))
         logger.info("shape grads[3] size:{}".format(grads[3].shape))
 
-        len_min = min(grads_len)
+        # len_min = min(grads_len)
+        max_index = grads_len.index(max(grads_len))
+
+
         shorter_grads = []
 
-        logger.debug("len_min:{}".format(len_min))
+        logger.info("max_index:{0}, lenght:{1}".format(max_index, grads_len[max_index]))
 
-        for item in grads:
-            shorter_grads.append(item[:len_min])
+        # for item in grads:
+        #     shorter_grads.append(item[:len_min])
 
-        logger.info("shape grads[0] size:{}".format(shorter_grads[0]))
+        # logger.info("shape grads[0] size:{}".format(shorter_grads[0]))
 
-        critic_grad = np.sum(shorter_grads, axis=0)/self.pop_size
+        # critic_grad = np.sum(shorter_grads, axis=0)/self.pop_size
 
-        logger.info("shape of critic grad:{}".format(critic_grad.shape))
+        # logger.info("shape of critic grad:{}".format(critic_grad.shape))
         # logger.info("type of critic grad[0]:{}".format(type(critic_grad[0])))
 
         # exit(0)
 
-        logger.debug("gradient weighted:{}".format(critic_grad[-1][-1]))
-        logger.debug("gradient 0:{}".format(grads[0][-1][-1]))
+        # logger.debug("gradient weighted:{}".format(critic_grad[-1][-1]))
+        # logger.debug("gradient 0:{}".format(grads[0][-1][-1]))
 
         # for pop_grad inn grads:
 
-        for grad in critic_grad:
+        for grad in grads[max_index]:
             self.critic_optimizer.zero_grad()
             for g, p in zip(grad, self.critic.parameters()):
                 if g is not None:
