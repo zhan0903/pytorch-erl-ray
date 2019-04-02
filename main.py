@@ -328,7 +328,7 @@ if __name__ == "__main__":
         all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, new_pop, grads_len = process_results(results)
 
         # champ_index = rewards.index(max(rewards))
-        agent.apply_grads(grads_critic, grads_len, logger_main)
+        agent.apply_grads(grads_critic, grads_len, all_reward_learned, logger_main)
 
         for new_actor, actor in zip(new_pop, agent.actors):
             if new_actor is not None:

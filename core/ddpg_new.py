@@ -159,7 +159,7 @@ class PERL(object):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
         return self.actors[actor_id](state).cpu().data.numpy().flatten()
 
-    def apply_grads(self, grads, grads_len, logger):
+    def apply_grads(self, grads, grads_len, all_fitness, logger):
 
         logger.info("shape grads[0] size:{}".format(grads[0].shape))
         logger.info("shape grads[1] size:{}".format(grads[1].shape))
@@ -168,11 +168,10 @@ class PERL(object):
         logger.info("shape grads[3] size:{}".format(grads[3].shape))
 
         # len_min = min(grads_len)
-        index_pop = random.randint(0, self.pop_size-1)
-
+        # index_pop = random.randint(0, self.pop_size-1)
+        index_pop = all_fitness.index(max(all_fitness))
 
         # shorter_grads = []
-
         logger.info("max_index:{0}, lenght:{1}".format(index_pop, grads_len[index_pop]))
 
         # for item in grads:
