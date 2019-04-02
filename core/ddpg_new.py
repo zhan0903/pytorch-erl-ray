@@ -4,6 +4,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 import utils
+import random
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -167,12 +168,12 @@ class PERL(object):
         logger.info("shape grads[3] size:{}".format(grads[3].shape))
 
         # len_min = min(grads_len)
-        max_index = grads_len.index(max(grads_len))
+        index_pop = random.randint(0, self.pop_size-1)
 
 
-        shorter_grads = []
+        # shorter_grads = []
 
-        logger.info("max_index:{0}, lenght:{1}".format(max_index, grads_len[max_index]))
+        logger.info("max_index:{0}, lenght:{1}".format(index_pop, grads_len[index_pop]))
 
         # for item in grads:
         #     shorter_grads.append(item[:len_min])
@@ -191,7 +192,7 @@ class PERL(object):
 
         # for pop_grad inn grads:
 
-        for grad in grads[max_index]:
+        for grad in grads[index_pop]:
             self.critic_optimizer.zero_grad()
             for g, p in zip(grad, self.critic.parameters()):
                 if g is not None:
