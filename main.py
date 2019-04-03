@@ -173,7 +173,14 @@ class Worker(object):
             #     iteration = 1000
 
             while True:
-                action = select_action(np.array(obs), self.policy.actor)
+                if self.total_timesteps < self.args.start_timesteps:
+                    action = self.env.action_space.sample()
+                else:
+                    action = select_action(np.array(obs), self.policy.actor)
+                    if self.args.expl_noise != 0:
+                        action = (action + np.random.normal(0, args.expl_noise, size=env.action_space.shape[0])).clip(
+                            env.action_space.low, env.action_space.high)
+
                 new_obs, reward, done, _ = self.env.step(action)
                 done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
                 reward_learned += reward
@@ -183,8 +190,10 @@ class Worker(object):
                 self.total_timesteps += 1
 
                 if done:
+                    # if self.episode_timesteps < 1000:
+                    #     iteration = 500
                     self.training_times += 1
-                    self.policy.train(self.replay_buffer,1000 ,self.args.batch_size, self.args.discount, self.args.tau)
+                    self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
                     break
         else:
             reward_learned = -math.inf
@@ -225,7 +234,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_name", default="OurDDPG")
     parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
-    parser.add_argument("--start_timesteps", default=1e4, type=int)
+    parser.add_argument("--start_timesteps", default=3e3, type=int)
     parser.add_argument("--eval_freq", default=1e4, type=float)
     parser.add_argument("--max_timesteps", default=1e6, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
@@ -365,13 +374,13 @@ if __name__ == "__main__":
         #     if MaxValue < max(rewards):
         #         MaxValue = max(rewards)
 
-        # Evaluate episode
-        if timesteps_since_eval >= args.eval_freq:
-            timesteps_since_eval %= args.eval_freq
-            champ_index = all_reward_learned.index(max(all_reward_learned))
-            logger_main.info("champ_index in evaluate:{}".format(champ_index))
-            evaluations.append(evaluate_policy(env, agent.actors[champ_index], eval_episodes=5))
-            np.save("./results/%s" % file_name, evaluations)
+        # # Evaluate episode
+        # if timesteps_since_eval >= args.eval_freq:
+        #     timesteps_since_eval %= args.eval_freq
+        #     champ_index = all_reward_learned.index(max(all_reward_learned))
+        #     logger_main.info("champ_index in evaluate:{}".format(champ_index))
+        #     evaluations.append(evaluate_policy(env, agent.actors[champ_index], eval_episodes=5))
+        #     np.save("./results/%s" % file_name, evaluations)
 
         if evolve:
             evolver.epoch(agent.actors, all_reward_evolved)
