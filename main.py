@@ -79,9 +79,9 @@ class Worker(object):
         action_dim = self.env.action_space.shape[0]
         max_action = float(env.action_space.high[0])
 
-        self.policy = ddpg.DDPG(state_dim, action_dim, max_action)
-        self.actor_evovlved = ddpg.ActorErl(state_dim, action_dim)
-        self.better_actor = ddpg.ActorErl(state_dim, action_dim)
+        self.policy = ddpg.TD3(state_dim, action_dim, max_action)
+        self.actor_evovlved = ddpg.Actor(state_dim, action_dim, max_action)
+        self.better_actor = ddpg.Actor(state_dim, action_dim, max_action)
         self.replay_buffer = utils.ReplayBuffer()
 
         self.args = args
