@@ -20,6 +20,7 @@ class Actor(nn.Module):
         self.l3 = nn.Linear(300, action_dim)
 
         self.max_action = max_action
+        self.cuda()
 
 
     def forward(self, x):
@@ -42,6 +43,7 @@ class Critic(nn.Module):
         self.l4 = nn.Linear(state_dim + action_dim, 400)
         self.l5 = nn.Linear(400, 300)
         self.l6 = nn.Linear(300, 1)
+        self.cuda()
 
 
     def forward(self, x, u):
