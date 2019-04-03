@@ -20,7 +20,7 @@ class Actor(nn.Module):
         self.l3 = nn.Linear(300, action_dim)
 
         self.max_action = max_action
-        self.cuda()
+        # self.cuda()
 
 
     def forward(self, x):
@@ -43,7 +43,7 @@ class Critic(nn.Module):
         self.l4 = nn.Linear(state_dim + action_dim, 400)
         self.l5 = nn.Linear(400, 300)
         self.l6 = nn.Linear(300, 1)
-        self.cuda()
+        # self.cuda()
 
 
     def forward(self, x, u):
@@ -98,7 +98,7 @@ class PERL(object):
             self.critic_optimizer.zero_grad()
             for g, p in zip(grad, self.critic.parameters()):
                 if g is not None:
-                    p.grad = torch.from_numpy(g).to(device)
+                    p.grad = torch.from_numpy(g)#.to(device)
             self.critic_optimizer.step()
 
 
