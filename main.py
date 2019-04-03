@@ -345,13 +345,13 @@ if __name__ == "__main__":
 
         logger_main.info("evolve_count:{0}, gradient_count:{1}".format(evolve_count, gradient_count))
 
-        if all_timesteps > up_limit:
-            if evolve_count > gradient_count:
-                evolve = True
-                train = False
-            else:
-                evolve = False
-                train = True
+        # if all_timesteps > up_limit:
+        #     if evolve_count > gradient_count:
+        #         evolve = True
+        #         train = False
+        #     else:
+        #         evolve = False
+        #         train = True
 
         if get_value:
             value = results[0][0]

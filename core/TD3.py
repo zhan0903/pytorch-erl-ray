@@ -114,11 +114,17 @@ class TD3(object):
 
         self.max_action = max_action
 
+        self.grads_critic = []
 
     def select_action(self, state):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
         return self.actor(state).cpu().data.numpy().flatten()
 
+    def append_grads(self):
+        grads_critic = [param_critic.grad.data.cpu().numpy() if param_critic.grad is not None else None
+                        for param_critic in self.critic.parameters()]
+
+        self.grads_critic.append(grads_critic)
 
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005, policy_noise=0.2, noise_clip=0.5, policy_freq=2):
 
@@ -152,6 +158,7 @@ class TD3(object):
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             self.critic_optimizer.step()
+            self.append_grads()
 
             # Delayed policy updates
             if it % policy_freq == 0:
