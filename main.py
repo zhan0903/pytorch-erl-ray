@@ -4,7 +4,7 @@ import argparse
 import logging
 import ray
 import copy
-from core import ddpg_new as ddpg
+from core import TD3 as ddpg
 import torch
 import utils
 import time
@@ -121,10 +121,6 @@ class Worker(object):
         # print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
         return avg_reward
 
-    # def select_action(self, state, actor):
-    #     state = torch.FloatTensor(state.reshape(1, -1)).to(device)
-    #     return actor(state).cpu().data.numpy().flatten()
-
     def evaluate_policy(self, actor):
         obs = self.env.reset()
         episode_reward = 0
@@ -171,10 +167,10 @@ class Worker(object):
             obs = self.env.reset()
             # done = False
 
-            if self.training_times < 10:
-                iteration = 100
-            else:
-                iteration = 1000
+            # if self.training_times < 10:
+            #     iteration = 100
+            # else:
+            #     iteration = 1000
 
             while True:
                 action = select_action(np.array(obs), self.policy.actor)
@@ -188,7 +184,7 @@ class Worker(object):
 
                 if done:
                     self.training_times += 1
-                    self.policy.train(self.replay_buffer,1000,self.args.batch_size, self.args.discount, self.args.tau)
+                    self.policy.train(self.replay_buffer,self.episode_timesteps ,self.args.batch_size, self.args.discount, self.args.tau)
                     break
         else:
             reward_learned = -math.inf
@@ -230,7 +226,7 @@ if __name__ == "__main__":
     parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=1e5, type=int)
-    parser.add_argument("--eval_freq", default=2e4, type=float)
+    parser.add_argument("--eval_freq", default=1e4, type=float)
     parser.add_argument("--max_timesteps", default=1e6, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
     parser.add_argument("--discount", default=0.99, type=float)
@@ -266,7 +262,7 @@ if __name__ == "__main__":
     logger_main = logging.getLogger('Main')
 
     evolver = utils_ne.SSNE(args)
-    file_name = "%s_%s_%s" % (args.env_name, str(args.seed), args.node_name)
+    file_name = "%s_%s_%s_%s_%s" % (args.version_name, args.env_name, str(args.seed), args.node_name, args.pop_size)
     print("---------------------------------------")
     print("Settings: %s" % file_name)
     print("---------------------------------------")
@@ -288,9 +284,7 @@ if __name__ == "__main__":
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
 
-    logger_main.info("state_dim:{0},action_dim:{1},max_action:{2}".format(state_dim, action_dim, max_action))
-
-    agent = ddpg.PERL(state_dim, action_dim, args.pop_size)
+    agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
     ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=30000000000)
 
     workers = [Worker.remote(args, i)
@@ -314,7 +308,7 @@ if __name__ == "__main__":
     gradient_count = 0
 
     logger_main.info("************************************************************************")
-    logger_main.info("3281, 4 evolve and 4 gradients happens Synchronously with up-down limit ")
+    logger_main.info("perl-td3, 4 evolve and 4 gradients happens Synchronously with up-down limit ")
     logger_main.info("************************************************************************")
 
     while all_timesteps < args.max_timesteps:
@@ -331,10 +325,6 @@ if __name__ == "__main__":
         for new_actor, actor in zip(new_pop, agent.actors):
             if new_actor is not None:
                 actor.load_state_dict(new_actor)
-
-        # logger_main.info("#Max:{0}, #All_TimeSteps:{1}, #Time:{2},".
-        #         #                  format(max(rewards), all_timesteps, (time.time()-time_start)))
-        #         # logger_main.info("#rewards:{}".format(rewards))
 
         average_evolved = sum(all_reward_evolved)/args.pop_size
         average_learned = sum(all_reward_learned)/args.pop_size
@@ -376,19 +366,12 @@ if __name__ == "__main__":
         #         MaxValue = max(rewards)
 
         # Evaluate episode
-        # if timesteps_since_eval >= args.eval_freq:
-        #     timesteps_since_eval %= args.eval_freq
-        #     # champ_index = rewards.index(max(rewards))
-        #     logger_main.debug("champ_index in evaluate:{}".format(champ_index))
-        #     actor_input = ddpg.ActorErl(state_dim, action_dim)
-        #
-        #     # if new_pop[champ_index] is None:
-        #     #     actor_input.load_state_dict(agent.actors[champ_index].state_dict())
-        #     # else:
-        #     #     actor_input.load_state_dict(new_pop[champ_index])
-        #
-        #     evaluations.append(evaluate_policy(env, actor_input, eval_episodes=5))
-        #     np.save("./results/%s" % file_name, evaluations)
+        if timesteps_since_eval >= args.eval_freq:
+            timesteps_since_eval %= args.eval_freq
+            champ_index = all_reward_learned.index(max(all_reward_learned))
+            logger_main.info("champ_index in evaluate:{}".format(champ_index))
+            evaluations.append(evaluate_policy(env, agent.actors[champ_index], eval_episodes=5))
+            np.save("./results/%s" % file_name, evaluations)
 
         if evolve:
             evolver.epoch(agent.actors, all_reward_evolved)
