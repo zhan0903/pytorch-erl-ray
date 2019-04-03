@@ -122,7 +122,7 @@ class TD3(object):
         return self.actor(state).cpu().data.numpy().flatten()
 
     def append_grads(self):
-        grads_critic = [param_critic.grad.data.numpy() if param_critic.grad is not None else None
+        grads_critic = [param_critic.grad.data.cpu().numpy() if param_critic.grad is not None else None
                         for param_critic in self.critic.parameters()]
 
         self.grads_critic.append(grads_critic)
