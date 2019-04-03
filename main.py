@@ -297,7 +297,7 @@ if __name__ == "__main__":
     time_start = time.time()
 
     episode = 0
-    evolve = True
+    evolve = False
     train = True
     actors = [actor.state_dict() for actor in agent.actors]
     average = None
