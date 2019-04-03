@@ -184,7 +184,7 @@ class Worker(object):
 
                 if done:
                     self.training_times += 1
-                    self.policy.train(self.replay_buffer,self.episode_timesteps ,self.args.batch_size, self.args.discount, self.args.tau)
+                    self.policy.train(self.replay_buffer,1000 ,self.args.batch_size, self.args.discount, self.args.tau)
                     break
         else:
             reward_learned = -math.inf
@@ -225,7 +225,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_name", default="OurDDPG")
     parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
-    parser.add_argument("--start_timesteps", default=1e5, type=int)
+    parser.add_argument("--start_timesteps", default=1e4, type=int)
     parser.add_argument("--eval_freq", default=1e4, type=float)
     parser.add_argument("--max_timesteps", default=1e6, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
