@@ -296,8 +296,8 @@ if __name__ == "__main__":
     agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
     ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=30000000000)
 
-    workers = [Worker.remote(args, i)
-               for i in range(args.pop_size)]
+    # workers = [Worker.remote(args, i)
+    #            for i in range(args.pop_size)]
 
     all_timesteps = 0
     timesteps_since_eval = 0
@@ -316,8 +316,14 @@ if __name__ == "__main__":
     evolve_count = 0
     gradient_count = 0
 
+    policy = ddpg.TD3(state_dim, action_dim, max_action)
+    parameters = policy.get_weights()
+    workers = [Worker.remote(args, i) for i in range(args.pop_size)]
+
+    gradient_list = [worker.compute_gradient.remote(parameters) for worker in workers]
+
     logger_main.info("************************************************************************")
-    logger_main.info("perl-td3, 4 evolve and 4 gradients happens Synchronously with up-down limit ")
+    logger_main.info("perl-td3, A3C architecture for td3 ")
     logger_main.info("************************************************************************")
 
     while all_timesteps < args.max_timesteps:
