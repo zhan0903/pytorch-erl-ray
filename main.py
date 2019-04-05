@@ -145,6 +145,7 @@ class Worker(object):
     def compute_gradient(self, params_actor, params_critic):
         self.policy.set_weights(params_actor, params_critic)
         # self.replay_buffer.empty()
+        self.episode_timesteps = 0
         obs = self.env.reset()
         reward_learned = 0
         while True:
