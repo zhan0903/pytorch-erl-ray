@@ -377,7 +377,7 @@ if __name__ == "__main__":
         gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_actor, parameters_critic)])
 
         # timesteps_since_eval = all_timesteps
-        logger_main.info("all_timesteps:{}".format(all_timesteps))
+        logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
 
         # Evaluate episode
         if (all_timesteps // args.eval_freq) >= times:
