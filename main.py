@@ -172,8 +172,12 @@ class Worker(object):
         info = {"id": self.id,
                 "size": self.total_timesteps}
 
-        return self.policy.grads_critic, self.policy.grads_actor, info
+        self.logger_worker.info("ID: %d Total T: %d  training_times: %d Episode T: "
+                                "%d reward_learned: %f" %
+                                (self.id, self.total_timesteps, self.training_times,
+                                 self.episode_timesteps, reward_learned))
 
+        return self.policy.grads_critic, self.policy.grads_actor, info
 
     def train(self, actor_weights, critic_weights, evolve, train):
         self.episode_timesteps = 0
@@ -376,7 +380,7 @@ if __name__ == "__main__":
         # Evaluate episode
         if (all_timesteps // args.eval_freq) >= times:
             times += 1
-            evaluations.append(evaluate_policy(env, policy, eval_episodes=5))
+            evaluations.append(evaluate_policy(env, policy.actor, eval_episodes=5))
             np.save("./results/%s" % file_name, evaluations)
 
 
