@@ -326,7 +326,7 @@ if __name__ == "__main__":
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
 
-    agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
+    # agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
     ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=30000000000)
 
     # workers = [Worker.remote(args, i)
@@ -341,7 +341,7 @@ if __name__ == "__main__":
     episode = 0
     evolve = False
     train = True
-    actors = [actor.state_dict() for actor in agent.actors]
+    # actors = [actor.state_dict() for actor in agent.actors]
     average = None
     get_value = True
     value = 0
