@@ -138,7 +138,7 @@ class TD3(object):
         for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
             target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
-    def get_weight(self):
+    def get_weights(self):
         return self.actor.state_dict(), self.critic.state_dict()
 
     def select_action(self, state):
