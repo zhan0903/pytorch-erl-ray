@@ -373,7 +373,7 @@ if __name__ == "__main__":
         gradient_critic, gradient_actor, info = ray.get(done_id)[0]
         all_timesteps += info["size"]
 
-        logger_main.info("come here, debug")
+        # logger_main.info("come here, debug")
 
         policy.apply_gradients(gradient_critic, gradient_actor)
         parameters_actor, parameters_critic = policy.get_weights()
