@@ -11,6 +11,9 @@ class ReplayBuffer(object):
         self.max_size = max_size
         self.ptr = 0
 
+    def empty(self):
+        self.storage = []
+
     def add(self, data):
         if len(self.storage) == self.max_size:
             self.storage[int(self.ptr)] = data

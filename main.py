@@ -142,6 +142,39 @@ class Worker(object):
 
         return episode_reward
 
+    def compute_gradient(self, params_actor, params_critic):
+        self.policy.set_weights(params_actor, params_critic)
+        # self.replay_buffer.empty()
+        obs = self.env.reset()
+        reward_learned = 0
+        while True:
+            if self.total_timesteps < self.args.start_timesteps:
+                action = self.env.action_space.sample()
+            else:
+                action = select_action(np.array(obs), self.policy.actor)
+                if self.args.expl_noise != 0:
+                    action = (action + np.random.normal(0, args.expl_noise, size=env.action_space.shape[0])).clip(
+                        env.action_space.low, env.action_space.high)
+
+            new_obs, reward, done, _ = self.env.step(action)
+            done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
+            reward_learned += reward
+            self.replay_buffer.add((obs, new_obs, action, reward, done_bool))
+            obs = new_obs
+            self.episode_timesteps += 1
+            self.total_timesteps += 1
+
+            if done:
+                self.training_times += 1
+                self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
+                break
+
+        info = {"id": self.id,
+                "size": self.total_timesteps}
+
+        return self.policy.grads_critic, self.policy.grads_actor, info
+
+
     def train(self, actor_weights, critic_weights, evolve, train):
         self.episode_timesteps = 0
         reward_learned = 0
@@ -316,85 +349,36 @@ if __name__ == "__main__":
     evolve_count = 0
     gradient_count = 0
 
+    # obs = 0
+    times = 1
     policy = ddpg.TD3(state_dim, action_dim, max_action)
-    parameters = policy.get_weights()
+    parameters_actor, parameters_critic = policy.get_weights()
     workers = [Worker.remote(args, i) for i in range(args.pop_size)]
 
-    gradient_list = [worker.compute_gradient.remote(parameters) for worker in workers]
+    gradient_list = [worker.compute_gradient.remote(parameters_actor, parameters_critic) for worker in workers]
 
     logger_main.info("************************************************************************")
     logger_main.info("perl-td3, A3C architecture for td3 ")
     logger_main.info("************************************************************************")
 
     while all_timesteps < args.max_timesteps:
-        critic_id = ray.put(agent.critic.state_dict())
-        evolve_id = ray.put(evolve)
-        train_id = ray.put(train)
-        train_id = [worker.train.remote(actor, critic_id, evolve_id, train_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
-        results = ray.get(train_id)
-        all_timesteps, grads_critic, all_reward_evolved, all_reward_learned, new_pop = process_results(results)
+        done_id, gradient_list = ray.wait(gradient_list)
+        # wait for some gradient to be computed - unblock as soon as the earliest arrives
+        gradient_critic, gradient_actor, info = ray.get(done_id)[0]
+        all_timesteps += info["size"]
 
-        # champ_index = rewards.index(max(rewards))
-        agent.apply_grads(grads_critic, logger_main)
+        policy.apply_gradients(gradient_critic, gradient_actor)
+        parameters_actor, parameters_critic = policy.get_weights()
+        gradient_list.extend([workers[info["id"]].compute_gradient(parameters_actor, parameters_critic)])
 
-        for new_actor, actor in zip(new_pop, agent.actors):
-            if new_actor is not None:
-                actor.load_state_dict(new_actor)
+        # timesteps_since_eval = all_timesteps
 
-        average_evolved = sum(all_reward_evolved)/args.pop_size
-        average_learned = sum(all_reward_learned)/args.pop_size
+        # Evaluate episode
+        if (all_timesteps // args.eval_freq) >= times:
+            times += 1
+            evaluations.append(evaluate_policy(env, policy, eval_episodes=5))
+            np.save("./results/%s" % file_name, evaluations)
 
-        Max_evolved = max(all_reward_evolved)
-        Max_learned = max(all_reward_learned)
-
-        logger_main.info("#All_TimeSteps:{0}, #Average_evolved:{1},#Average_learned:{2} ##Time:{3},".
-                         format(all_timesteps, average_evolved, average_learned, (time.time() - time_start)))
-        # logger_main.info("#rewards:{}".format(rewards))
-        logger_main.info("#MaxEvolved:{0}, #MaxLearned:{1}".format(Max_evolved, Max_learned))
-
-        if down_limit <= all_timesteps <= up_limit:
-            if average_evolved > average_learned:
-                evolve_count += 1
-            else:
-                gradient_count += 1
-
-        logger_main.info("evolve_count:{0}, gradient_count:{1}".format(evolve_count, gradient_count))
-
-        # if all_timesteps > up_limit:
-        #     if evolve_count > gradient_count:
-        #         evolve = True
-        #         train = False
-        #     else:
-        #         evolve = False
-        #         train = True
-
-        if get_value:
-            value = results[0][0]
-            get_value = False
-
-        timesteps_since_eval += value * args.pop_size
-
-        # if MaxValue is None:
-        #     MaxValue = max(rewards)
-        # else:
-        #     if MaxValue < max(rewards):
-        #         MaxValue = max(rewards)
-
-        # # Evaluate episode
-        # if timesteps_since_eval >= args.eval_freq:
-        #     timesteps_since_eval %= args.eval_freq
-        #     champ_index = all_reward_learned.index(max(all_reward_learned))
-        #     logger_main.info("champ_index in evaluate:{}".format(champ_index))
-        #     evaluations.append(evaluate_policy(env, agent.actors[champ_index], eval_episodes=5))
-        #     np.save("./results/%s" % file_name, evaluations)
-
-        if evolve:
-            evolver.epoch(agent.actors, all_reward_evolved)
-            actors = [actor.state_dict() for actor in agent.actors]
-        else:
-            actors = [None for _ in range(args.pop_size)]
-
-    # logger_main.info("Finish! MaxValue:{}".format(MaxValue))
 
 
 
