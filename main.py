@@ -358,7 +358,7 @@ if __name__ == "__main__":
     times = 1
     policy = ddpg.TD3(state_dim, action_dim, max_action)
     parameters_actor, parameters_critic = policy.get_weights()
-    workers = [Worker.remote(args, i) for i in range(args.pop_size)]
+    workers = [Worker.remote(args, i) for i in range(args.pop_size-1)]
     logger_main.info("len workers:{}".format(len(workers)))
 
     gradient_list = [worker.compute_gradient.remote(parameters_actor, parameters_critic) for worker in workers]
