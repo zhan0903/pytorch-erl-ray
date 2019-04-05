@@ -372,6 +372,8 @@ if __name__ == "__main__":
         gradient_critic, gradient_actor, info = ray.get(done_id)[0]
         all_timesteps += info["size"]
 
+        logger_main.info("come here, debug")
+
         policy.apply_gradients(gradient_critic, gradient_actor)
         parameters_actor, parameters_critic = policy.get_weights()
         gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_actor, parameters_critic)])
