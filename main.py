@@ -171,7 +171,7 @@ class Worker(object):
                 break
 
         info = {"id": self.id,
-                "size": self.total_timesteps}
+                "size": self.episode_timesteps}
 
         self.logger_worker.info("ID: %d Total T: %d  training_times: %d Episode T: "
                                 "%d reward_learned: %f" %
