@@ -142,12 +142,13 @@ class Worker(object):
 
         return episode_reward
 
-    def compute_gradient(self, params_actor, params_critic):
-        self.policy.set_weights(params_actor, params_critic)
+    def compute_gradient(self, params_critic):
+        self.policy.set_weights(params_critic)
         # self.replay_buffer.empty()
         self.episode_timesteps = 0
         obs = self.env.reset()
         reward_learned = 0
+
         while True:
             if self.total_timesteps < self.args.start_timesteps:
                 action = self.env.action_space.sample()
@@ -178,7 +179,7 @@ class Worker(object):
                                 (self.id, self.total_timesteps, self.training_times,
                                  self.episode_timesteps, reward_learned))
 
-        return self.policy.grads_critic, self.policy.grads_actor, info
+        return self.policy.grads_critic,  info
 
     def train(self, actor_weights, critic_weights, evolve, train):
         self.episode_timesteps = 0
@@ -283,7 +284,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     parser.add_argument("--save_models", action="store_true")
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
-    parser.add_argument("--pop_size", default=4, type=int)
+    parser.add_argument("--pop_size", default=0, type=int)
     parser.add_argument("--crossover_prob", default=0.0, type=float)
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)
@@ -361,7 +362,7 @@ if __name__ == "__main__":
     workers = [Worker.remote(args, i) for i in range(args.pop_size)]
     logger_main.info("len workers:{}".format(len(workers)))
 
-    gradient_list = [worker.compute_gradient.remote(parameters_actor, parameters_critic) for worker in workers]
+    gradient_list = [worker.compute_gradient.remote(parameters_critic) for worker in workers]
 
     logger_main.info("************************************************************************")
     logger_main.info("perl-td3, A3C architecture for td3 ")
@@ -374,28 +375,26 @@ if __name__ == "__main__":
         logger_main.debug("done_id:{}".format(done_id))
         logger_main.debug("gradient_list_id:{}".format(gradient_list))
 
-        gradient_critic, gradient_actor, info = ray.get(done_id)[0]
+        gradient_critic, info = ray.get(done_id)[0]
         all_timesteps += info["size"]
 
         # logger_main.info("come here, debug")
 
-        policy.apply_gradients(gradient_critic, gradient_actor)
-        parameters_actor, parameters_critic = policy.get_weights()
-        gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_actor, parameters_critic)])
-        logger_main.debug("gradient_list_id_after:{}".format(gradient_list))
-
-        time.sleep(5)
+        policy.apply_gradients(gradient_critic)
+        parameters_critic = policy.get_weights()
+        gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_critic)])
+        # logger_main.debug("gradient_list_id_after:{}".format(gradient_list))
 
 
         # timesteps_since_eval = all_timesteps
         # logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
 
         # Evaluate episode
-        if (all_timesteps // args.eval_freq) >= times:
-            logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time() - time_start))
-            times += 1
-            evaluations.append(evaluate_policy(env, policy.actor, eval_episodes=5))
-            np.save("./results/%s" % file_name, evaluations)
+        # if (all_timesteps // args.eval_freq) >= times:
+        #     logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time() - time_start))
+        #     times += 1
+        #     evaluations.append(evaluate_policy(env, policy.actor, eval_episodes=5))
+        #     np.save("./results/%s" % file_name, evaluations)
 
 
 
