@@ -358,7 +358,7 @@ if __name__ == "__main__":
     # obs = 0
     times = 1
     policy = ddpg.TD3(state_dim, action_dim, max_action)
-    parameters_actor, parameters_critic = policy.get_weights()
+    parameters_critic = policy.get_weights()
     workers = [Worker.remote(args, i) for i in range(args.pop_size)]
     logger_main.info("len workers:{}".format(len(workers)))
 
