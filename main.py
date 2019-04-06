@@ -382,6 +382,8 @@ if __name__ == "__main__":
         policy.apply_gradients(gradient_critic, gradient_actor)
         parameters_actor, parameters_critic = policy.get_weights()
         gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_actor, parameters_critic)])
+        logger_main.debug("gradient_list_id_after:{}".format(gradient_list))
+
 
         # timesteps_since_eval = all_timesteps
         # logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
