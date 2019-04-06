@@ -283,7 +283,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     parser.add_argument("--save_models", action="store_true")
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
-    parser.add_argument("--pop_size", default=2, type=int)
+    parser.add_argument("--pop_size", default=4, type=int)
     parser.add_argument("--crossover_prob", default=0.0, type=float)
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)
@@ -358,7 +358,7 @@ if __name__ == "__main__":
     times = 1
     policy = ddpg.TD3(state_dim, action_dim, max_action)
     parameters_actor, parameters_critic = policy.get_weights()
-    workers = [Worker.remote(args, i) for i in range(args.pop_size-1)]
+    workers = [Worker.remote(args, i) for i in range(args.pop_size)]
     logger_main.info("len workers:{}".format(len(workers)))
 
     gradient_list = [worker.compute_gradient.remote(parameters_actor, parameters_critic) for worker in workers]
@@ -370,6 +370,10 @@ if __name__ == "__main__":
     while all_timesteps < args.max_timesteps:
         done_id, gradient_list = ray.wait(gradient_list)
         # wait for some gradient to be computed - unblock as soon as the earliest arrives
+
+        logger_main.debug("done_id:{}".format(done_id))
+        logger_main.debug("gradient_list_id:{}".format(gradient_list))
+
         gradient_critic, gradient_actor, info = ray.get(done_id)[0]
         all_timesteps += info["size"]
 
