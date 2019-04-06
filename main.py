@@ -273,7 +273,7 @@ if __name__ == "__main__":
     parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=3e3, type=int)
-    parser.add_argument("--eval_freq", default=1e4, type=float)
+    parser.add_argument("--eval_freq", default=5e3, type=float)
     parser.add_argument("--max_timesteps", default=1e6, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
     parser.add_argument("--discount", default=0.99, type=float)
@@ -301,7 +301,7 @@ if __name__ == "__main__":
                         filename='./debug/%s_%s_%s_%s' % (args.version_name, args.node_name, args.env_name, args.pop_size),
                         filemode='a+')
     console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
+    console.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
     console.setFormatter(formatter)
     logging.getLogger('').addHandler(console)
