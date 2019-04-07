@@ -66,7 +66,7 @@ class Worker(object):
                             format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                             datefmt='%m-%d %H:%M',
                             filename='./debug/%s_%s_%s_%s' % (args.version_name, args.node_name, args.env_name, args.pop_size),
-                            filemode='w')
+                            filemode='a+')
         console = logging.StreamHandler()
         console.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
@@ -307,7 +307,7 @@ if __name__ == "__main__":
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt='%m-%d %H:%M',
                         filename='./debug/%s_%s_%s_%s' % (args.version_name, args.node_name, args.env_name, args.pop_size),
-                        filemode='a+')
+                        filemode='w')
     console = logging.StreamHandler()
     console.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
@@ -379,8 +379,8 @@ if __name__ == "__main__":
         done_id, gradient_list = ray.wait(gradient_list)
         # wait for some gradient to be computed - unblock as soon as the earliest arrives
 
-        logger_main.debug("done_id:{}".format(done_id))
-        logger_main.debug("gradient_list_id:{}".format(gradient_list))
+        # logger_main.debug("done_id:{}".format(done_id))
+        # logger_main.debug("gradient_list_id:{}".format(gradient_list))
 
         gradient_critic, info = ray.get(done_id)[0]
         all_timesteps += info["size"]
@@ -390,7 +390,7 @@ if __name__ == "__main__":
         policy.apply_gradients(gradient_critic)
         parameters_critic = policy.get_weights()
         gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_critic)])
-        logger_main.debug("gradient_list_id_after:{}".format(gradient_list))
+        # logger_main.debug("gradient_list_id_after:{}".format(gradient_list))
 
 
         # timesteps_since_eval = all_timesteps
