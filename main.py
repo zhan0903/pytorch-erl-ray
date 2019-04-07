@@ -147,7 +147,6 @@ class Worker(object):
             self.policy.set_weights(params_critic)
         # self.replay_buffer.empty()
         self.logger_worker.info("before critic.l6.bias:{}".format(self.policy.critic.state_dict()["l6.bias"]))
-
         self.episode_timesteps = 0
         obs = self.env.reset()
         reward_learned = 0
@@ -185,6 +184,7 @@ class Worker(object):
                                 (self.id, self.total_timesteps,
                                  self.episode_timesteps, reward_learned))
         self.logger_worker.info("after critic.l6.bias:{}".format(self.policy.critic.state_dict()["l6.bias"]))
+        self.replay_buffer.reset()
 
         return self.policy.grads_critic,  info
 
