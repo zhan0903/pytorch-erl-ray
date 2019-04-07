@@ -53,7 +53,7 @@ def evaluate_policy(env, policy, eval_episodes=5):
     return avg_reward
 
 
-@ray.remote(num_gpus=0.5)
+@ray.remote(num_gpus=1)
 class Worker(object):
     def __init__(self, args, id):
         self.env = gym.make(args.env_name)
@@ -80,8 +80,8 @@ class Worker(object):
         max_action = float(env.action_space.high[0])
 
         self.policy = ddpg.TD3(state_dim, action_dim, max_action)
-        self.actor_evovlved = ddpg.Actor(state_dim, action_dim, max_action)
-        self.better_actor = ddpg.Actor(state_dim, action_dim, max_action)
+        # self.actor_evovlved = ddpg.Actor(state_dim, action_dim, max_action)
+        # self.better_actor = ddpg.Actor(state_dim, action_dim, max_action)
         self.replay_buffer = utils.ReplayBuffer()
 
         self.args = args
@@ -143,8 +143,11 @@ class Worker(object):
         return episode_reward
 
     def compute_gradient(self, params_critic):
-        self.policy.set_weights(params_critic)
+        if params_critic is not None:
+            self.policy.set_weights(params_critic)
         # self.replay_buffer.empty()
+        self.logger_worker.info("before critic.l6.bias:{}".format(self.policy.critic.state_dict()["l6.bias"]))
+
         self.episode_timesteps = 0
         obs = self.env.reset()
         reward_learned = 0
@@ -153,10 +156,11 @@ class Worker(object):
             if self.total_timesteps < self.args.start_timesteps:
                 action = self.env.action_space.sample()
             else:
-                action = select_action(np.array(obs), self.policy.actor)
+                action = self.policy.select_action(np.array(obs))
+                # action = select_action(np.array(obs), self.policy.actor)
                 if self.args.expl_noise != 0:
                     action = (action + np.random.normal(0, args.expl_noise, size=env.action_space.shape[0])).clip(
-                        env.action_space.low, env.action_space.high)
+                        self.env.action_space.low, self.env.action_space.high)
 
             new_obs, reward, done, _ = self.env.step(action)
             done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
@@ -167,17 +171,20 @@ class Worker(object):
             self.total_timesteps += 1
 
             if done:
-                self.training_times += 1
-                self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
+                # self.training_times += 1
+                self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size,
+                                  self.args.discount, self.args.tau,
+                                  self.args.policy_noise, self.args.noise_clip, self.args.policy_freq)
                 break
 
         info = {"id": self.id,
                 "size": self.episode_timesteps}
 
-        self.logger_worker.info("ID: %d Total T: %d  training_times: %d Episode T: "
+        self.logger_worker.info("ID: %d Total T: %d Episode T: "
                                 "%d reward_learned: %f" %
-                                (self.id, self.total_timesteps, self.training_times,
+                                (self.id, self.total_timesteps,
                                  self.episode_timesteps, reward_learned))
+        self.logger_worker.info("after critic.l6.bias:{}".format(self.policy.critic.state_dict()["l6.bias"]))
 
         return self.policy.grads_critic,  info
 
@@ -383,11 +390,11 @@ if __name__ == "__main__":
         policy.apply_gradients(gradient_critic)
         parameters_critic = policy.get_weights()
         gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_critic)])
-        # logger_main.debug("gradient_list_id_after:{}".format(gradient_list))
+        logger_main.debug("gradient_list_id_after:{}".format(gradient_list))
 
 
         # timesteps_since_eval = all_timesteps
-        # logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
+        logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
 
         # Evaluate episode
         # if (all_timesteps // args.eval_freq) >= times:
