@@ -205,7 +205,7 @@ class Worker(object):
         self.logger_worker.info("ID: {0},net_l3.weight:{1}".
                                 format(self.id, self.policy.actor.state_dict()["l3.weight"][-1][:5]))
 
-        self.logger_worker.info("self.episode_timesteps:{}".format(self.episode_timesteps))
+        # self.logger_worker.info("self.episode_timesteps:{}".format(self.episode_timesteps))
 
         if True:
             obs = self.env.reset()
@@ -215,9 +215,9 @@ class Worker(object):
                     action = self.env.action_space.sample()
                 else:
                     action = select_action(np.array(obs), self.policy.actor)
-                    if self.args.expl_noise != 0:
-                        action = (action + np.random.normal(0, args.expl_noise, size=env.action_space.shape[0])).clip(
-                            env.action_space.low, env.action_space.high)
+                    # if self.args.expl_noise != 0:
+                    #     action = (action + np.random.normal(0, args.expl_noise, size=env.action_space.shape[0])).clip(
+                    #         env.action_space.low, env.action_space.high)
 
                 new_obs, reward, done, _ = self.env.step(action)
                 done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
@@ -230,7 +230,7 @@ class Worker(object):
                 if done:
                     self.training_times += 1
                     if self.training_times > 10:
-                        self.policy.train(self.replay_buffer, 500, self.args.batch_size, self.args.discount, self.args.tau)
+                        self.policy.train(self.replay_buffer, 600, self.args.batch_size, self.args.discount, self.args.tau)
                     else:
                         self.policy.train(self.replay_buffer, 100, self.args.batch_size, self.args.discount, self.args.tau)
                     break
@@ -262,7 +262,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_name", default="OurDDPG")
     parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
-    parser.add_argument("--start_timesteps", default=5e3, type=int)
+    parser.add_argument("--start_timesteps", default=2e3, type=int)
     parser.add_argument("--eval_freq", default=5e3, type=float)
     parser.add_argument("--max_timesteps", default=1e6, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
@@ -366,30 +366,9 @@ if __name__ == "__main__":
         agent.apply_grads(grads_critic, logger_main)
         actors = [None for _ in range(args.pop_size)]
 
-
-        # logger_main.debug("done_id:{}".format(done_id))
-        # logger_main.debug("gradient_list_id:{}".format(gradient_list))
-
-        # gradient_critic, info = ray.get(done_id)[0]
-        # all_timesteps += info["size"]
-
-        # logger_main.info("come here, debug")
-
-        # policy.apply_gradients(gradient_critic)
-        # parameters_critic = policy.get_weights()
-        # gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_critic)])
-        # logger_main.debug("gradient_list_id_after:{}".format(gradient_list))
-
-
-        # timesteps_since_eval = all_timesteps
         logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
 
-        # Evaluate episode
-        # if (all_timesteps // args.eval_freq) >= times:
-        #     logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time() - time_start))
-        #     times += 1
-        #     evaluations.append(evaluate_policy(env, policy.actor, eval_episodes=5))
-        #     np.save("./results/%s" % file_name, evaluations)
+
 
 
 
