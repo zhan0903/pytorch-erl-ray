@@ -211,10 +211,10 @@ class Worker(object):
             obs = self.env.reset()
 
             while True:
-                # if self.total_timesteps < self.args.start_timesteps:
-                #     action = self.env.action_space.sample()
-                # else:
-                action = select_action(np.array(obs), self.policy.actor)
+                if self.total_timesteps < self.args.start_timesteps:
+                    action = self.env.action_space.sample()
+                else:
+                    action = select_action(np.array(obs), self.policy.actor)
 
                 new_obs, reward, done, _ = self.env.step(action)
                 done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
@@ -261,7 +261,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=2e3, type=int)
     parser.add_argument("--eval_freq", default=5e3, type=float)
-    parser.add_argument("--max_timesteps", default=1e6, type=float)
+    parser.add_argument("--max_timesteps", default=4.5e5, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
     parser.add_argument("--discount", default=0.99, type=float)
     parser.add_argument("--tau", default=0.005, type=float)
