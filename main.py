@@ -303,7 +303,7 @@ if __name__ == "__main__":
     time_start = time.time()
 
     episode = 0
-    evolve = True
+    evolve = False
     train = True
     actors = [actor.state_dict() for actor in agent.actors]
     average = None
@@ -314,7 +314,7 @@ if __name__ == "__main__":
     gradient_count = 0
 
     logger_main.info("************************************************************************")
-    logger_main.info("3281, 4 evolve and 4 gradients happens Synchronously with up-down limit ")
+    logger_main.info("perl-td3-sync, 4 evolve and 4 gradients happens Synchronously with up-down limit ")
     logger_main.info("************************************************************************")
 
     while all_timesteps < args.max_timesteps:
@@ -347,21 +347,21 @@ if __name__ == "__main__":
         # logger_main.info("#rewards:{}".format(rewards))
         logger_main.info("#MaxEvolved:{0}, #MaxLearned:{1}".format(Max_evolved, Max_learned))
 
-        if down_limit <= all_timesteps <= up_limit:
-            if average_evolved > average_learned:
-                evolve_count += 1
-            else:
-                gradient_count += 1
+        # if down_limit <= all_timesteps <= up_limit:
+        #     if average_evolved > average_learned:
+        #         evolve_count += 1
+        #     else:
+        #         gradient_count += 1
 
-        logger_main.info("evolve_count:{0}, gradient_count:{1}".format(evolve_count, gradient_count))
+        # logger_main.info("evolve_count:{0}, gradient_count:{1}".format(evolve_count, gradient_count))
 
-        if all_timesteps > up_limit:
-            if evolve_count > gradient_count:
-                evolve = True
-                train = False
-            else:
-                evolve = False
-                train = True
+        # if all_timesteps > up_limit:
+        #     if evolve_count > gradient_count:
+        #         evolve = True
+        #         train = False
+        #     else:
+        #         evolve = False
+        #         train = True
 
         if get_value:
             value = results[0][0]
