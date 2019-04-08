@@ -71,7 +71,7 @@ class PERL(object):
     def __init__(self, state_dim, action_dim, max_action, pop_size):
         self.pop_size = pop_size
         self.actors = [Actor(state_dim, action_dim, max_action) for _ in range(pop_size)]
-        self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
+        # self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
         self.critic = Critic(state_dim, action_dim)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
