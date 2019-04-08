@@ -211,13 +211,10 @@ class Worker(object):
             obs = self.env.reset()
 
             while True:
-                if self.total_timesteps < self.args.start_timesteps:
-                    action = self.env.action_space.sample()
-                else:
-                    action = select_action(np.array(obs), self.policy.actor)
-                    # if self.args.expl_noise != 0:
-                    #     action = (action + np.random.normal(0, args.expl_noise, size=env.action_space.shape[0])).clip(
-                    #         env.action_space.low, env.action_space.high)
+                # if self.total_timesteps < self.args.start_timesteps:
+                #     action = self.env.action_space.sample()
+                # else:
+                action = select_action(np.array(obs), self.policy.actor)
 
                 new_obs, reward, done, _ = self.env.step(action)
                 done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
@@ -230,7 +227,7 @@ class Worker(object):
                 if done:
                     self.training_times += 1
                     if self.training_times > 10:
-                        self.policy.train(self.replay_buffer, 600, self.args.batch_size, self.args.discount, self.args.tau)
+                        self.policy.train(self.replay_buffer, 800, self.args.batch_size, self.args.discount, self.args.tau)
                     else:
                         self.policy.train(self.replay_buffer, 100, self.args.batch_size, self.args.discount, self.args.tau)
                     break
