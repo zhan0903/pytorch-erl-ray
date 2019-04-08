@@ -97,7 +97,7 @@ class Worker(object):
         self.policy.actor.load_state_dict(actor_weights)
         self.policy.actor_target.load_state_dict(self.policy.actor.state_dict())
         self.policy.critic.load_state_dict(critic_weights)
-        self.policy.critic_target.load_state_dict(self.critic.state_dict())
+        self.policy.critic_target.load_state_dict(self.policy.critic.state_dict())
 
     def set_weights(self, critic_weights):
 
