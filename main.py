@@ -193,7 +193,7 @@ class Worker(object):
 
         return self.policy.grads_critic,  info
 
-    def train(self, actor_weights, critic_weights, evolve, train):
+    def train(self, actor_weights, critic_weights):
         self.episode_timesteps = 0
         reward_learned = 0
         if self.init:
@@ -205,16 +205,9 @@ class Worker(object):
         self.logger_worker.info("ID: {0},net_l3.weight:{1}".
                                 format(self.id, self.policy.actor.state_dict()["l3.weight"][-1][:5]))
 
-        # if evolve:
-        #     self.actor_evovlved.load_state_dict(actor_weights)
-        #     reward_evolved = self.evaluate_policy(self.actor_evovlved)
-        #     # self.episode_num += 1
-        # else:
-        #     reward_evolved = -math.inf
-
         self.logger_worker.info("self.episode_timesteps:{}".format(self.episode_timesteps))
 
-        if train:
+        if True:
             obs = self.env.reset()
 
             while True:
@@ -235,14 +228,11 @@ class Worker(object):
                 self.total_timesteps += 1
 
                 if done:
-                    # if self.episode_timesteps < 1000:
-                    #     iteration = 500
                     self.training_times += 1
                     if self.training_times > 10:
-                        self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
+                        self.policy.train(self.replay_buffer, 500, self.args.batch_size, self.args.discount, self.args.tau)
                     else:
                         self.policy.train(self.replay_buffer, 100, self.args.batch_size, self.args.discount, self.args.tau)
-
                     break
         else:
             reward_learned = -math.inf
@@ -259,14 +249,8 @@ def process_results(r):
     total_t = []
     grads_c = []
     all_f = []
-    # all_f_a = []
-    # all_rewards = []
-    # all_new_pop = []
 
     for result in r:
-        # all_new_pop.append(result[4])
-        # # all_rewards.append(result[4])
-        # all_f_a.append(result[3])
         all_f.append(result[2])
         grads_c.append(np.array(result[1]))
         total_t.append(result[0])
@@ -375,9 +359,7 @@ if __name__ == "__main__":
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.state_dict())
-        evolve_id = ray.put(evolve)
-        train_id = ray.put(train)
-        results_id = [worker.train.remote(actor, critic_id, evolve_id, train_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
+        results_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(results_id)
         # wait for some gradient to be computed - unblock as soon as the earliest arrives
         all_timesteps, grads_critic, all_reward_learned = process_results(results)
