@@ -93,17 +93,22 @@ class Worker(object):
         self.better_reward = -math.inf
         self.init = True
 
-    def set_weights(self, actor_weights, critic_weights):
-        if actor_weights is not None:
-            self.policy.actor.load_state_dict(actor_weights)
+    def init_weights(self, actor_weights, critic_weights):
+        self.policy.actor.load_state_dict(actor_weights)
+        self.policy.actor_target.load_state_dict(self.policy.actor.state_dict())
+        self.policy.critic.load_state_dict(critic_weights)
+        self.policy.critic_target.load_state_dict(self.critic.state_dict())
+
+    def set_weights(self, critic_weights):
+
         self.policy.critic.load_state_dict(critic_weights)
 
-        for param, target_param in zip(self.policy.critic.parameters(), self.policy.critic_target.parameters()):
-            target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
-
-        if actor_weights is not None:
-            for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
-                target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
+        # for param, target_param in zip(self.policy.critic.parameters(), self.policy.critic_target.parameters()):
+        #     target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
+        #
+        # if actor_weights is not None:
+        #     for param, target_param in zip(self.policy.actor.parameters(), self.policy.actor_target.parameters()):
+        #         target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
 
     # Runs policy for X episodes and returns average reward
     def evaluate_policy_temp(self, eval_episodes=1):
@@ -192,31 +197,25 @@ class Worker(object):
         self.episode_timesteps = 0
         reward_learned = 0
         if self.init:
-            self.set_weights(actor_weights, critic_weights)
+            self.init_weights(actor_weights, critic_weights)
             self.init = False
         else:
-            self.set_weights(None, critic_weights)
+            self.set_weights(critic_weights)
 
         self.logger_worker.info("ID: {0},net_l3.weight:{1}".
                                 format(self.id, self.policy.actor.state_dict()["l3.weight"][-1][:5]))
 
-        if evolve:
-            self.actor_evovlved.load_state_dict(actor_weights)
-            reward_evolved = self.evaluate_policy(self.actor_evovlved)
-            # self.episode_num += 1
-        else:
-            reward_evolved = -math.inf
+        # if evolve:
+        #     self.actor_evovlved.load_state_dict(actor_weights)
+        #     reward_evolved = self.evaluate_policy(self.actor_evovlved)
+        #     # self.episode_num += 1
+        # else:
+        #     reward_evolved = -math.inf
 
         self.logger_worker.info("self.episode_timesteps:{}".format(self.episode_timesteps))
 
         if train:
             obs = self.env.reset()
-            # done = False
-
-            # if self.training_times < 10:
-            #     iteration = 100
-            # else:
-            #     iteration = 1000
 
             while True:
                 if self.total_timesteps < self.args.start_timesteps:
@@ -239,40 +238,39 @@ class Worker(object):
                     # if self.episode_timesteps < 1000:
                     #     iteration = 500
                     self.training_times += 1
-                    self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
+                    if self.training_times > 10:
+                        self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
+                    else:
+                        self.policy.train(self.replay_buffer, 100, self.args.batch_size, self.args.discount, self.args.tau)
+
                     break
         else:
             reward_learned = -math.inf
 
         self.logger_worker.info("ID: %d Total T: %d  training_times: %d Episode T: "
-                                "%d reward_evolved: %f  reward_learned: %f" %
+                                "%d  reward_learned: %f" %
                                 (self.id, self.total_timesteps, self.training_times,
-                                 self.episode_timesteps, reward_evolved, reward_learned))
+                                 self.episode_timesteps, reward_learned))
 
-        if evolve:
-            return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, \
-                   self.actor_evovlved.state_dict()
-        else:
-            return self.total_timesteps, self.policy.grads_critic, reward_evolved, reward_learned, \
-                   None
+        return self.total_timesteps, self.policy.grads_critic, reward_learned
 
 
 def process_results(r):
     total_t = []
     grads_c = []
     all_f = []
-    all_f_a = []
-    all_rewards = []
-    all_new_pop = []
+    # all_f_a = []
+    # all_rewards = []
+    # all_new_pop = []
 
     for result in r:
-        all_new_pop.append(result[4])
-        # all_rewards.append(result[4])
-        all_f_a.append(result[3])
+        # all_new_pop.append(result[4])
+        # # all_rewards.append(result[4])
+        # all_f_a.append(result[3])
         all_f.append(result[2])
         grads_c.append(np.array(result[1]))
         total_t.append(result[0])
-    return sum(total_t), np.array(grads_c), all_f, all_f_a, all_new_pop
+    return sum(total_t), np.array(grads_c), all_f
 
 
 if __name__ == "__main__":
@@ -280,7 +278,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_name", default="OurDDPG")
     parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
-    parser.add_argument("--start_timesteps", default=3e3, type=int)
+    parser.add_argument("--start_timesteps", default=5e3, type=int)
     parser.add_argument("--eval_freq", default=5e3, type=float)
     parser.add_argument("--max_timesteps", default=1e6, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
@@ -339,7 +337,7 @@ if __name__ == "__main__":
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
 
-    # agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
+    agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
     ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=30000000000)
 
     # workers = [Worker.remote(args, i)
@@ -354,7 +352,7 @@ if __name__ == "__main__":
     episode = 0
     evolve = False
     train = True
-    # actors = [actor.state_dict() for actor in agent.actors]
+    actors = [actor.state_dict() for actor in agent.actors]
     average = None
     get_value = True
     value = 0
@@ -369,27 +367,35 @@ if __name__ == "__main__":
     workers = [Worker.remote(args, i) for i in range(args.pop_size)]
     logger_main.info("len workers:{}".format(len(workers)))
 
-    gradient_list = [worker.compute_gradient.remote(parameters_critic) for worker in workers]
+    # gradient_list = [worker.compute_gradient.remote(actor, parameters_critic) for actor, worker in zip(actors,workers)]
 
     logger_main.info("************************************************************************")
-    logger_main.info("perl-td3, A3C architecture for td3 ")
+    logger_main.info("perl-td3-sync, sync architecture for td3 ")
     logger_main.info("************************************************************************")
 
     while all_timesteps < args.max_timesteps:
-        done_id, gradient_list = ray.wait(gradient_list)
+        critic_id = ray.put(agent.critic.state_dict())
+        evolve_id = ray.put(evolve)
+        train_id = ray.put(train)
+        results_id = [worker.train.remote(actor, critic_id, evolve_id, train_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
+        results = ray.get(results_id)
         # wait for some gradient to be computed - unblock as soon as the earliest arrives
+        all_timesteps, grads_critic, all_reward_learned = process_results(results)
+        agent.apply_grads(grads_critic, logger_main)
+        actors = [None for _ in range(args.pop_size)]
+
 
         # logger_main.debug("done_id:{}".format(done_id))
         # logger_main.debug("gradient_list_id:{}".format(gradient_list))
 
-        gradient_critic, info = ray.get(done_id)[0]
-        all_timesteps += info["size"]
+        # gradient_critic, info = ray.get(done_id)[0]
+        # all_timesteps += info["size"]
 
         # logger_main.info("come here, debug")
 
-        policy.apply_gradients(gradient_critic)
-        parameters_critic = policy.get_weights()
-        gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_critic)])
+        # policy.apply_gradients(gradient_critic)
+        # parameters_critic = policy.get_weights()
+        # gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_critic)])
         # logger_main.debug("gradient_list_id_after:{}".format(gradient_list))
 
 

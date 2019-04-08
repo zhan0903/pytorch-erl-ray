@@ -82,8 +82,8 @@ class PERL(object):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
         return self.actors[actor_id](state).cpu().data.numpy().flatten()
 
-    def apply_grads(self, gradient_critic, gradient_actor, logger):
-        with self.lock:
+    def apply_grads(self, gradient_critic, logger):
+        # with self.lock:
 
         # logger.debug("shape grads[0] size:{}".format(grads[0].shape))
         # logger.debug("shape grads[1] size:{}".format(grads[1].shape))
@@ -93,21 +93,21 @@ class PERL(object):
 
         # logger.info("shape grads[0] size:{}".format((grads[0])))
 
-        # critic_grad = np.sum(grads, axis=0)/self.pop_size
+        critic_grad = np.sum(gradient_critic, axis=0)/self.pop_size
 
-            for grad in gradient_critic:
-                self.critic_optimizer.zero_grad()
-                for g, p in zip(grad, self.critic.parameters()):
-                    if g is not None:
-                        p.grad = torch.from_numpy(g).to(device)
-                self.critic_optimizer.step()
+        for grad in critic_grad:
+            self.critic_optimizer.zero_grad()
+            for g, p in zip(grad, self.critic.parameters()):
+                if g is not None:
+                    p.grad = torch.from_numpy(g).to(device)
+            self.critic_optimizer.step()
 
-            for grad in gradient_actor:
-                self.critic_optimizer.zero_grad()
-                for g, p in zip(grad, self.critic.parameters()):
-                    if g is not None:
-                        p.grad = torch.from_numpy(g).to(device)
-                self.critic_optimizer.step()
+            # for grad in gradient_actor:
+            #     self.critic_optimizer.zero_grad()
+            #     for g, p in zip(grad, self.critic.parameters()):
+            #         if g is not None:
+            #             p.grad = torch.from_numpy(g).to(device)
+            #     self.critic_optimizer.step()
 
 
 class TD3(object):
