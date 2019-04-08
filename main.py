@@ -227,7 +227,7 @@ class Worker(object):
                 if done:
                     self.training_times += 1
                     if self.training_times > 10:
-                        self.policy.train(self.replay_buffer, 1000, self.args.batch_size, self.args.discount, self.args.tau)
+                        self.policy.train(self.replay_buffer, 800, self.args.batch_size, self.args.discount, self.args.tau)
                     else:
                         self.policy.train(self.replay_buffer, 100, self.args.batch_size, self.args.discount, self.args.tau)
                     break
@@ -261,7 +261,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=2e3, type=int)
     parser.add_argument("--eval_freq", default=5e3, type=float)
-    parser.add_argument("--max_timesteps", default=4.5e5, type=float)
+    parser.add_argument("--max_timesteps", default=1e6, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
     parser.add_argument("--discount", default=0.99, type=float)
     parser.add_argument("--tau", default=0.005, type=float)
