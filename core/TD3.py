@@ -80,7 +80,7 @@ class PERL(object):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
         return self.actors[actor_id](state).cpu().data.numpy().flatten()
 
-    def apply_grads(self, gradient_critic, all_reward_learned, logger):
+    def apply_grads(self, gradient_critic, logger):
 
         # max_index = all_reward_learned.index(max(all_reward_learned))
         # gradients_weight = []
@@ -98,6 +98,8 @@ class PERL(object):
         #     self.critic_optimizer.step()
 
         critic_grad = np.sum(gradient_critic, axis=0)/self.pop_size
+
+        # logger.info("gradient:{}".format(critic_grad[-1][:5]))
 
         for grad in critic_grad:
             self.critic_optimizer.zero_grad()

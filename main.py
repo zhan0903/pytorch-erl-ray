@@ -227,7 +227,7 @@ class Worker(object):
                 if done:
                     self.training_times += 1
                     if self.training_times > 10:
-                        self.policy.train(self.replay_buffer, 200, self.args.batch_size, self.args.discount, self.args.tau)
+                        self.policy.train(self.replay_buffer, 700, self.args.batch_size, self.args.discount, self.args.tau)
                     else:
                         self.policy.train(self.replay_buffer, 100, self.args.batch_size, self.args.discount, self.args.tau)
                     break
@@ -360,7 +360,7 @@ if __name__ == "__main__":
         results = ray.get(results_id)
         # wait for some gradient to be computed - unblock as soon as the earliest arrives
         all_timesteps, grads_critic, all_reward_learned = process_results(results)
-        agent.apply_grads(grads_critic, all_reward_learned, logger_main)
+        agent.apply_grads(grads_critic, logger_main)
         actors = [None for _ in range(args.pop_size)]
 
         logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
