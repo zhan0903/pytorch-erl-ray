@@ -44,7 +44,6 @@ class Critic(nn.Module):
         self.l6 = nn.Linear(300, 1)
         self.cuda()
 
-
     def forward(self, x, u):
         xu = torch.cat([x, u], 1)
 
@@ -56,7 +55,6 @@ class Critic(nn.Module):
         x2 = F.relu(self.l5(x2))
         x2 = self.l6(x2)
         return x1, x2
-
 
     def Q1(self, x, u):
         xu = torch.cat([x, u], 1)
@@ -82,7 +80,7 @@ class PERL(object):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
         return self.actors[actor_id](state).cpu().data.numpy().flatten()
 
-    def apply_grads(self, gradient_critic, logger):
+    def apply_grads(self, gradient_critic, all_reward_learned, logger):
         # with self.lock:
 
         # logger.debug("shape grads[0] size:{}".format(grads[0].shape))
@@ -93,21 +91,32 @@ class PERL(object):
 
         # logger.info("shape grads[0] size:{}".format((grads[0])))
 
-        critic_grad = np.sum(gradient_critic, axis=0)/self.pop_size
+        max_index = all_reward_learned.index(max(all_reward_learned))
+        gradients_weight = []
+        for index, gradient in enumerate(gradient_critic):
+            if index == max_index:
+                gradients_weight.append(gradient*0.4)
+            else:
+                gradients_weight.append(gradient*0.2)
 
-        for grad in critic_grad:
+        for grad in gradients_weight:
             self.critic_optimizer.zero_grad()
             for g, p in zip(grad, self.critic.parameters()):
                 if g is not None:
                     p.grad = torch.from_numpy(g).to(device)
             self.critic_optimizer.step()
 
-            # for grad in gradient_actor:
-            #     self.critic_optimizer.zero_grad()
-            #     for g, p in zip(grad, self.critic.parameters()):
-            #         if g is not None:
-            #             p.grad = torch.from_numpy(g).to(device)
-            #     self.critic_optimizer.step()
+
+        # critic_grad = np.sum(gradient_critic, axis=0)/self.pop_size
+        #
+        # for grad in critic_grad:
+        #     self.critic_optimizer.zero_grad()
+        #     for g, p in zip(grad, self.critic.parameters()):
+        #         if g is not None:
+        #             p.grad = torch.from_numpy(g).to(device)
+        #     self.critic_optimizer.step()
+
+
 
 
 class TD3(object):
