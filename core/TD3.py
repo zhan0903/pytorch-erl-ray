@@ -81,40 +81,30 @@ class PERL(object):
         return self.actors[actor_id](state).cpu().data.numpy().flatten()
 
     def apply_grads(self, gradient_critic, all_reward_learned, logger):
-        # with self.lock:
 
-        # logger.debug("shape grads[0] size:{}".format(grads[0].shape))
-        # logger.debug("shape grads[1] size:{}".format(grads[1].shape))
+        # max_index = all_reward_learned.index(max(all_reward_learned))
+        # gradients_weight = []
+        # for index, gradient in enumerate(gradient_critic):
+        #     if index == max_index:
+        #         gradients_weight.append(gradient*0.4)
+        #     else:
+        #         gradients_weight.append(gradient*0.2)
         #
-        # logger.debug("shape grads[2] size:{}".format(grads[2].shape))
-        # logger.debug("shape grads[3] size:{}".format(grads[3].shape))
-
-        # logger.info("shape grads[0] size:{}".format((grads[0])))
-
-        max_index = all_reward_learned.index(max(all_reward_learned))
-        gradients_weight = []
-        for index, gradient in enumerate(gradient_critic):
-            if index == max_index:
-                gradients_weight.append(gradient*0.4)
-            else:
-                gradients_weight.append(gradient*0.2)
-
-        for grad in gradients_weight:
-            self.critic_optimizer.zero_grad()
-            for g, p in zip(grad, self.critic.parameters()):
-                if g is not None:
-                    p.grad = torch.from_numpy(g).to(device)
-            self.critic_optimizer.step()
-
-
-        # critic_grad = np.sum(gradient_critic, axis=0)/self.pop_size
-        #
-        # for grad in critic_grad:
+        # for grad in gradients_weight:
         #     self.critic_optimizer.zero_grad()
         #     for g, p in zip(grad, self.critic.parameters()):
         #         if g is not None:
         #             p.grad = torch.from_numpy(g).to(device)
         #     self.critic_optimizer.step()
+
+        critic_grad = np.sum(gradient_critic, axis=0)/self.pop_size
+
+        for grad in critic_grad:
+            self.critic_optimizer.zero_grad()
+            for g, p in zip(grad, self.critic.parameters()):
+                if g is not None:
+                    p.grad = torch.from_numpy(g).to(device)
+            self.critic_optimizer.step()
 
 
 
