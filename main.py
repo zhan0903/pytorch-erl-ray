@@ -305,7 +305,7 @@ if __name__ == "__main__":
     max_action = float(env.action_space.high[0])
 
     agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
-    ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=10000000000)
+    ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=20000000000)
 
     # workers = [Worker.remote(args, i)
     #            for i in range(args.pop_size)]
