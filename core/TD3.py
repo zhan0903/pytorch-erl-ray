@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
-from util import to_numpy
+from utils import to_numpy
 import deepcopy
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
