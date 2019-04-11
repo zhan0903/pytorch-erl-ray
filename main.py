@@ -40,7 +40,7 @@ def evaluate_policy(env, policy, eval_episodes=5):
     return avg_reward
 
 
-@ray.remote(num_gpus=0.2)
+@ray.remote(num_gpus=0.5)
 class Worker(object):
     def __init__(self, args, id):
         self.env = gym.make(args.env_name)
@@ -256,7 +256,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     parser.add_argument("--save_models", action="store_true")
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
-    parser.add_argument("--pop_size", default=10, type=int)
+    parser.add_argument("--pop_size", default=4, type=int)
     parser.add_argument("--crossover_prob", default=0.0, type=float)
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)
@@ -305,10 +305,7 @@ if __name__ == "__main__":
     max_action = float(env.action_space.high[0])
 
     agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
-    ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=20000000000)
-
-    # workers = [Worker.remote(args, i)
-    #            for i in range(args.pop_size)]
+    ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=30000000000)
 
     all_timesteps = 0
     timesteps_since_eval = 0
