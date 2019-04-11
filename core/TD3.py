@@ -23,8 +23,8 @@ class Actor(nn.Module):
         self.cuda()
 
     def forward(self, x):
-        x = F.tanh(self.l1(x))
-        x = F.tanh(self.l2(x))
+        x = torch.tanh(self.l1(x))
+        x = torch.tanh(self.l2(x))
         x = self.max_action * torch.tanh(self.l3(x))
         return x
 
