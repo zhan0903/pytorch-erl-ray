@@ -14,19 +14,6 @@ import math
 #
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #
-# logging.basicConfig(level=logging.DEBUG,
-#                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-#                     datefmt='%m-%d %H:%M',
-#                     filename='./debug/4_swimmer_debug_logger.log',
-#                     filemode='w')
-# console = logging.StreamHandler()
-# console.setLevel(logging.INFO)
-# formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-# console.setFormatter(formatter)
-# logging.getLogger('').addHandler(console)
-#
-# logger_worker = logging.getLogger('Worker')
-# logger_main = logging.getLogger('Main')
 
 
 def select_action(state, actor):
@@ -53,7 +40,7 @@ def evaluate_policy(env, policy, eval_episodes=5):
     return avg_reward
 
 
-@ray.remote(num_gpus=0.5)
+@ray.remote(num_gpus=0.2)
 class Worker(object):
     def __init__(self, args, id):
         self.env = gym.make(args.env_name)
@@ -227,9 +214,9 @@ class Worker(object):
                 if done:
                     self.training_times += 1
                     if self.training_times > 10:
-                        self.policy.train(self.replay_buffer, 100, self.args.batch_size, self.args.discount, self.args.tau)
+                        self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     else:
-                        self.policy.train(self.replay_buffer, 100, self.args.batch_size, self.args.discount, self.args.tau)
+                        self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     break
         else:
             reward_learned = -math.inf
@@ -270,7 +257,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     parser.add_argument("--save_models", action="store_true")
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
-    parser.add_argument("--pop_size", default=4, type=int)
+    parser.add_argument("--pop_size", default=10, type=int)
     parser.add_argument("--crossover_prob", default=0.0, type=float)
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)

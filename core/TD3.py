@@ -23,8 +23,8 @@ class Actor(nn.Module):
         self.cuda()
 
     def forward(self, x):
-        x = F.relu(self.l1(x))
-        x = F.relu(self.l2(x))
+        x = F.tanh(self.l1(x))
+        x = F.tanh(self.l2(x))
         x = self.max_action * torch.tanh(self.l3(x))
         return x
 
@@ -47,20 +47,20 @@ class Critic(nn.Module):
     def forward(self, x, u):
         xu = torch.cat([x, u], 1)
 
-        x1 = F.relu(self.l1(xu))
-        x1 = F.relu(self.l2(x1))
+        x1 = F.leaky_relu(self.l1(xu))
+        x1 = F.leaky_relu(self.l2(x1))
         x1 = self.l3(x1)
 
-        x2 = F.relu(self.l4(xu))
-        x2 = F.relu(self.l5(x2))
+        x2 = F.leaky_relu(self.l4(xu))
+        x2 = F.leaky_relu(self.l5(x2))
         x2 = self.l6(x2)
         return x1, x2
 
     def Q1(self, x, u):
         xu = torch.cat([x, u], 1)
 
-        x1 = F.relu(self.l1(xu))
-        x1 = F.relu(self.l2(x1))
+        x1 = F.leaky_relu(self.l1(xu))
+        x1 = F.leaky_relu(self.l2(x1))
         x1 = self.l3(x1)
         return x1
 
@@ -107,8 +107,6 @@ class PERL(object):
                 if g is not None:
                     p.grad = torch.from_numpy(g).to(device)
             self.critic_optimizer.step()
-
-
 
 
 class TD3(object):
