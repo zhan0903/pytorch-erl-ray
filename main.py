@@ -305,7 +305,7 @@ if __name__ == "__main__":
     max_action = float(env.action_space.high[0])
 
     agent = ddpg.PERL(state_dim, action_dim, max_action, args.pop_size)
-    ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=30000000000)
+    ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=10000000000)
 
     all_timesteps = 0
     timesteps_since_eval = 0
