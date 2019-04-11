@@ -81,14 +81,14 @@ class Worker(object):
         self.init = True
 
     def init_weights(self, actor_weights, critic_weights):
-        self.policy.actor.load_state_dict(actor_weights)
+        self.policy.actor.set_params(actor_weights)
         self.policy.actor_target.load_state_dict(self.policy.actor.state_dict())
-        self.policy.critic.load_state_dict(critic_weights)
+        self.policy.critic.set_params(critic_weights)
         self.policy.critic_target.load_state_dict(self.policy.critic.state_dict())
 
     def set_weights(self, critic_weights):
 
-        self.policy.critic.load_state_dict(critic_weights)
+        self.policy.critic.set_params(critic_weights)
 
         # for param, target_param in zip(self.policy.critic.parameters(), self.policy.critic_target.parameters()):
         #     target_param.data.copy_(self.args.tau * param.data + (1 - self.args.tau) * target_param.data)
@@ -316,7 +316,7 @@ if __name__ == "__main__":
     episode = 0
     evolve = False
     train = True
-    actors = [actor.state_dict() for actor in agent.actors]
+    actors = [actor.get_params() for actor in agent.actors]
     average = None
     get_value = True
     value = 0
@@ -338,7 +338,7 @@ if __name__ == "__main__":
     logger_main.info("************************************************************************")
 
     while all_timesteps < args.max_timesteps:
-        critic_id = ray.put(agent.critic.state_dict())
+        critic_id = ray.put(agent.critic.get_params())
         results_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(results_id)
         # wait for some gradient to be computed - unblock as soon as the earliest arrives

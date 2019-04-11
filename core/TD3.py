@@ -3,7 +3,8 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
-import utils
+from util import to_numpy
+import deepcopy
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -21,6 +22,29 @@ class Actor(nn.Module):
 
         self.max_action = max_action
         self.cuda()
+
+    def get_params(self):
+        """
+        Returns parameters of the actor
+        """
+        return deepcopy(np.hstack([to_numpy(v).flatten() for v in
+                                   self.parameters()]))
+
+    def set_params(self, params):
+        """
+        Set the params of the network to the given parameters
+        """
+        cpt = 0
+        for param in self.parameters():
+            tmp = np.product(param.size())
+
+            if torch.cuda.is_available():
+                param.data.copy_(torch.from_numpy(
+                    params[cpt:cpt + tmp]).view(param.size()).cuda())
+            else:
+                param.data.copy_(torch.from_numpy(
+                    params[cpt:cpt + tmp]).view(param.size()))
+            cpt += tmp
 
     def forward(self, x):
         x = torch.tanh(self.l1(x))
@@ -43,6 +67,29 @@ class Critic(nn.Module):
         self.l5 = nn.Linear(400, 300)
         self.l6 = nn.Linear(300, 1)
         self.cuda()
+
+    def get_params(self):
+        """
+        Returns parameters of the actor
+        """
+        return deepcopy(np.hstack([to_numpy(v).flatten() for v in
+                                   self.parameters()]))
+
+    def set_params(self, params):
+        """
+        Set the params of the network to the given parameters
+        """
+        cpt = 0
+        for param in self.parameters():
+            tmp = np.product(param.size())
+
+            if torch.cuda.is_available():
+                param.data.copy_(torch.from_numpy(
+                    params[cpt:cpt + tmp]).view(param.size()).cuda())
+            else:
+                param.data.copy_(torch.from_numpy(
+                    params[cpt:cpt + tmp]).view(param.size()))
+            cpt += tmp
 
     def forward(self, x, u):
         xu = torch.cat([x, u], 1)

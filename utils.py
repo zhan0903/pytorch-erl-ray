@@ -1,9 +1,12 @@
 import numpy as np
+import torch
 
 # Code based on:
 # https://github.com/openai/baselines/blob/master/baselines/deepq/replay_buffer.py
 
 # Expects tuples of (state, next_state, action, reward, done)
+
+USE_CUDA = torch.cuda.is_available()
 
 class ReplayBuffer(object):
     def __init__(self, max_size=1e6):
@@ -38,3 +41,7 @@ class ReplayBuffer(object):
             d.append(np.array(D, copy=False))
 
         return np.array(x), np.array(y), np.array(u), np.array(r).reshape(-1, 1), np.array(d).reshape(-1, 1)
+
+
+def to_numpy(var):
+    return var.cpu().data.numpy() if USE_CUDA else var.data.numpy()
