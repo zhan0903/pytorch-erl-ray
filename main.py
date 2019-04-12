@@ -69,7 +69,7 @@ class Worker(object):
         self.policy = ddpg.TD3(state_dim, action_dim, max_action)
         # self.actor_evovlved = ddpg.Actor(state_dim, action_dim, max_action)
         # self.better_actor = ddpg.Actor(state_dim, action_dim, max_action)
-        self.replay_buffer = utils.ReplayBuffer()
+        self.replay_buffer = ReplayBuffer()
         self.actor_old = ddpg.actor(state_dim, action_dim, max_action)
 
         self.args = args
