@@ -304,15 +304,16 @@ if __name__ == "__main__":
     logger_main = logging.getLogger('Main')
 
     evolver = utils_ne.SSNE(args)
-    file_name = "%s_%s_%s_%s_%s" % (args.version_name, args.env_name, str(args.seed), args.node_name, args.pop_size)
-    print("---------------------------------------")
-    print("Settings: %s" % file_name)
-    print("---------------------------------------")
-    if not os.path.exists("./results"):
-        os.makedirs("./results")
-
-    if args.save_models and not os.path.exists("./pytorch_models"):
-        os.makedirs("./pytorch_models")
+    # file_name = "%s_%s_%s_%s_%s" % (args.version_name, args.env_name, str(args.seed), args.node_name, args.pop_size)
+    # print("---------------------------------------")
+    # print("Settings: %s" % file_name)
+    # print("---------------------------------------")
+    #
+    # if not os.path.exists("./results"):
+    #     os.makedirs("./results")
+    #
+    # if args.save_models and not os.path.exists("./pytorch_models"):
+    #     os.makedirs("./pytorch_models")
 
     # Create Env
     env = gym.make(args.env_name)
