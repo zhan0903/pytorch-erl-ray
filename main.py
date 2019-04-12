@@ -87,6 +87,9 @@ class Worker(object):
         self.policy.critic.set_params(critic_weights)
         self.policy.critic_target.load_state_dict(self.policy.critic.state_dict())
 
+    def get_weights(self):
+        return self.actor_old.get_params()
+
     def set_weights(self, critic_weights):
         self.policy.critic.set_params(critic_weights)
 
@@ -358,6 +361,7 @@ if __name__ == "__main__":
     timesteps_old = 0
     evaluations_score = []
     evaluations_time = []
+    actor_evaluated = ddpg.Actor(state_dim, action_dim, max_action)
     # gradient_list = [worker.compute_gradient.remote(actor, parameters_critic) for actor, worker in zip(actors,workers)]
 
     logger_main.info("************************************************************************")
@@ -378,7 +382,9 @@ if __name__ == "__main__":
         if step_cpt >= args.eval_freq:
             timesteps_old = all_timesteps
             best_index = all_reward_learned.index(max(all_reward_learned))
-            score_evaluated = ray.get(workers[best_index].evaluate_policy.remote())
+            best_actor = ray.get(workers[best_index].get_params.remote())
+            actor_evaluated.set_params(best_actor)
+            score_evaluated = evaluate_policy(env, actor_evaluated)
             evaluations_score.append(score_evaluated)
             evaluations_time.append(int(time.time() - time_start))
 
