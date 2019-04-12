@@ -99,29 +99,16 @@ class Critic(nn.Module):
 
     def set_grads(self, grads):
         cpt = 0
-        # for param in self.parameters():
-        #     tmp = np.product(param.size())
-        #
-        #     if torch.cuda.is_available():
-        #         param.grad = torch.from_numpy(
-        #             grads[cpt:cpt + tmp]).view(param.size()).cuda()
-        #     else:
-        #         param.grad = torch.from_numpy(
-        #             grads[cpt:cpt + tmp]).view(param.size())
-        #     cpt += tmp
-        #
-
         for param in self.parameters():
             tmp = np.product(param.size())
 
             if torch.cuda.is_available():
-                param.grad.copy_(torch.from_numpy(
-                    grads[cpt:cpt + tmp]).view(param.size()).cuda())
+                param.grad = torch.from_numpy(
+                    grads[cpt:cpt + tmp]).view(param.size()).cuda()
             else:
-                param.grad.copy_(torch.from_numpy(
-                    grads[cpt:cpt + tmp]).view(param.size()))
+                param.grad = torch.from_numpy(
+                    grads[cpt:cpt + tmp]).view(param.size())
             cpt += tmp
-
 
     def forward(self, x, u):
         xu = torch.cat([x, u], 1)
