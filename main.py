@@ -52,7 +52,7 @@ class Worker(object):
         logging.basicConfig(level=logging.INFO,
                             format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                             datefmt='%m-%d %H:%M',
-                            filename='./debug/%s_%s_%s' % (args.output,args.env_name, args.pop_size),
+                            filename='./debug/%s_%s_%s' % (args.output, args.env_name, args.pop_size),
                             filemode='a+')
         console = logging.StreamHandler()
         console.setLevel(logging.DEBUG)
@@ -334,7 +334,7 @@ if __name__ == "__main__":
     timesteps_since_eval = 0
 
     time_start = time.time()
-    args.output = get_output_folder(args.output, args.env_name)
+    output = get_output_folder(args.output, args.env_name)
     file_name_score = "score_%s" % str(args.seed)
     file_name_time = "time_%s" % str(args.seed)
 
@@ -384,8 +384,8 @@ if __name__ == "__main__":
 
         logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
 
-    np.save(args.output + "/%s" % file_name_score, evaluations_score)
-    np.save(args.output + "/%s" % file_name_time, evaluations_time)
+    np.save(output + "/%s" % file_name_score, evaluations_score)
+    np.save(output + "/%s" % file_name_time, evaluations_time)
 
 
 
