@@ -293,7 +293,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt='%m-%d %H:%M',
-                        filename='./debug/%s_%s_%s_%s' % (args.version_name, args.node_name, args.env_name, args.pop_size),
+                        filename='./debug/%s_%s_%s' % (args.output, args.env_name, args.pop_size),
                         filemode='a+')
     console = logging.StreamHandler()
     console.setLevel(logging.DEBUG)
