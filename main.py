@@ -124,7 +124,7 @@ class Worker(object):
             done = False
             while not done:
                 action = select_action(np.array(obs), self.actor_old)
-                obs, reward, done, _ = env.step(action)
+                obs, reward, done, _ = self.env.step(action)
                 avg_reward += reward
 
         avg_reward /= eval_episodes
