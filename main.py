@@ -117,7 +117,7 @@ class Worker(object):
         return avg_reward
 
     def get_actor_param(self):
-        return
+        return self.actor_old.get_params()
 
     def evaluate_policy(self, eval_episodes=5):
         # self.set_weights(actor_weights,critic_weights)
@@ -382,7 +382,7 @@ if __name__ == "__main__":
         if step_cpt >= args.eval_freq:
             timesteps_old = all_timesteps
             best_index = all_reward_learned.index(max(all_reward_learned))
-            best_actor = ray.get(workers[best_index].get_params.remote())
+            best_actor = ray.get(workers[best_index].get_actor_param.remote())
             actor_evaluated.set_params(best_actor)
             score_evaluated = evaluate_policy(env, actor_evaluated)
             evaluations_score.append(score_evaluated)
