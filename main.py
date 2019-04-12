@@ -70,6 +70,7 @@ class Worker(object):
         # self.actor_evovlved = ddpg.Actor(state_dim, action_dim, max_action)
         # self.better_actor = ddpg.Actor(state_dim, action_dim, max_action)
         self.replay_buffer = utils.ReplayBuffer()
+        self.actor_old = ddpg.actor(state_dim, action_dim, max_action)
 
         self.args = args
         self.total_timesteps = 0
@@ -87,7 +88,6 @@ class Worker(object):
         self.policy.critic_target.load_state_dict(self.policy.critic.state_dict())
 
     def set_weights(self, critic_weights):
-
         self.policy.critic.set_params(critic_weights)
 
         # for param, target_param in zip(self.policy.critic.parameters(), self.policy.critic_target.parameters()):
@@ -113,12 +113,33 @@ class Worker(object):
         # print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
         return avg_reward
 
-    def evaluate_policy(self, actor):
+    def get_actor_param(self):
+        return
+
+    def evaluate_policy(self, eval_episodes=5):
+        # self.set_weights(actor_weights,critic_weights)
+        avg_reward = 0
+        for _ in range(eval_episodes):
+            obs = self.env.reset()
+            done = False
+            while not done:
+                action = select_action(np.array(obs), self.actor_old)
+                obs, reward, done, _ = env.step(action)
+                avg_reward += reward
+
+        avg_reward /= eval_episodes
+        logger_main.info("---------------------------------------")
+        logger_main.info("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
+        logger_main.info("---------------------------------------")
+        # print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
+        return avg_reward
+
+    def evaluate_policy_tmp(self):
         obs = self.env.reset()
         episode_reward = 0
         done = False
         while not done:
-            action = select_action(np.array(obs), actor)
+            action = select_action(np.array(obs), self.actor_old)
 
             # Perform action
             new_obs, reward, done, _ = self.env.step(action)
@@ -196,7 +217,6 @@ class Worker(object):
 
         if True:
             obs = self.env.reset()
-
             while True:
                 if self.total_timesteps < self.args.start_timesteps:
                     action = self.env.action_space.sample()
@@ -213,6 +233,8 @@ class Worker(object):
 
                 if done:
                     self.training_times += 1
+                    self.actor_old.load_state_dict(self.policy.actor.state_dict())
+
                     if self.training_times > 10:
                         self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     else:
@@ -261,7 +283,7 @@ if __name__ == "__main__":
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)
     parser.add_argument("--node_name", default="qcis5")
-    parser.add_argument("--version_name")
+    parser.add_argument("--output")
 
     # up_limit = 1.5e5
     # down_limit = 1e5
@@ -310,8 +332,10 @@ if __name__ == "__main__":
     all_timesteps = 0
     timesteps_since_eval = 0
 
-    evaluations = []
     time_start = time.time()
+    args.output = get_output_folder(args.output, args.env_name)
+    file_name_score = "score_%s" % str(args.seed)
+    file_name_time = "time_%s" % str(args.seed)
 
     episode = 0
     evolve = False
@@ -330,11 +354,13 @@ if __name__ == "__main__":
     parameters_critic = policy.get_weights()
     workers = [Worker.remote(args, i) for i in range(args.pop_size)]
     logger_main.info("len workers:{}".format(len(workers)))
-
+    timesteps_old = 0
+    evaluations_score = []
+    evaluations_time = []
     # gradient_list = [worker.compute_gradient.remote(actor, parameters_critic) for actor, worker in zip(actors,workers)]
 
     logger_main.info("************************************************************************")
-    logger_main.info("perl-td3-sync, sync architecture for td3 ")
+    logger_main.info("perl-cem-rl ")
     logger_main.info("************************************************************************")
 
     while all_timesteps < args.max_timesteps:
@@ -346,9 +372,19 @@ if __name__ == "__main__":
         agent.apply_grads(grads_critic, logger_main)
         actors = [None for _ in range(args.pop_size)]
 
+        step_cpt = all_timesteps - timesteps_old
+
+        if step_cpt >= args.eval_freq:
+            timesteps_old = all_timesteps
+            best_index = all_reward_learned.index(max(all_reward_learned))
+            score_evaluated = ray.get(workers[best_index].evaluate_policy.remote())
+            evaluations_score.append(score_evaluated)
+            evaluations_time.append(int(time.time() - time_start))
+
         logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
 
-
+    np.save(args.output + "/%s" % file_name_score, evaluations_score)
+    np.save(args.output + "/%s" % file_name_time, evaluations_time)
 
 
 

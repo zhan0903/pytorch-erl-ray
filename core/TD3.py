@@ -91,6 +91,17 @@ class Critic(nn.Module):
                     params[cpt:cpt + tmp]).view(param.size()))
             cpt += tmp
 
+    def get_grads(self):
+        """
+        Returns the current gradient
+        """
+        return deepcopy(np.hstack([to_numpy(v.grad).flatten() for v in self.parameters()]))
+
+
+    def set_grads(self,grads):
+        pass
+
+
     def forward(self, x, u):
         xu = torch.cat([x, u], 1)
 
@@ -129,23 +140,13 @@ class PERL(object):
 
     def apply_grads(self, gradient_critic, logger):
 
-        # max_index = all_reward_learned.index(max(all_reward_learned))
-        # gradients_weight = []
-        # for index, gradient in enumerate(gradient_critic):
-        #     if index == max_index:
-        #         gradients_weight.append(gradient*0.4)
-        #     else:
-        #         gradients_weight.append(gradient*0.2)
-        #
-        # for grad in gradients_weight:
-        #     self.critic_optimizer.zero_grad()
-        #     for g, p in zip(grad, self.critic.parameters()):
-        #         if g is not None:
-        #             p.grad = torch.from_numpy(g).to(device)
-        #     self.critic_optimizer.step()
+        logger.info("shape of gradient_critic:{}".format(gradient_critic.shape))
+        logger.info("gradient_critic[1][1][:5]:{}".format(gradient_critic[1][1][:5]))
 
         critic_grad = np.sum(gradient_critic, axis=0)/self.pop_size
 
+        logger.info("shape of critic_grad:{}".format(critic_grad.shape))
+        logger.info("critic_grad[1][:5]:{}".format(critic_grad[1][:5]))
         # logger.info("gradient:{}".format(critic_grad[-1][:5]))
 
         for grad in critic_grad:
@@ -199,24 +200,12 @@ class TD3(object):
                     p.grad = torch.from_numpy(g).to(device)
             self.critic_optimizer.step()
 
-        # for grad in gradient_actor:
-        #     self.actor_optimizer.zero_grad()
-        #     for g, p in zip(grad, self.actor.parameters()):
-        #         if g is not None:
-        #             p.grad = torch.from_numpy(g).to(device)
-        #     self.actor_optimizer.step()
-
     def append_grads_critic(self):
         grads_critic = [param_critic.grad.data.cpu().numpy() if param_critic.grad is not None else None
                         for param_critic in self.critic.parameters()]
 
         self.grads_critic.append(grads_critic)
 
-    # def append_grads_actor(self):
-    #     grads_actor = [param_actor.grad.data.cpu().numpy() if param_actor.grad is not None else None
-    #                     for param_actor in self.actor.parameters()]
-    #
-    #     self.grads_actor.append(grads_actor)
 
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005, policy_noise=0.2, noise_clip=0.5, policy_freq=2):
         self.grads_critic = []
