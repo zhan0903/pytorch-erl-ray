@@ -379,14 +379,14 @@ if __name__ == "__main__":
 
         step_cpt = all_timesteps - timesteps_old
 
-        if step_cpt >= args.eval_freq:
-            timesteps_old = all_timesteps
-            best_index = all_reward_learned.index(max(all_reward_learned))
-            best_actor = ray.get(workers[best_index].get_actor_param.remote())
-            actor_evaluated.set_params(best_actor)
-            score_evaluated = evaluate_policy(env, actor_evaluated)
-            evaluations_score.append(score_evaluated)
-            evaluations_time.append(int(time.time() - time_start))
+        # if step_cpt >= args.eval_freq:
+        #     timesteps_old = all_timesteps
+        #     best_index = all_reward_learned.index(max(all_reward_learned))
+        #     best_actor = ray.get(workers[best_index].get_actor_param.remote())
+        #     actor_evaluated.set_params(best_actor)
+        #     score_evaluated = evaluate_policy(env, actor_evaluated)
+        #     evaluations_score.append(score_evaluated)
+        #     evaluations_time.append(int(time.time() - time_start))
 
         logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
 
