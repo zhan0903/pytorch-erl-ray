@@ -6,7 +6,7 @@ import ray
 import copy
 from core import TD3 as ddpg
 import torch
-import utils
+from utils import *
 import time
 from core import mod_neuro_evo as utils_ne
 import math
