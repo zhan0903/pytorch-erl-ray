@@ -303,7 +303,7 @@ class Worker(object):
                                 (self.id, self.total_timesteps, self.training_times,
                                  self.episode_timesteps, reward_learned))
 
-        return self.total_timesteps, self.policy.grads_critic, self.episode_timesteps, self.reward_learned
+        return self.total_timesteps, self.policy.grads_critic, self.episode_timesteps, reward_learned
 
 
 def process_results(r):
