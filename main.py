@@ -314,7 +314,7 @@ def process_results(r):
 
     for result in r:
         all_f.append(result[3])
-        steps.append(result[2])
+        all_steps.append(result[2])
         grads_c.append(np.array(result[1]))
         total_t.append(result[0])
     return sum(total_t), np.array(grads_c), all_steps, all_f
