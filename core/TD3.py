@@ -148,6 +148,7 @@ class PERL(object):
 
     def process_gradients(self, gradients, steps):
         min_steps = min(steps)
+        print("min_steps:",min_steps)
         gradients_new = []
         for item in gradients:
             gradients_new.append(item[:min_steps])
