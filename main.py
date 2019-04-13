@@ -10,6 +10,7 @@ from utils import *
 import time
 from core import mod_neuro_evo as utils_ne
 import math
+from copy import deepcopy
 
 #
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -25,7 +26,7 @@ def evaluate_policy(env, policy, eval_episodes=5):
     # self.set_weights(actor_weights,critic_weights)
     avg_reward = 0
     for _ in range(eval_episodes):
-        obs = env.reset()
+        obs = deepcopy(env.reset())
         done = False
         while not done:
             action = select_action(np.array(obs), policy)
@@ -38,6 +39,63 @@ def evaluate_policy(env, policy, eval_episodes=5):
     logger_main.info("---------------------------------------")
     # print("Evaluation over after gradient %f, id %d" % (avg_reward,self.id))
     return avg_reward
+
+
+def evaluate(actor, env, memory=None, n_episodes=1, random=False, noise=None, render=False):
+    """
+    Computes the score of an actor on a given number of runs,
+    fills the memory if needed
+    """
+
+    if not random:
+        def policy(state):
+            state = FloatTensor(state.reshape(-1))
+            action = actor(state).cpu().data.numpy().flatten()
+
+            if noise is not None:
+                action += noise.sample()
+
+            return np.clip(action, -max_action, max_action)
+
+    else:
+        def policy(state):
+            return env.action_space.sample()
+
+    scores = []
+    steps = 0
+
+    for _ in range(n_episodes):
+
+        score = 0
+        obs = deepcopy(env.reset())
+        done = False
+
+        while not done:
+
+            # get next action and act
+            action = policy(obs)
+            n_obs, reward, done, _ = env.step(action)
+            done_bool = 0 if steps + \
+                1 == env._max_episode_steps else float(done)
+            score += reward
+            steps += 1
+
+            # adding in memory
+            if memory is not None:
+                memory.add((obs, n_obs, action, reward, done_bool))
+            obs = n_obs
+
+            # render if needed
+            if render:
+                env.render()
+
+            # reset when done
+            if done:
+                env.reset()
+
+        scores.append(score)
+
+    return np.mean(scores), steps
 
 
 @ray.remote(num_gpus=0.5)
@@ -216,8 +274,6 @@ class Worker(object):
         self.logger_worker.info("ID: {0},net_l3.weight:{1}".
                                 format(self.id, self.policy.actor.state_dict()["l3.weight"][-1][:5]))
 
-        # self.logger_worker.info("self.episode_timesteps:{}".format(self.episode_timesteps))
-
         if True:
             obs = self.env.reset()
             while True:
@@ -237,11 +293,7 @@ class Worker(object):
                 if done:
                     self.training_times += 1
                     self.actor_old.load_state_dict(self.policy.actor.state_dict())
-
-                    if self.training_times > 10:
-                        self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
-                    else:
-                        self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
+                    self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount, self.args.tau)
                     break
         else:
             reward_learned = -math.inf
@@ -251,19 +303,21 @@ class Worker(object):
                                 (self.id, self.total_timesteps, self.training_times,
                                  self.episode_timesteps, reward_learned))
 
-        return self.total_timesteps, self.policy.grads_critic, reward_learned
+        return self.total_timesteps, self.policy.grads_critic, self.episode_timesteps, self.reward_learned
 
 
 def process_results(r):
     total_t = []
     grads_c = []
     all_f = []
+    all_steps = []
 
     for result in r:
-        all_f.append(result[2])
+        all_f.append(result[3])
+        steps.append(result[2])
         grads_c.append(np.array(result[1]))
         total_t.append(result[0])
-    return sum(total_t), np.array(grads_c), all_f
+    return sum(total_t), np.array(grads_c), all_steps, all_f
 
 
 if __name__ == "__main__":
@@ -373,8 +427,8 @@ if __name__ == "__main__":
         results_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(results_id)
         # wait for some gradient to be computed - unblock as soon as the earliest arrives
-        all_timesteps, grads_critic, all_reward_learned = process_results(results)
-        agent.apply_grads(grads_critic, logger_main)
+        all_timesteps, grads_critic, steps, all_reward_learned = process_results(results)
+        agent.apply_grads(grads_critic, steps, logger_main)
         actors = [None for _ in range(args.pop_size)]
 
         step_cpt = all_timesteps - timesteps_old
