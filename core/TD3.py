@@ -147,37 +147,25 @@ class PERL(object):
         return self.actors[actor_id](state).cpu().data.numpy().flatten()
 
     def process_gradients(self, gradients, steps):
-        min_steps = min(steps)
-        max_steps = max(steps)
-        print("min_steps:", min_steps)
-        print("max_steps:", max_steps)
-        # gradients_average = np.zero(max_steps)
-
         steps.sort()
-        print("steps,", steps)
+        # print("steps,", steps)
         import collections
         counter = collections.Counter(steps)
-        print("counter,", counter)
-        print("len counter,")
+        # print("counter,", counter)
         gradients_new = []
         for key, value in counter.items():
             gradients_temp = []
             key_start = len(gradients_new)
-            print("key,key_start", key, key_start)
-
-
+            # print("key,key_start", key, key_start)
             for item in gradients:
-                print("len(item),", len(item))
+                # print("len(item),", len(item))
                 if len(item) > key_start:
                     gradients_temp.append(item[key_start:key])
             gradients_new.extend(np.sum(gradients_temp, axis=0) / value)
             key_start += key
-        print("len of gradients_new,", len(gradients_new))
+        # print("len of gradients_new,", len(gradients_new))
 
-        exit(0)
-
-
-        return np.sum(gradients_new, axis=0)/self.pop_size
+        return gradients_new
 
     def apply_grads(self, gradient_critic, steps, logger):
         # gradients_new = self.process_gradients(gradient_critic)
