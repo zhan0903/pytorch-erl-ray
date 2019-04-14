@@ -160,10 +160,11 @@ class PERL(object):
         print("counter,", counter)
         print("len counter,")
         gradients_new = []
-        key_start = 0
         for key, value in counter.items():
             gradients_temp = []
+            key_start = len(gradients_new)
             print("key,key_start", key, key_start)
+
 
             for item in gradients:
                 print("len(item),", len(item))
