@@ -165,7 +165,7 @@ class PERL(object):
             key_start += key
         # print("len of gradients_new,", len(gradients_new))
 
-        return gradients_new
+        return np.array(gradients_new)
 
     def apply_grads(self, gradient_critic, steps, logger):
         # gradients_new = self.process_gradients(gradient_critic)
