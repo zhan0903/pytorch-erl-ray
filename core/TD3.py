@@ -163,6 +163,7 @@ class PERL(object):
         key_start = 0
         for key, value in counter.items():
             gradients_temp = []
+            print("key,key_start", key, key_start)
 
             for item in gradients:
                 print("len(item),", len(item))
