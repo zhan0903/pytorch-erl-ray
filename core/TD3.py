@@ -148,10 +148,32 @@ class PERL(object):
 
     def process_gradients(self, gradients, steps):
         min_steps = min(steps)
-        print("min_steps:",min_steps)
+        max_steps = max(steps)
+        print("min_steps:", min_steps)
+        print("max_steps:", max_steps)
+        # gradients_average = np.zero(max_steps)
+
+        steps.sort()
+        print("steps,", steps)
+        import collections
+        counter = collections.Counter(steps)
+        print("counter,", counter)
+        print("len counter,")
         gradients_new = []
-        for item in gradients:
-            gradients_new.append(item[:min_steps])
+        key_start = 0
+        for key, value in counter.items():
+            gradients_temp = []
+
+            for item in gradients:
+                print("len(item),",item)
+                if len(item) > key_start:
+                    gradients_temp.append(item[key_start:key])
+            gradients_new.extend(np.sum(gradients_temp, axis=0) / value)
+            key_start += key
+        print("len of gradients_new,", len(gradients_new))
+
+        exit(0)
+
 
         return np.sum(gradients_new, axis=0)/self.pop_size
 
@@ -170,6 +192,7 @@ class PERL(object):
             self.critic_optimizer.zero_grad()
             self.critic.set_grads(grad)
             self.critic_optimizer.step()
+        logger.info("after gradient update, self.critic.l6.bias:{}".format(self.critic.state_dict()["l6.bias"]))
 
 
 class TD3(object):
