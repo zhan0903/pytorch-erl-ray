@@ -165,7 +165,7 @@ class PERL(object):
             gradients_temp = []
 
             for item in gradients:
-                print("len(item),",item)
+                print("len(item),", len(item))
                 if len(item) > key_start:
                     gradients_temp.append(item[key_start:key])
             gradients_new.extend(np.sum(gradients_temp, axis=0) / value)
