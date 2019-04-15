@@ -422,6 +422,7 @@ if __name__ == "__main__":
     logger_main.info("************************************************************************")
     logger_main.info("perl-cem-rl ")
     logger_main.info("************************************************************************")
+    results = None
 
     while all_timesteps < args.max_timesteps:
         critic_id = ray.put(agent.critic.get_params())
@@ -433,6 +434,7 @@ if __name__ == "__main__":
         all_timesteps, grads_critic, steps, all_reward_learned = process_results(results)
         agent.apply_grads(grads_critic, steps, logger_main)
         actors = [None for _ in range(args.pop_size)]
+        results = None
 
         step_cpt = all_timesteps - timesteps_old
 
