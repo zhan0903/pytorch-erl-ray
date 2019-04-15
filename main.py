@@ -430,11 +430,15 @@ if __name__ == "__main__":
         results = ray.get(results_id)
         print("size,", pa.serialize(results).to_buffer().size)
 
+        time.sleep(10)
+
         # wait for some gradient to be computed - unblock as soon as the earliest arrives
         all_timesteps, grads_critic, steps, all_reward_learned = process_results(results)
+        print("grads_critic size,", pa.serialize(grads_critic).to_buffer().size)
 
-        results = None
+
         agent.apply_grads(grads_critic, steps, logger_main)
+        grads_critic = None
         actors = [None for _ in range(args.pop_size)]
 
         step_cpt = all_timesteps - timesteps_old
