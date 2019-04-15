@@ -316,9 +316,9 @@ def process_results(r):
     for result in r:
         all_f.append(result[3])
         all_steps.append(result[2])
-        grads_c.append(np.array(result[1]))
+        grads_c.append(result[1])
         total_t.append(result[0])
-    return sum(total_t), np.array(grads_c), all_steps, all_f
+    return sum(total_t), grads_c, all_steps, all_f
 
 
 if __name__ == "__main__":
@@ -432,9 +432,10 @@ if __name__ == "__main__":
 
         # wait for some gradient to be computed - unblock as soon as the earliest arrives
         all_timesteps, grads_critic, steps, all_reward_learned = process_results(results)
+
+        results = None
         agent.apply_grads(grads_critic, steps, logger_main)
         actors = [None for _ in range(args.pop_size)]
-        results = None
 
         step_cpt = all_timesteps - timesteps_old
 

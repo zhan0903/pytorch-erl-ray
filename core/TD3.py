@@ -170,11 +170,11 @@ class PERL(object):
     def apply_grads(self, gradient_critic, steps, logger):
         # gradients_new = self.process_gradients(gradient_critic)
 
-        logger.info("shape of gradient_critic:{}".format(gradient_critic.shape))
+        # logger.info("shape of gradient_critic:{}".format(gradient_critic.shape))
         # logger.info("gradient_critic[1][1][:5]:{}".format(gradient_critic[1][1][:5]))
 
         critic_grad = self.process_gradients(gradient_critic, steps)
-        logger.info("shape of critic_grad:{}".format(critic_grad.shape))
+        # logger.info("shape of critic_grad:{}".format(critic_grad.shape))
         # logger.info("critic_grad[1][:5]:{}".format(critic_grad[1][:5]))
         # logger.info("gradient:{}".format(critic_grad[-1][:5]))
 
@@ -182,6 +182,7 @@ class PERL(object):
             self.critic_optimizer.zero_grad()
             self.critic.set_grads(grad)
             self.critic_optimizer.step()
+
         logger.info("after gradient update, self.critic.l6.bias:{}".format(self.critic.state_dict()["l6.bias"]))
 
 
