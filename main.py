@@ -11,6 +11,7 @@ import time
 from core import mod_neuro_evo as utils_ne
 import math
 from copy import deepcopy
+import pyarrow as pa
 
 #
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -426,6 +427,8 @@ if __name__ == "__main__":
         critic_id = ray.put(agent.critic.get_params())
         results_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(results_id)
+        print("size,", pa.serialize(results).to_buffer().size)
+
         # wait for some gradient to be computed - unblock as soon as the earliest arrives
         all_timesteps, grads_critic, steps, all_reward_learned = process_results(results)
         agent.apply_grads(grads_critic, steps, logger_main)
