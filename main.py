@@ -99,7 +99,7 @@ def evaluate(actor, env, memory=None, n_episodes=1, random=False, noise=None, re
     return np.mean(scores), steps
 
 
-@ray.remote(num_gpus=0.2)
+@ray.remote(num_gpus=0.5)
 class Worker(object):
     def __init__(self, args, id):
         self.env = gym.make(args.env_name)
