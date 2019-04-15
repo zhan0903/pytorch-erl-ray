@@ -428,12 +428,11 @@ if __name__ == "__main__":
         critic_id = ray.put(agent.critic.get_params())
         results_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
         results = ray.get(results_id)
-        print("size,", pa.serialize(results).to_buffer().size)
+        # print("size,", pa.serialize(results).to_buffer().size)
         # time.sleep(10)
-
         # wait for some gradient to be computed - unblock as soon as the earliest arrives
         all_timesteps, grads_critic, steps, all_reward_learned = process_results(results)
-        print("grads_critic size,", pa.serialize(grads_critic).to_buffer().size)
+        # print("grads_critic size,", pa.serialize(grads_critic).to_buffer().size)
 
         agent.apply_grads(grads_critic, steps, logger_main)
         grads_critic = None
@@ -441,14 +440,14 @@ if __name__ == "__main__":
 
         step_cpt = all_timesteps - timesteps_old
 
-        # if step_cpt >= args.eval_freq:
-        #     timesteps_old = all_timesteps
-        #     best_index = all_reward_learned.index(max(all_reward_learned))
-        #     best_actor = ray.get(workers[best_index].get_actor_param.remote())
-        #     actor_evaluated.set_params(best_actor)
-        #     score_evaluated = evaluate_policy(env, actor_evaluated)
-        #     evaluations_score.append(score_evaluated)
-        #     evaluations_time.append(int(time.time() - time_start))
+        if step_cpt >= args.eval_freq:
+            timesteps_old = all_timesteps
+            best_index = all_reward_learned.index(max(all_reward_learned))
+            best_actor = ray.get(workers[best_index].get_actor_param.remote())
+            actor_evaluated.set_params(best_actor)
+            score_evaluated = evaluate_policy(env, actor_evaluated)
+            evaluations_score.append(score_evaluated)
+            evaluations_time.append(int(time.time() - time_start))
 
         logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
 

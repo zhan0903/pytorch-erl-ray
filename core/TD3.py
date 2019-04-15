@@ -148,10 +148,10 @@ class PERL(object):
 
     def process_gradients(self, gradients, steps):
         steps.sort()
-        print("steps,", steps)
+        # print("steps,", steps)
         import collections
         counter = collections.Counter(steps)
-        print("counter,", counter)
+        # print("counter,", counter)
         gradients_new = []
         for key, value in counter.items():
             gradients_temp = []
