@@ -393,8 +393,13 @@ if __name__ == "__main__":
 
     time_start = time.time()
     output = get_output_folder(args.output, args.env_name)
+    with open(output + "/parameters.txt", 'w') as file:
+        for key, value in vars(args).items():
+            file.write("{} = {}\n".format(key, value))
+
     file_name_score = "score_%s" % str(args.seed)
     file_name_time = "time_%s" % str(args.seed)
+    file_name_frame = "frames_%s" % str(args.seed)
 
     episode = 0
     evolve = False
@@ -416,6 +421,7 @@ if __name__ == "__main__":
     timesteps_old = 0
     evaluations_score = []
     evaluations_time = []
+    evaluations_frames = []
     actor_evaluated = ddpg.Actor(state_dim, action_dim, max_action)
     # gradient_list = [worker.compute_gradient.remote(actor, parameters_critic) for actor, worker in zip(actors,workers)]
 
@@ -440,19 +446,23 @@ if __name__ == "__main__":
 
         step_cpt = all_timesteps - timesteps_old
 
+        logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
+
         if step_cpt >= args.eval_freq:
             timesteps_old = all_timesteps
             best_index = all_reward_learned.index(max(all_reward_learned))
             best_actor = ray.get(workers[best_index].get_actor_param.remote())
             actor_evaluated.set_params(best_actor)
             score_evaluated = evaluate_policy(env, actor_evaluated)
+
             evaluations_score.append(score_evaluated)
             evaluations_time.append(int(time.time() - time_start))
-
-        logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
+            evaluations_frames.append(all_timesteps)
 
     np.save(output + "/%s" % file_name_score, evaluations_score)
     np.save(output + "/%s" % file_name_time, evaluations_time)
+    np.save(output + "/%s" % file_name_frame, evaluations_frames)
+
 
 
 
