@@ -435,6 +435,9 @@ if __name__ == "__main__":
         gradient_actor, gradient_critic, info = ray.get(done_id)[0]
         all_timesteps += info["size"]
 
+        logger_main.info("len of gradient_actor{0} and gradient_critic{1}".
+                         format(len(gradient_actor), len(gradient_critic)))
+
         policy.apply_gradients(gradient_actor, gradient_critic)
         logger_main.info(" after update, critic.l6.bias:{}".format(policy.critic.state_dict()["l6.bias"]))
 

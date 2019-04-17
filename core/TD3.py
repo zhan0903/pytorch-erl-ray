@@ -255,8 +255,13 @@ class TD3(object):
 
     def apply_gradients(self, gradient_actor, gradient_critic):
         for actor_grad, critic_grad in zip(gradient_actor, gradient_critic):
+            self.actor_optimizer.zero_grad()
             self.actor.set_grads(actor_grad)
+            self.actor_optimizer.step()
+
+            self.critic_optimizer.zero_grad()
             self.critic.set_grads(critic_grad)
+            self.critic_optimizer.step()
 
         # for grad in gradient_critic:
         #     self.critic_optimizer.zero_grad()
