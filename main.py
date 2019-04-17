@@ -436,6 +436,8 @@ if __name__ == "__main__":
         all_timesteps += info["size"]
 
         policy.apply_gradients(gradient_actor, gradient_critic)
+        logger_main.info(" after update, critic.l6.bias:{}".format(policy.critic.state_dict()["l6.bias"]))
+
         parameters_actor, parameters_critic = policy.get_params()
         gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_actor, parameters_critic)])
 
