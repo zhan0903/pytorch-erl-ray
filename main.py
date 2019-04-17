@@ -219,7 +219,7 @@ class Worker(object):
 
     def compute_gradient(self, params_actor, params_critic):
         # if params_critic is not None:
-        self.policy.set_weights(params_actor, params_critic)
+        self.policy.set_params(params_actor, params_critic)
         # self.replay_buffer.empty()
         self.logger_worker.info("before critic.l6.bias:{}".format(self.policy.critic.state_dict()["l6.bias"]))
         self.episode_timesteps = 0
