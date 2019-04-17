@@ -222,13 +222,13 @@ class TD3(object):
         self.grads_critic = []
         self.grads_actor = []
 
-    def set_weights(self, params_critic, tau=0.005):
-        # self.actor.load_state_dict(params_actor)
-        self.critic.load_state_dict(params_critic)
-
-        # Update the frozen target models
-        for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
-            target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
+    # def set_weights(self, params_critic, tau=0.005):
+    #     # self.actor.load_state_dict(params_actor)
+    #     self.critic.load_state_dict(params_critic)
+    #
+    #     # Update the frozen target models
+    #     for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
+    #         target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
         # for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
         #     target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
@@ -282,7 +282,7 @@ class TD3(object):
 
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005, policy_noise=0.2, noise_clip=0.5, policy_freq=2):
         self.grads_critic = []
-        # self.grads_actor = []
+        self.grads_actor = []
 
         for it in range(iterations):
 
