@@ -254,8 +254,9 @@ class TD3(object):
         return self.actor(state).cpu().data.numpy().flatten()
 
     def apply_gradients(self, gradient_actor, gradient_critic):
-        self.actor.set_grads(gradient_actor)
-        self.critic.set_grads(gradient_critic)
+        for actor_grad, critic_grad in zip(gradient_actor, gradient_critic):
+            self.actor.set_grads(actor_grad)
+            self.critic.set_grads(critic_grad)
 
         # for grad in gradient_critic:
         #     self.critic_optimizer.zero_grad()
