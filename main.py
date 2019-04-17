@@ -222,6 +222,8 @@ class Worker(object):
         self.policy.set_params(params_actor, params_critic)
         # self.replay_buffer.empty()
         self.logger_worker.info("before critic.l6.bias:{}".format(self.policy.critic.state_dict()["l6.bias"]))
+        self.logger_worker.info("before actor.l3.bias:{}".format(self.policy.actor.state_dict()["l3.bias"]))
+
         self.episode_timesteps = 0
         obs = self.env.reset()
         reward_learned = 0
@@ -435,14 +437,11 @@ if __name__ == "__main__":
         gradient_actor, gradient_critic, info = ray.get(done_id)[0]
         all_timesteps += info["size"]
 
-        logger_main.info("len of gradient_actor{0} and gradient_critic{1}".
-                         format(len(gradient_actor), len(gradient_critic)))
-
         policy.apply_gradients(gradient_actor, gradient_critic)
         logger_main.info(" after update, critic.l6.bias:{}".format(policy.critic.state_dict()["l6.bias"]))
 
         parameters_actor, parameters_critic = policy.get_params()
-        gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_actor, parameters_critic)])
+        gradient_list.extend([workers[info["id"]].compute_gradient.remote(None, parameters_critic)])
 
         step_cpt = all_timesteps - timesteps_old
         logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
