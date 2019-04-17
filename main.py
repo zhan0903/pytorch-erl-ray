@@ -447,7 +447,7 @@ if __name__ == "__main__":
             # best_index = all_reward_learned.index(max(all_reward_learned))
             # best_actor = ray.get(workers[best_index].get_actor_param.remote())
             # actor_evaluated.set_params(best_actor)
-            score_evaluated = evaluate_policy(env, policy)
+            score_evaluated = evaluate_policy(env, policy.actor)
 
             evaluations_score.append(score_evaluated)
             evaluations_time.append(int(time.time() - time_start))
