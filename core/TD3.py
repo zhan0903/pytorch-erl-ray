@@ -246,7 +246,8 @@ class TD3(object):
         """
         Set the params of the network to the given parameters
         """
-        self.actor.set_params(params_actor)
+        if params_actor is not None:
+            self.actor.set_params(params_actor)
         self.critic.set_params(params_critic)
 
     def select_action(self, state):

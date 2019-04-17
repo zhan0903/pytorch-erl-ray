@@ -218,7 +218,7 @@ class Worker(object):
         return episode_reward
 
     def compute_gradient(self, params_actor, params_critic):
-        # if params_critic is not None:
+        # if params_actor is not None:
         self.policy.set_params(params_actor, params_critic)
         # self.replay_buffer.empty()
         self.logger_worker.info("before critic.l6.bias:{}".format(self.policy.critic.state_dict()["l6.bias"]))
@@ -423,7 +423,7 @@ if __name__ == "__main__":
     evaluations_time = []
     evaluations_frames = []
     actor_evaluated = ddpg.Actor(state_dim, action_dim, max_action)
-    gradient_list = [worker.compute_gradient.remote(parameters_actor, parameters_critic) for worker in workers]
+    gradient_list = [worker.compute_gradient.remote(actor, parameters_critic) for actor, worker in zip(actors,workers)]
 
     logger_main.info("************************************************************************")
     logger_main.info("perl-cem-rl-asyn ")
