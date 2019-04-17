@@ -234,7 +234,7 @@ class TD3(object):
         """
         Returns parameters of the actor
         """
-        return self.actor.get_params(), self.critic.get_parames()
+        return self.actor.get_params(), self.critic.get_params()
 
     def set_params(self, params_actor, params_critic):
         """
