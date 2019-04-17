@@ -436,7 +436,7 @@ if __name__ == "__main__":
         all_timesteps += info["size"]
 
         policy.apply_gradients(gradient_actor, gradient_critic)
-        parameters_actor, parameters_critic = policy.get_weights()
+        parameters_actor, parameters_critic = policy.get_params()
         gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_actor, parameters_critic)])
 
         step_cpt = all_timesteps - timesteps_old
