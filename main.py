@@ -217,9 +217,9 @@ class Worker(object):
 
         return episode_reward
 
-    def compute_gradient(self, params_critic):
-        if params_critic is not None:
-            self.policy.set_weights(params_critic)
+    def compute_gradient(self, params_actor, params_critic):
+        # if params_critic is not None:
+        self.policy.set_weights(params_actor, params_critic)
         # self.replay_buffer.empty()
         self.logger_worker.info("before critic.l6.bias:{}".format(self.policy.critic.state_dict()["l6.bias"]))
         self.episode_timesteps = 0
@@ -261,7 +261,7 @@ class Worker(object):
         self.logger_worker.info("after critic.l6.bias:{}".format(self.policy.critic.state_dict()["l6.bias"]))
         self.replay_buffer.reset()
 
-        return self.policy.grads_critic,  info
+        return self.policy.grads_actor, self.policy.grads_critic,  info
 
     def train(self, actor_weights, critic_weights):
         self.episode_timesteps = 0
@@ -415,7 +415,7 @@ if __name__ == "__main__":
     # obs = 0
     times = 1
     policy = ddpg.TD3(state_dim, action_dim, max_action)
-    parameters_critic = policy.get_weights()
+    parameters_actor, parameters_critic = policy.get_params()
     workers = [Worker.remote(args, i) for i in range(args.pop_size)]
     logger_main.info("len workers:{}".format(len(workers)))
     timesteps_old = 0
@@ -423,37 +423,31 @@ if __name__ == "__main__":
     evaluations_time = []
     evaluations_frames = []
     actor_evaluated = ddpg.Actor(state_dim, action_dim, max_action)
-    # gradient_list = [worker.compute_gradient.remote(actor, parameters_critic) for actor, worker in zip(actors,workers)]
+    gradient_list = [worker.compute_gradient.remote(parameters_actor, parameters_critic) for worker in workers]
 
     logger_main.info("************************************************************************")
-    logger_main.info("perl-cem-rl ")
+    logger_main.info("perl-cem-rl-asyn ")
     logger_main.info("************************************************************************")
     results = None
 
     while all_timesteps < args.max_timesteps:
-        critic_id = ray.put(agent.critic.get_params())
-        results_id = [worker.train.remote(actor, critic_id) for worker, actor in zip(workers, actors)] # actor.state_dict()
-        results = ray.get(results_id)
-        # print("size,", pa.serialize(results).to_buffer().size)
-        # time.sleep(10)
-        # wait for some gradient to be computed - unblock as soon as the earliest arrives
-        all_timesteps, grads_critic, steps, all_reward_learned = process_results(results)
-        # print("grads_critic size,", pa.serialize(grads_critic).to_buffer().size)
+        done_id, gradient_list = ray.wait(gradient_list)
+        gradient_actor, gradient_critic, info = ray.get(done_id)[0]
+        all_timesteps += info["size"]
 
-        agent.apply_grads(grads_critic, steps, logger_main)
-        grads_critic = None
-        actors = [None for _ in range(args.pop_size)]
+        policy.apply_gradients(gradient_actor, gradient_critic)
+        parameters_actor, parameters_critic = policy.get_weights()
+        gradient_list.extend([workers[info["id"]].compute_gradient.remote(parameters_actor, parameters_critic)])
 
         step_cpt = all_timesteps - timesteps_old
-
         logger_main.info("#All_timesteps:{0}, #Time:{1}".format(all_timesteps, time.time()-time_start))
 
         if step_cpt >= args.eval_freq:
             timesteps_old = all_timesteps
-            best_index = all_reward_learned.index(max(all_reward_learned))
-            best_actor = ray.get(workers[best_index].get_actor_param.remote())
-            actor_evaluated.set_params(best_actor)
-            score_evaluated = evaluate_policy(env, actor_evaluated)
+            # best_index = all_reward_learned.index(max(all_reward_learned))
+            # best_actor = ray.get(workers[best_index].get_actor_param.remote())
+            # actor_evaluated.set_params(best_actor)
+            score_evaluated = evaluate_policy(env, policy)
 
             evaluations_score.append(score_evaluated)
             evaluations_time.append(int(time.time() - time_start))

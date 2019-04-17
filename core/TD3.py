@@ -23,6 +23,19 @@ class Actor(nn.Module):
         self.max_action = max_action
         self.cuda()
 
+    def set_grads(self, grads):
+        cpt = 0
+        for param in self.parameters():
+            tmp = np.product(param.size())
+
+            if torch.cuda.is_available():
+                param.grad = torch.from_numpy(
+                    grads[cpt:cpt + tmp]).view(param.size()).cuda()
+            else:
+                param.grad = torch.from_numpy(
+                    grads[cpt:cpt + tmp]).view(param.size())
+            cpt += tmp
+
     def get_params(self):
         """
         Returns parameters of the actor
@@ -167,7 +180,7 @@ class PERL(object):
 
         return np.array(gradients_new)
 
-    def apply_grads(self, gradient_critic, steps, logger):
+    def apply_grads(self, actor_critc, gradient_critic, steps, logger):
         # gradients_new = self.process_gradients(gradient_critic)
 
         # logger.info("shape of gradient_critic:{}".format(gradient_critic.shape))
@@ -201,7 +214,7 @@ class TD3(object):
         self.max_action = max_action
 
         self.grads_critic = []
-        # self.grads_actor = []
+        self.grads_actor = []
 
     def set_weights(self, params_critic, tau=0.005):
         # self.actor.load_state_dict(params_actor)
@@ -214,28 +227,51 @@ class TD3(object):
         # for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
         #     target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
-    def get_weights(self):
-        return self.critic.state_dict()
+    # def get_weights(self):
+    #     return self.critic.state_dict()
+
+    def get_params(self):
+        """
+        Returns parameters of the actor
+        """
+        return self.actor.get_params(), self.critic.get_parames()
+
+    def set_params(self, params_actor, params_critic):
+        """
+        Set the params of the network to the given parameters
+        """
+        self.actor.set_params(params_actor)
+        self.critic.set_params(params_critic)
 
     def select_action(self, state):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
         return self.actor(state).cpu().data.numpy().flatten()
 
-    def apply_gradients(self, gradient_critic):
-        for grad in gradient_critic:
-            self.critic_optimizer.zero_grad()
-            for g, p in zip(grad, self.critic.parameters()):
-                if g is not None:
-                    p.grad = torch.from_numpy(g).to(device)
-            self.critic_optimizer.step()
+    def apply_gradients(self, gradient_actor, gradient_critic):
+        self.actor.set_grads(gradient_actor)
+        self.critic.set_grads(gradient_critic)
 
-    def append_grads_critic(self):
+        # for grad in gradient_critic:
+        #     self.critic_optimizer.zero_grad()
+        #     self.critic.set_grads(grad)
+        #     self.critic_optimizer.step()
+        #
+        # for grad in gradient_critic:
+        #     self.critic_optimizer.zero_grad()
+        #     for g, p in zip(grad, self.critic.parameters()):
+        #         if g is not None:
+        #             p.grad = torch.from_numpy(g).to(device)
+        #     self.critic_optimizer.step()
+
+    def append_grads(self):
         # grads_critic = [param_critic.grad.data.cpu().numpy() if param_critic.grad is not None else None
         #                 for param_critic in self.critic.parameters()]
 
         grads_critic = self.critic.get_grads()
+        grads_actor = self.actor.get_grads()
 
         self.grads_critic.append(grads_critic)
+        self.grads_actor.append(grads_actor)
 
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005, policy_noise=0.2, noise_clip=0.5, policy_freq=2):
         self.grads_critic = []
@@ -271,27 +307,30 @@ class TD3(object):
             self.critic_optimizer.zero_grad()
             critic_loss.backward()
             self.critic_optimizer.step()
-            self.append_grads_critic()
+            # self.append_grads()
 
             # Delayed policy updates
-            if it % policy_freq == 0:
+            # if it % policy_freq == 0:
 
-                # Compute actor loss
-                actor_loss = -self.critic.Q1(state, self.actor(state)).mean()
+            # Compute actor loss
+            actor_loss = -self.critic.Q1(state, self.actor(state)).mean()
 
-                # actor_grads = []
-                # Optimize the actor
-                self.actor_optimizer.zero_grad()
-                actor_loss.backward()
-                self.actor_optimizer.step()
-                # self.append_grads_actor()
+            # actor_grads = []
+            # Optimize the actor
+            self.actor_optimizer.zero_grad()
+            actor_loss.backward()
+            self.actor_optimizer.step()
+            # self.append_grads_actor()
 
-                # Update the frozen target models
-                for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
-                    target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
+            # Update the frozen target models
+            for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
+                target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
-                for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
-                    target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
+            for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
+                target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
+
+            self.append_grads()
+
 
     def save(self, filename, directory):
         torch.save(self.actor.state_dict(), '%s/%s_actor.pth' % (directory, filename))
