@@ -23,6 +23,12 @@ class Actor(nn.Module):
         self.max_action = max_action
         self.cuda()
 
+    def get_grads(self):
+        """
+        Returns the current gradient
+        """
+        return deepcopy(np.hstack([to_numpy(v.grad).flatten() for v in self.parameters()]))
+
     def set_grads(self, grads):
         cpt = 0
         for param in self.parameters():
