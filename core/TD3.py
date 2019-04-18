@@ -258,19 +258,19 @@ class TD3(object):
         return self.actor(state).cpu().data.numpy().flatten()
 
     def apply_gradients(self, gradient_actor, gradient_critic):
-        for actor_grad, critic_grad in zip(gradient_actor, gradient_critic):
-            self.actor_optimizer.zero_grad()
-            self.actor.set_grads(actor_grad)
-            self.actor_optimizer.step()
-
-            self.critic_optimizer.zero_grad()
-            self.critic.set_grads(critic_grad)
-            self.critic_optimizer.step()
-
-        # for grad in gradient_critic:
+        # for actor_grad, critic_grad in zip(gradient_actor, gradient_critic):
+        #     self.actor_optimizer.zero_grad()
+        #     self.actor.set_grads(actor_grad)
+        #     self.actor_optimizer.step()
+        #
         #     self.critic_optimizer.zero_grad()
-        #     self.critic.set_grads(grad)
+        #     self.critic.set_grads(critic_grad)
         #     self.critic_optimizer.step()
+
+        for grad in gradient_critic:
+            self.critic_optimizer.zero_grad()
+            self.critic.set_grads(grad)
+            self.critic_optimizer.step()
         #
         # for grad in gradient_critic:
         #     self.critic_optimizer.zero_grad()
@@ -284,10 +284,10 @@ class TD3(object):
         #                 for param_critic in self.critic.parameters()]
 
         grads_critic = self.critic.get_grads()
-        grads_actor = self.actor.get_grads()
+        # grads_actor = self.actor.get_grads()
 
         self.grads_critic.append(grads_critic)
-        self.grads_actor.append(grads_actor)
+        # self.grads_actor.append(grads_actor)
 
     def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005, policy_noise=0.2, noise_clip=0.5, policy_freq=2):
         self.grads_critic = []

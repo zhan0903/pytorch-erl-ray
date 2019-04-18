@@ -234,9 +234,9 @@ class Worker(object):
             else:
                 action = self.policy.select_action(np.array(obs))
                 # action = select_action(np.array(obs), self.policy.actor)
-                if self.args.expl_noise != 0:
-                    action = (action + np.random.normal(0, args.expl_noise, size=env.action_space.shape[0])).clip(
-                        self.env.action_space.low, self.env.action_space.high)
+                # if self.args.expl_noise != 0:
+                #     action = (action + np.random.normal(0, args.expl_noise, size=env.action_space.shape[0])).clip(
+                #         self.env.action_space.low, self.env.action_space.high)
 
             new_obs, reward, done, _ = self.env.step(action)
             done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
@@ -261,9 +261,9 @@ class Worker(object):
                                 (self.id, self.total_timesteps,
                                  self.episode_timesteps, reward_learned))
         self.logger_worker.info("after critic.l6.bias:{}".format(self.policy.critic.state_dict()["l6.bias"]))
-        self.replay_buffer.reset()
+        # self.replay_buffer.reset()
 
-        return self.policy.grads_actor, self.policy.grads_critic,  info
+        return self.policy.grads_critic,  info
 
     def train(self, actor_weights, critic_weights):
         self.episode_timesteps = 0
@@ -434,10 +434,10 @@ if __name__ == "__main__":
 
     while all_timesteps < args.max_timesteps:
         done_id, gradient_list = ray.wait(gradient_list)
-        gradient_actor, gradient_critic, info = ray.get(done_id)[0]
+        gradient_critic, info = ray.get(done_id)[0]
         all_timesteps += info["size"]
 
-        policy.apply_gradients(gradient_actor, gradient_critic)
+        policy.apply_gradients(None, gradient_critic)
         logger_main.info(" after update, critic.l6.bias:{}".format(policy.critic.state_dict()["l6.bias"]))
 
         parameters_actor, parameters_critic = policy.get_params()
