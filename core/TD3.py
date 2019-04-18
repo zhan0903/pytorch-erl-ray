@@ -242,13 +242,16 @@ class TD3(object):
         """
         return self.actor.get_params(), self.critic.get_params()
 
-    def set_params(self, params_actor, params_critic):
+    def set_params(self, params_actor, params_critic, tau=0.005):
         """
         Set the params of the network to the given parameters
         """
         if params_actor is not None:
             self.actor.set_params(params_actor)
         self.critic.set_params(params_critic)
+
+        for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
+            target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
     def select_action(self, state):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
