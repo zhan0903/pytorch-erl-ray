@@ -12,6 +12,7 @@ from core import mod_neuro_evo as utils_ne
 import math
 from copy import deepcopy
 import pyarrow as pa
+from ray.rllib.optimizers.async_replay_optimizer import AsyncReplayOptimizer
 
 #
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -22,6 +23,12 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train():
     start_timestep = 0
+    
+def make_local_evaluator():
+    pass
+    
+def make_remote_evaluators():
+    pass
 
 
 if __name__ == "__main__":
@@ -49,3 +56,8 @@ if __name__ == "__main__":
     
     local_evaluator = make_local_evaluator(env_creator, policy_graph)
     remote_evaluator = make_remote_evaluators(env_creator, policy_graph, args["pop_size"])
+    
+    optimizer = AsyncReplayOptimizer(local_evaluator, remote_evaluator, train_batch_size=500)
+    
+    while True:
+        optimizer.step()
