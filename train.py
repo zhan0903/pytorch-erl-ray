@@ -13,25 +13,42 @@ import math
 from copy import deepcopy
 import pyarrow as pa
 from ray.rllib.optimizers.async_replay_optimizer import AsyncReplayOptimizer
+from ray.rllib.evaluation import PolicyGraph, PolicyEvaluator, SampleBatch
+from td3_policy_graph import TD3PolicyGraph
+from ray import tune
 
 #
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #
 
 
+# def train(config,reporter):
+#     env = gym.make(config["env_name"])
+#     state_dim = env.observation_space.shape[0]
+#     action_dim = env.action_space.shape[0]
+#     max_action = float(env.action_space.high[0])
+#     policy = TD3PolicyGraph(state_dim,action_dim,max_action)
+#     workers = [
+#         PolicyEvaluator.as_remote().remote(lambda c: gym.make("CartPole-v0"),
+#                                            CustomPolicy)
+#         for _ in range(config["num_workers"])
+#     ]
 
 
-def train():
-    start_timestep = 0
     
-def make_local_evaluator():
-    pass
-    
-def make_remote_evaluators():
-    pass
+# def make_local_evaluator(env_creator, policy_graph):
+#     pass
+#
+# def make_remote_evaluators(env_creator, policy_graph, size):
+#     pass
+
+
+
 
 
 if __name__ == "__main__":
+    ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=20000000000)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--env_name", default="HalfCheetah-v2")
     parser.add_argument("--seed", default=0, type=int)
@@ -53,11 +70,38 @@ if __name__ == "__main__":
     parser.add_argument("--node_name", default="qcis5")
     parser.add_argument("--output")
     args = parser.parse_args()
-    
-    local_evaluator = make_local_evaluator(env_creator, policy_graph)
-    remote_evaluator = make_remote_evaluators(env_creator, policy_graph, args["pop_size"])
-    
-    optimizer = AsyncReplayOptimizer(local_evaluator, remote_evaluator, train_batch_size=500)
+
+    # evaluator to produce experiences
+    # local_evaluator is learner
+    # local_evaluator = make_local_evaluator(env_creator=lambda _: gym.make(args["env_name"]),, policy_graph=TD3PolicyGraph)
+    # optimizer to update policy
+    local_evaluator = PolicyEvaluator(env_creator=lambda _: gym.make(args["env_name"]), policy_graph=TD3PolicyGraph)
+    remote_evaluators = [PolicyEvaluator.as_remote().remote(env_creator=lambda _: gym.make(args["env_name"]), policy_graph=TD3PolicyGraph) for _ in range(args["pop_size"]))]
+
+    # optimizer = AsyncReplayOptimizer.make(
+    # evaluator_cls = PolicyEvaluator,
+    # evaluator_args = {
+    # "env_creator": lambda _: gym.make(args["env_name"]),
+    # "policy_graph": TD3PolicyGraph,},
+    # num_workers = 10)
+    optimizer = AsyncReplayOptimizer(local_evaluator, remote_evaluators, train_batch_size=100)
     
     while True:
         optimizer.step()
+
+
+    #
+    # tune.run(
+    #     train,
+    #     resources_per_trial={
+    #         "gpu": 1 if args.gpu else 0,
+    #         "cpu": 1,
+    #         "extra_cpu": args.pop_size,
+    #     },
+    #     config={
+    #         "num_workers": args.pop_size,
+    #         "num_iters": args.max_timesteps,
+    #         "env_name": args.env_name
+    #     },
+    # )
+

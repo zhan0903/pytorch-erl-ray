@@ -1,4 +1,4 @@
-from ray.rllib.evaluation.policy_graph import PolicyGraph
+from ray.rllib.evaluation.torch_policy_graph import TorchPolicyGraph
 import numpy as np
 import torch
 import torch.nn as nn
@@ -148,10 +148,10 @@ class Critic(nn.Module):
         return x1
 
 
-class TD3PolicyGraph(PolicyGraph):
-    def __init__(self, state_dim, action_dim, config):
-        self.config = config
-        self.max_action = config["max_action"]
+class TD3PolicyGraph(TorchPolicyGraph):
+    def __init__(self, state_dim, action_dim, max_action):
+        # self.config = config
+        self.max_action = max_action#config["max_action"]
         self.actor = Actor(state_dim, action_dim, self.max_action).to(device)
         self.actor_target = Actor(state_dim, action_dim, self.max_action).to(device)
         self.actor_target.load_state_dict(self.actor.state_dict())
@@ -162,7 +162,7 @@ class TD3PolicyGraph(PolicyGraph):
         self.critic_target.load_state_dict(self.critic.state_dict())
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
-        self.max_action = config["max_action"]
+        # self.max_action = config["max_action"]
 
     def compute_single_action(self, obs):
         obs = torch.FloatTensor(obs.reshape(1, -1)).to(device)
@@ -175,6 +175,9 @@ class TD3PolicyGraph(PolicyGraph):
         return deepcopy(np.hstack([to_numpy(v).flatten() for v in
                                    self.actor.parameters()]))
 
-    def train(self,params):
-        pass
+    def set_weights(self, params):
+        self.actor.set_params(params)
+
+    # def train(self,params):
+    #     pass
 
