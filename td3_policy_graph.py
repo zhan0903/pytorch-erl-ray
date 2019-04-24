@@ -170,5 +170,11 @@ class TD3PolicyGraph(PolicyGraph):
 
     def compute_apply(self):
         pass
+        
+    def get_weights(self):
+        return deepcopy(np.hstack([to_numpy(v).flatten() for v in
+                                   self.actor.parameters()]))
 
+    def train(self,params):
+        pass
 
