@@ -17,7 +17,7 @@ from ray.rllib.evaluation import PolicyGraph, SampleBatch
 from td3_policy_graph import TD3PolicyGraph
 from ray import tune
 import pysnooper
-from core import PolicyEvaluator
+from core.policy_evaluator import PolicyEvaluator
 
 #
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
