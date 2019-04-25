@@ -13,10 +13,11 @@ import math
 from copy import deepcopy
 import pyarrow as pa
 from ray.rllib.optimizers.async_replay_optimizer import AsyncReplayOptimizer
-from ray.rllib.evaluation import PolicyGraph, PolicyEvaluator, SampleBatch
+from ray.rllib.evaluation import PolicyGraph, SampleBatch
 from td3_policy_graph import TD3PolicyGraph
 from ray import tune
 import pysnooper
+from core import PolicyEvaluator
 
 #
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -73,6 +74,13 @@ if __name__ == "__main__":
     # local_evaluator is learner
     # local_evaluator = make_local_evaluator(env_creator=lambda _: gym.make(args["env_name"]),, policy_graph=TD3PolicyGraph)
     # optimizer to update policy
+    env = gym.make(args.env_name)
+    state_dim = env.observation_space.shape[0]
+    action_dim = env.action_space.shape[0]
+    max_action = float(env.action_space.high[0])
+
+
+    policy=TD3PolicyGraph(state_dim, action_dim, max_action)
     local_evaluator = PolicyEvaluator(env_creator=lambda _: gym.make(args.env_name), policy_graph=TD3PolicyGraph)
     remote_evaluators = [PolicyEvaluator.as_remote().remote(env_creator=lambda _: gym.make(args.env_name),
                                                             policy_graph=TD3PolicyGraph) for _ in range(args.pop_size)]
