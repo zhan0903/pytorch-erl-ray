@@ -68,7 +68,7 @@ if __name__ == "__main__":
     parser.add_argument("--elite_fraction", default=0.1, type=float)
     parser.add_argument("--node_name", default="qcis5")
     parser.add_argument("--output")
-    parser.add_argument("--max_action")
+    # parser.add_argument("--max_action")
 
     args = parser.parse_args()
     # evaluator to produce experiences
@@ -79,9 +79,9 @@ if __name__ == "__main__":
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
-    args.max_action = max_action
+    # args.max_action = max_action
 
-    policy=TD3PolicyGraph(state_dim, action_dim, args)
+    policy=TD3PolicyGraph(state_dim, action_dim, {"max_action": max_action})
     local_evaluator = PolicyEvaluator(env_creator=lambda _: gym.make(args.env_name), policy_graph=TD3PolicyGraph)
     remote_evaluators = [PolicyEvaluator.as_remote().remote(env_creator=lambda _: gym.make(args.env_name),
                                                             policy_graph=TD3PolicyGraph) for _ in range(args.pop_size)]

@@ -152,7 +152,7 @@ class TD3PolicyGraph(PolicyGraph):
     def __init__(self, state_dim, action_dim, config):
         PolicyGraph.__init__(self, state_dim, action_dim, config)
         # self.config = config
-        self.max_action = config.max_action
+        self.max_action = config["max_action"]
         self.actor = Actor(state_dim, action_dim, self.max_action).to(device)
         self.actor_target = Actor(state_dim, action_dim, self.max_action).to(device)
         self.actor_target.load_state_dict(self.actor.state_dict())
