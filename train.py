@@ -16,6 +16,7 @@ from ray.rllib.optimizers.async_replay_optimizer import AsyncReplayOptimizer
 from ray.rllib.evaluation import PolicyGraph, PolicyEvaluator, SampleBatch
 from td3_policy_graph import TD3PolicyGraph
 from ray import tune
+import pysnooper
 
 #
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -45,7 +46,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 
-
+@pysnooper.snoop()
 if __name__ == "__main__":
     ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=20000000000)
 
