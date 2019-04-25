@@ -83,9 +83,11 @@ if __name__ == "__main__":
     config = {"max_action": max_action}
 
     policy = TD3PolicyGraph(state_dim, action_dim, config)
-    local_evaluator = PolicyEvaluator(env_creator=lambda _: gym.make(args.env_name), policy_graph=TD3PolicyGraph)
+    local_evaluator = PolicyEvaluator(env_creator=lambda _: gym.make(args.env_name),
+                                      policy_graph=TD3PolicyGraph(state_dim, action_dim, config))
     remote_evaluators = [PolicyEvaluator.as_remote().remote(env_creator=lambda _: gym.make(args.env_name),
-                                                            policy_graph=TD3PolicyGraph) for _ in range(args.pop_size)]
+                         policy_graph=TD3PolicyGraph(state_dim, action_dim, config))
+                         for _ in range(args.pop_size)]
 
     # optimizer = AsyncReplayOptimizer.make(
     # evaluator_cls = PolicyEvaluator,
