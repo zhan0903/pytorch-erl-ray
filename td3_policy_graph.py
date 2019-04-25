@@ -6,6 +6,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from utils import to_numpy
 from copy import deepcopy
+import pysnooper
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -149,6 +150,7 @@ class Critic(nn.Module):
 
 
 class TD3PolicyGraph(PolicyGraph):
+    @pysnooper.snoop()
     def __init__(self, state_dim, action_dim, config):
         PolicyGraph.__init__(self, state_dim, action_dim, config)
         # self.config = config
