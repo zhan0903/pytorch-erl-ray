@@ -171,6 +171,10 @@ class TD3PolicyGraph(PolicyGraph):
         obs = torch.FloatTensor(obs.reshape(1, -1)).to(device)
         return self.actor(obs).cpu().data.numpy().flatten()
 
+    def learn_on_batch(self,samples):
+        pass
+
+
     def compute_apply(self):
         pass
         
