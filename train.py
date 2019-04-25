@@ -44,9 +44,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #     pass
 
 
-
-
-@pysnooper.snoop()
 if __name__ == "__main__":
     ray.init(include_webui=False, ignore_reinit_error=True, object_store_memory=20000000000)
 
@@ -86,6 +83,7 @@ if __name__ == "__main__":
     # "env_creator": lambda _: gym.make(args["env_name"]),
     # "policy_graph": TD3PolicyGraph,},
     # num_workers = 10)
+    @pysnooper.snoop()
     optimizer = AsyncReplayOptimizer(local_evaluator, remote_evaluators, train_batch_size=100)
     
     while True:
