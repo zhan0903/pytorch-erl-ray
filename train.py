@@ -83,7 +83,7 @@ if __name__ == "__main__":
     # "env_creator": lambda _: gym.make(args["env_name"]),
     # "policy_graph": TD3PolicyGraph,},
     # num_workers = 10)
-    @pysnooper.snoop()
+    # @pysnooper.snoop()
     optimizer = AsyncReplayOptimizer(local_evaluator, remote_evaluators, train_batch_size=100)
     
     while True:
