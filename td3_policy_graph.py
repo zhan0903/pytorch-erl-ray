@@ -174,7 +174,6 @@ class TD3PolicyGraph(PolicyGraph):
     def learn_on_batch(self,samples):
         pass
 
-
     def compute_apply(self):
         pass
         

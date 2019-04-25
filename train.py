@@ -12,7 +12,7 @@ from core import mod_neuro_evo as utils_ne
 import math
 from copy import deepcopy
 import pyarrow as pa
-from ray.rllib.optimizers.async_replay_optimizer import AsyncReplayOptimizer
+from core.async_replay_optimizer import AsyncReplayOptimizer
 from ray.rllib.evaluation import PolicyGraph, SampleBatch
 from td3_policy_graph import TD3PolicyGraph
 from ray import tune
@@ -84,10 +84,10 @@ if __name__ == "__main__":
 
     policy = TD3PolicyGraph(state_dim, action_dim, config)
     local_evaluator = PolicyEvaluator(env_creator=lambda _: gym.make(args.env_name),
-                                      policy_graph=TD3PolicyGraph)
+                                      policy_graph=(TD3PolicyGraph, {"max_action":max_action}))
 
     remote_evaluators = [PolicyEvaluator.as_remote().remote(env_creator=lambda _: gym.make(args.env_name),
-                         policy_graph=TD3PolicyGraph)
+                         policy_graph=(TD3PolicyGraph, {"max_action":max_action}))
                          for _ in range(args.pop_size)]
 
     # optimizer = AsyncReplayOptimizer.make(
