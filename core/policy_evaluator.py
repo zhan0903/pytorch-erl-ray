@@ -751,8 +751,8 @@ def _validate_and_canonicalize(policy_graph, env):
                 "MultiAgentEnv must have observation_space defined if run "
                 "in a single-agent configuration.")
         return {
-            DEFAULT_POLICY_ID: (policy_graph, env.observation_space.shape[0],
-                                env.action_space.shape[0], {"max_action":float(env.action_space.high[0])})
+            DEFAULT_POLICY_ID: (policy_graph, env.observation_space,
+                                env.action_space, {"max_action":float(env.action_space.high[0])})
         }
 
 def _validate_multiagent_config(policy_graph, allow_none_graph=False):
