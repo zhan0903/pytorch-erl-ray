@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from utils import to_numpy
 from copy import deepcopy
 import pysnooper
+from threading import Lock
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -164,6 +165,7 @@ class TD3PolicyGraph(PolicyGraph):
         self.critic_target = Critic(state_dim.shape[0], action_dim.shape[0]).to(device)
         self.critic_target.load_state_dict(self.critic.state_dict())
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
+        self.lock = Lock()
 
         # self.max_action = config["max_action"]
 
