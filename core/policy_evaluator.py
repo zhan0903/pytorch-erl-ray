@@ -32,6 +32,7 @@ from ray.rllib.utils.debug import disable_log_once_globally, log_once, \
     summarize, enable_periodic_logging
 from ray.rllib.utils.filter import get_filter
 from ray.rllib.utils.tf_run_builder import TFRunBuilder
+import pysnooper
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +111,7 @@ class PolicyEvaluator(EvaluatorInterface):
             num_cpus=num_cpus, num_gpus=num_gpus, resources=resources)(cls)
 
     @DeveloperAPI
+    @pysnooper.snoop()
     def __init__(self,
                  env_creator,
                  policy_graph,
