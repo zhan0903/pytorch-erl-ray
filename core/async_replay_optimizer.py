@@ -31,7 +31,7 @@ SAMPLE_QUEUE_DEPTH = 2
 REPLAY_QUEUE_DEPTH = 4
 LEARNER_QUEUE_MAX_SIZE = 16
 
-@pysnooper.snoop()
+
 class AsyncReplayOptimizer(PolicyOptimizer):
     """Main event loop of the Ape-X optimizer (async sampling with replay).
 
@@ -115,6 +115,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             self._set_evaluators(self.remote_evaluators)
 
     @override(PolicyOptimizer)
+    @pysnooper.snoop()
     def step(self):
         assert self.learner.is_alive()
         assert len(self.remote_evaluators) > 0
