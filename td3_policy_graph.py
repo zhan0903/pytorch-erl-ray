@@ -150,7 +150,7 @@ class Critic(nn.Module):
 
 
 class TD3PolicyGraph(PolicyGraph):
-    @pysnooper.snoop()
+    # @pysnooper.snoop()
     def __init__(self, state_dim, action_dim, config):
         PolicyGraph.__init__(self, state_dim, action_dim, config)
         # self.config = config
