@@ -25,12 +25,13 @@ from ray.rllib.utils.annotations import override
 from ray.rllib.utils.actors import TaskPool, create_colocated
 from ray.rllib.utils.timer import TimerStat
 from ray.rllib.utils.window_stat import WindowStat
+import pysnooper
 
 SAMPLE_QUEUE_DEPTH = 2
 REPLAY_QUEUE_DEPTH = 4
 LEARNER_QUEUE_MAX_SIZE = 16
 
-
+@pysnooper.snoop()
 class AsyncReplayOptimizer(PolicyOptimizer):
     """Main event loop of the Ape-X optimizer (async sampling with replay).
 
