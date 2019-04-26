@@ -76,13 +76,13 @@ if __name__ == "__main__":
     # local_evaluator = make_local_evaluator(env_creator=lambda _: gym.make(args["env_name"]),, policy_graph=TD3PolicyGraph)
     # optimizer to update policy
     env = gym.make(args.env_name)
-    state_dim = env.observation_space.shape[0]
-    action_dim = env.action_space.shape[0]
+    # state_dim = env.observation_space
+    # action_dim = env.action_space
     max_action = float(env.action_space.high[0])
     # args.max_action = max_action
     config = {"max_action": max_action}
 
-    policy = TD3PolicyGraph(state_dim, action_dim, config)
+    policy = TD3PolicyGraph(env.observation_space, env.action_space, config)
     local_evaluator = PolicyEvaluator(env_creator=lambda _: gym.make(args.env_name),
                                       policy_graph=TD3PolicyGraph)
 
