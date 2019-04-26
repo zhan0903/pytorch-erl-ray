@@ -155,13 +155,13 @@ class TD3PolicyGraph(PolicyGraph):
         PolicyGraph.__init__(self, state_dim, action_dim, config)
         # self.config = config
         self.max_action = config["max_action"]
-        self.actor = Actor(state_dim.shape[0], action_dim.shape[0], self.max_action)#.to(device)
-        self.actor_target = Actor(state_dim.shape[0], action_dim.shape[0], self.max_action)#.to(device)
+        self.actor = Actor(state_dim.shape[0], action_dim.shape[0], self.max_action).to(device)
+        self.actor_target = Actor(state_dim.shape[0], action_dim.shape[0], self.max_action).to(device)
         self.actor_target.load_state_dict(self.actor.state_dict())
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
 
-        self.critic = Critic(state_dim.shape[0], action_dim.shape[0])#.to(device)
-        self.critic_target = Critic(state_dim.shape[0], action_dim.shape[0])#.to(device)
+        self.critic = Critic(state_dim.shape[0], action_dim.shape[0]).to(device)
+        self.critic_target = Critic(state_dim.shape[0], action_dim.shape[0]).to(device)
         self.critic_target.load_state_dict(self.critic.state_dict())
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
