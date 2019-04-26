@@ -190,13 +190,11 @@ class TD3PolicyGraph(PolicyGraph):
                 ob = torch.from_numpy(np.array(obs_batch)) \
                     .float().to(device)
                 # actions_
-                model_out = self._model({"obs": ob}, state_batches)
-                logits, _, vf, state = model_out
-                action_dist = self._action_dist_cls(logits)
-                actions = action_dist.sample()
-                return (actions.cpu().numpy(),
-                        [h.cpu().numpy() for h in state],
-                        self.extra_action_out(model_out))
+                model_out = self.actor(ob)
+                actions = model_out
+                # action_dist = self._action_dist_cls(logits)
+                # actions = action_dist.sample()
+                return actions.cpu().data.numpy().flatten()
 
     def compute_td_error(self):
         pass
