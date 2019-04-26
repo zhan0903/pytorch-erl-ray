@@ -106,13 +106,13 @@ class PolicyEvaluator(EvaluatorInterface):
 
     @DeveloperAPI
     @classmethod
-    @pysnooper.snoop()
+    # @pysnooper.snoop()
     def as_remote(cls, num_cpus=None, num_gpus=None, resources=None):
         return ray.remote(
             num_cpus=num_cpus, num_gpus=num_gpus, resources=resources)(cls)
 
     @DeveloperAPI
-    @pysnooper.snoop()
+    # @pysnooper.snoop()
     def __init__(self,
                  env_creator,
                  policy_graph,
@@ -737,7 +737,7 @@ class PolicyEvaluator(EvaluatorInterface):
             self.sampler.shutdown = True
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def _validate_and_canonicalize(policy_graph, env):
     if isinstance(policy_graph, dict):
         _validate_multiagent_config(policy_graph)
@@ -754,6 +754,7 @@ def _validate_and_canonicalize(policy_graph, env):
             DEFAULT_POLICY_ID: (policy_graph, env.observation_space,
                                 env.action_space, {"max_action":float(env.action_space.high[0])})
         }
+
 
 def _validate_multiagent_config(policy_graph, allow_none_graph=False):
     for k, v in policy_graph.items():
