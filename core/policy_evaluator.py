@@ -106,6 +106,7 @@ class PolicyEvaluator(EvaluatorInterface):
 
     @DeveloperAPI
     @classmethod
+    @pysnooper.snoop()
     def as_remote(cls, num_cpus=None, num_gpus=None, resources=None):
         return ray.remote(
             num_cpus=num_cpus, num_gpus=num_gpus, resources=resources)(cls)
