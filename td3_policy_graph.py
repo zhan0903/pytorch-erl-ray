@@ -171,7 +171,35 @@ class TD3PolicyGraph(PolicyGraph):
         obs = torch.FloatTensor(obs.reshape(1, -1)).to(device)
         return self.actor(obs).cpu().data.numpy().flatten()
 
-    def learn_on_batch(self,samples):
+    def compute_actions(self, obs_batch, state_batches):
+        pass
+
+    @pysnooper.snoop()
+    def compute_actions(self,
+                        obs_batch,
+                        state_batches=None,
+                        prev_action_batch=None,
+                        prev_reward_batch=None,
+                        info_batch=None,
+                        episodes=None,
+                        **kwargs):
+        with self.lock:
+            with torch.no_grad():
+                ob = torch.from_numpy(np.array(obs_batch)) \
+                    .float().to(device)
+                # actions_
+                model_out = self._model({"obs": ob}, state_batches)
+                logits, _, vf, state = model_out
+                action_dist = self._action_dist_cls(logits)
+                actions = action_dist.sample()
+                return (actions.cpu().numpy(),
+                        [h.cpu().numpy() for h in state],
+                        self.extra_action_out(model_out))
+
+    def compute_td_error(self):
+        pass
+
+    def learn_on_batch(self, samples):
         print("learn_on_batch")
         pass
 
