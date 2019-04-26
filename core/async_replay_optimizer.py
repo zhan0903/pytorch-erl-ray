@@ -115,7 +115,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             self._set_evaluators(self.remote_evaluators)
 
     @override(PolicyOptimizer)
-    @pysnooper.snoop()
+    @pysnooper.snoop(depth=2, prefix='step')
     def step(self):
         assert self.learner.is_alive()
         assert len(self.remote_evaluators) > 0
@@ -184,6 +184,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             for _ in range(SAMPLE_QUEUE_DEPTH):
                 self.sample_tasks.add(ev, ev.sample_with_count.remote())
 
+    # @pysnooper.snoop()
     def _step(self):
         sample_timesteps, train_timesteps = 0, 0
         weights = None
