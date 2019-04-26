@@ -737,6 +737,7 @@ class PolicyEvaluator(EvaluatorInterface):
             self.sampler.shutdown = True
 
 
+@pysnooper.snoop()
 def _validate_and_canonicalize(policy_graph, env):
     if isinstance(policy_graph, dict):
         _validate_multiagent_config(policy_graph)
