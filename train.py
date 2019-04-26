@@ -12,7 +12,9 @@ from core import mod_neuro_evo as utils_ne
 import math
 from copy import deepcopy
 import pyarrow as pa
-from core.async_replay_optimizer import AsyncReplayOptimizer
+from ray.rllib.optimizers.async_replay_optimizer import AsyncReplayOptimizer
+
+# from core.async_replay_optimizer import AsyncReplayOptimizer
 from ray.rllib.evaluation import PolicyGraph, SampleBatch
 from td3_policy_graph import TD3PolicyGraph
 from ray import tune
