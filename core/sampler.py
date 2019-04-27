@@ -265,6 +265,8 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
             terminal condition, and other fields as dictated by `policy`.
     """
 
+    print("_env_runner++++++++++++++")
+
     try:
         if not horizon:
             horizon = (base_env.get_unwrapped()[0].spec.max_episode_steps)
