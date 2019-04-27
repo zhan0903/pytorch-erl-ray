@@ -47,6 +47,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
     "td_error" array in the info return of compute_gradients(). This error
     term will be used for sample prioritization."""
 
+    @pysnooper.snoop()
     def __init__(self,
                  local_evaluator,
                  remote_evaluators,
