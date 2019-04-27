@@ -554,7 +554,7 @@ def _do_policy_eval(tf_sess, to_eval, policies, active_episodes):
 
     return eval_results
 
-@pysnooper.snoop(depth=2)
+# @pysnooper.snoop(depth=2)
 def _process_policy_eval_results(to_eval, eval_results, active_episodes,
                                  active_envs, off_policy_actions, policies,
                                  clip_actions):
@@ -566,6 +566,7 @@ def _process_policy_eval_results(to_eval, eval_results, active_episodes,
     Returns:
         actions_to_send: nested dict of env id -> agent id -> agent replies.
     """
+    print("")
 
     actions_to_send = defaultdict(dict)
     for env_id in active_envs:
