@@ -173,6 +173,7 @@ class AsyncSampler(threading.Thread, SamplerInput):
             self.queue.put(e)
             raise e
 
+    @pysnooper.snoop()
     def _run(self):
         if self.blackhole_outputs:
             queue_putter = (lambda x: None)
