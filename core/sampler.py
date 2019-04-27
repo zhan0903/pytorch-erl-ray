@@ -570,7 +570,7 @@ def _process_policy_eval_results(to_eval, eval_results, active_episodes,
     Returns:
         actions_to_send: nested dict of env id -> agent id -> agent replies.
     """
-    print("")
+    print("eval_results in _process_policy_eval_results,",eval_results)
 
     actions_to_send = defaultdict(dict)
     for env_id in active_envs:
