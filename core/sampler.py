@@ -228,7 +228,7 @@ class AsyncSampler(threading.Thread, SamplerInput):
         return extra
 
 
-@pysnooper.snoop(depth=2)
+@pysnooper.snoop()
 def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
                 unroll_length, horizon, preprocessors, obs_filters,
                 clip_rewards, clip_actions, pack, callbacks, tf_sess,
