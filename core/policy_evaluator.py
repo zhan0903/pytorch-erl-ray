@@ -425,6 +425,7 @@ class PolicyEvaluator(EvaluatorInterface):
             self.async_env, self.env, self.policy_map))
 
     @override(EvaluatorInterface)
+    @pysnooper.snoop()
     def sample(self):
         """Evaluate the current policies and return a batch of experiences.
 
