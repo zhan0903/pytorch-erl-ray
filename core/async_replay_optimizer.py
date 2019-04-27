@@ -184,15 +184,13 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             for _ in range(SAMPLE_QUEUE_DEPTH):
                 self.sample_tasks.add(ev, ev.sample_with_count.remote())
 
-    @pysnooper.snoop(depth=3)
+    # @pysnooper.snoop(depth=3)
     def _step(self):
         sample_timesteps, train_timesteps = 0, 0
         weights = None
 
         with self.timers["sample_processing"]:
             completed = list(self.sample_tasks.completed())
-            print("completed++++++++++",completed)
-
             counts = ray.get([c[1][1] for c in completed])
             for i, (ev, (sample_batch, count)) in enumerate(completed):
                 sample_timesteps += counts[i]
