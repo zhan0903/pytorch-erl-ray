@@ -169,12 +169,12 @@ class TD3PolicyGraph(PolicyGraph):
 
         # self.max_action = config["max_action"]
 
-    @pysnooper.snoop()
+    # @pysnooper.snoop()
     def compute_single_action(self, obs):
         obs = torch.FloatTensor(obs.reshape(1, -1)).to(device)
         return self.actor(obs).cpu().data.numpy().flatten()
 
-    @pysnooper.snoop()
+    # @pysnooper.snoop()
     def compute_actions(self,
                         obs_batch,
                         state_batches=None,
