@@ -22,7 +22,7 @@ from ray.rllib.evaluation.sample_batch import SampleBatch, DEFAULT_POLICY_ID, \
 from ray.rllib.optimizers.policy_optimizer import PolicyOptimizer
 from ray.rllib.optimizers.replay_buffer import PrioritizedReplayBuffer
 from ray.rllib.utils.annotations import override
-from ray.rllib.utils.actors import TaskPool, create_colocated
+from core.actors import TaskPool, create_colocated
 from ray.rllib.utils.timer import TimerStat
 from ray.rllib.utils.window_stat import WindowStat
 import pysnooper
@@ -184,7 +184,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             for _ in range(SAMPLE_QUEUE_DEPTH):
                 self.sample_tasks.add(ev, ev.sample_with_count.remote())
 
-    @pysnooper.snoop(variables=('sample_batch'))
+    @pysnooper.snoop()
     def _step(self):
         sample_timesteps, train_timesteps = 0, 0
         weights = None
@@ -267,6 +267,7 @@ class ReplayActor(object):
     def get_host(self):
         return os.uname()[1]
 
+    @pysnooper.snoop()
     def add_batch(self, batch):
         # Handle everything as if multiagent
         if isinstance(batch, SampleBatch):

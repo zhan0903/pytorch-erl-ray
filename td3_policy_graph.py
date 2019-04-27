@@ -173,9 +173,6 @@ class TD3PolicyGraph(PolicyGraph):
         obs = torch.FloatTensor(obs.reshape(1, -1)).to(device)
         return self.actor(obs).cpu().data.numpy().flatten()
 
-    def compute_actions(self, obs_batch, state_batches):
-        pass
-
     @pysnooper.snoop()
     def compute_actions(self,
                         obs_batch,
@@ -196,16 +193,16 @@ class TD3PolicyGraph(PolicyGraph):
                 # actions = action_dist.sample()
                 return actions.cpu().data.numpy().flatten()
 
-    def compute_td_error(self):
-        pass
+    # def compute_td_error(self):
+    #     pass
 
-    def learn_on_batch(self, samples):
-        print("learn_on_batch")
-        pass
+    # def learn_on_batch(self, samples):
+    #     print("learn_on_batch")
+    #     pass
 
-    def compute_apply(self):
-        print("compute_apply")
-        pass
+    # def compute_apply(self):
+    #     print("compute_apply")
+    #     pass
         
     def get_weights(self):
         return deepcopy(np.hstack([to_numpy(v).flatten() for v in
