@@ -347,6 +347,7 @@ class BatchReplayActor(object):
     def get_host(self):
         return os.uname()[1]
 
+    @pysnooper.snoop()
     def add_batch(self, batch):
         # Handle everything as if multiagent
         if isinstance(batch, SampleBatch):
