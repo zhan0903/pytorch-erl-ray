@@ -134,7 +134,7 @@ class PolicyEvaluator(EvaluatorInterface):
                  policy_config=None,
                  worker_index=0,
                  monitor_path=None,
-                 log_dir=None,
+                 log_dir="./log.out",
                  log_level="DEBUG",
                  callbacks=None,
                  input_creator=lambda ioctx: ioctx.default_sampler_input(),
@@ -425,7 +425,7 @@ class PolicyEvaluator(EvaluatorInterface):
             self.async_env, self.env, self.policy_map))
 
     @override(EvaluatorInterface)
-    @pysnooper.snoop()
+    @pysnooper.snoop(depth=2, prefix="in policy_evaluator")
     def sample(self):
         """Evaluate the current policies and return a batch of experiences.
 
