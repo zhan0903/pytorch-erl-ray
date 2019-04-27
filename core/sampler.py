@@ -227,7 +227,7 @@ class AsyncSampler(threading.Thread, SamplerInput):
                 break
         return extra
 
-
+@pysnooper.snoop(depth=2)
 def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
                 unroll_length, horizon, preprocessors, obs_filters,
                 clip_rewards, clip_actions, pack, callbacks, tf_sess,
@@ -554,7 +554,7 @@ def _do_policy_eval(tf_sess, to_eval, policies, active_episodes):
 
     return eval_results
 
-@pysnooper.snoop()
+# @pysnooper.snoop(depth=2)
 def _process_policy_eval_results(to_eval, eval_results, active_episodes,
                                  active_envs, off_policy_actions, policies,
                                  clip_actions):
