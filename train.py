@@ -108,7 +108,7 @@ if __name__ == "__main__":
     
     while True:
         optimizer.step()
-        time.sleep(2)
+        time.sleep(3)
         exit(0)
 
 
