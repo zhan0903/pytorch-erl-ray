@@ -183,7 +183,7 @@ class TD3PolicyGraph(PolicyGraph):
                         info_batch=None,
                         episodes=None,
                         **kwargs):
-        print("in graph,obs_batch,",obs_batch)
+        print("in graph,obs_batch,", obs_batch)
         with self.lock:
             with torch.no_grad():
                 ob = torch.from_numpy(np.array(obs_batch)) \

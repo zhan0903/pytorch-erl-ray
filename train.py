@@ -100,7 +100,7 @@ if __name__ == "__main__":
     # num_workers = 10)
     # @pysnooper.snoop()
     print("len of remote_evaluators,",len(remote_evaluators))
-    optimizer = AsyncReplayOptimizer(local_evaluator, remote_evaluators, train_batch_size=100)
+    optimizer = AsyncReplayOptimizer(local_evaluator, remote_evaluators, buffer_size=2000000, debug=True, train_batch_size=100)
 
     # optimizer.step()
     #

@@ -135,7 +135,7 @@ class PolicyEvaluator(EvaluatorInterface):
                  worker_index=0,
                  monitor_path=None,
                  log_dir=None,
-                 log_level=None,
+                 log_level="DEBUG",
                  callbacks=None,
                  input_creator=lambda ioctx: ioctx.default_sampler_input(),
                  input_evaluation=frozenset([]),
