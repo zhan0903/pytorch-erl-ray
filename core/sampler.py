@@ -58,6 +58,7 @@ class SamplerInput(InputReader):
 
     @override(InputReader)
     def next(self):
+        print("in sampler, SamplerInput.next")
         batches = [self.get_data()]
         batches.extend(self.get_extra_batches())
         if len(batches) > 1:
@@ -96,6 +97,7 @@ class SyncSampler(SamplerInput):
             self.preprocessors, self.obs_filters, clip_rewards, clip_actions,
             pack, callbacks, tf_sess, self.perf_stats, soft_horizon)
         self.metrics_queue = queue.Queue()
+        print("in sampler, SyncSampler")
 
     def get_data(self):
         while True:
@@ -165,6 +167,7 @@ class AsyncSampler(threading.Thread, SamplerInput):
         self.soft_horizon = soft_horizon
         self.perf_stats = PerfStats()
         self.shutdown = False
+        print("in sampler, AsyncSampler")
 
     def run(self):
         try:
@@ -229,7 +232,7 @@ class AsyncSampler(threading.Thread, SamplerInput):
         return extra
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
                 unroll_length, horizon, preprocessors, obs_filters,
                 clip_rewards, clip_actions, pack, callbacks, tf_sess,
