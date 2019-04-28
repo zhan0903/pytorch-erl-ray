@@ -23,6 +23,12 @@ from ray.rllib.utils.tf_run_builder import TFRunBuilder
 from ray.rllib.evaluation.policy_graph import clip_action
 import pysnooper
 
+
+console = logging.StreamHandler()
+console.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
+console.setFormatter(formatter)
+logging.getLogger('').addHandler(console)
 logger = logging.getLogger(__name__)
 
 RolloutMetrics = namedtuple("RolloutMetrics", [
@@ -101,10 +107,11 @@ class SyncSampler(SamplerInput):
         print("in sampler, SyncSampler")
 
     def get_data(self):
-        print("in sampler.SyncSampler.get_data")
+        print("#sampler.SyncSampler.get_data")
 
         while True:
             item = next(self.rollout_provider)
+            print("#sampler.SyncSampler.get_data,item,", item)
             if isinstance(item, RolloutMetrics):
                 self.metrics_queue.put(item)
             else:
@@ -237,7 +244,6 @@ class AsyncSampler(threading.Thread, SamplerInput):
         return extra
 
 
-# @pysnooper.snoop()
 def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
                 unroll_length, horizon, preprocessors, obs_filters,
                 clip_rewards, clip_actions, pack, callbacks, tf_sess,
