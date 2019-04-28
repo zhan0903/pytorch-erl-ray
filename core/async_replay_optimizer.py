@@ -209,6 +209,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             counts = ray.get([c[1][1] for c in completed])
             for i, (ev, (sample_batch, count)) in enumerate(completed):
                 sample_timesteps += counts[i]
+                print("begin add_batch==================")
 
                 # Send the data to the replay buffer
                 random.choice(
