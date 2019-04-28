@@ -490,6 +490,7 @@ class PolicyEvaluator(EvaluatorInterface):
     @ray.method(num_return_vals=2)
     def sample_with_count(self):
         """Same as sample() but returns the count as a separate future."""
+        print("in policy_evaluator, sample_with_count")
         batch = self.sample()
         return batch, batch.count
 
