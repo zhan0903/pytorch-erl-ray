@@ -570,14 +570,14 @@ def _process_policy_eval_results(to_eval, eval_results, active_episodes,
     Returns:
         actions_to_send: nested dict of env id -> agent id -> agent replies.
     """
-    print("eval_results in _process_policy_eval_results,",eval_results)
+    print("eval_results in _process_policy_eval_results,", eval_results)
 
     actions_to_send = defaultdict(dict)
     for env_id in active_envs:
         actions_to_send[env_id] = {}  # at minimum send empty dict
 
     for policy_id, eval_data in to_eval.items():
-        rnn_in_cols = _to_column_format([t.rnn_state for t in eval_data])
+        # rnn_in_cols = _to_column_format([t.rnn_state for t in eval_data])
         actions = eval_results[policy_id]
         # if len(rnn_in_cols) != len(rnn_out_cols):
         #     raise ValueError("Length of RNN in did not match RNN out, got: "
