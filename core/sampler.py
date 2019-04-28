@@ -101,6 +101,8 @@ class SyncSampler(SamplerInput):
         print("in sampler, SyncSampler")
 
     def get_data(self):
+        print("in sampler.SyncSampler.get_data")
+
         while True:
             item = next(self.rollout_provider)
             if isinstance(item, RolloutMetrics):
@@ -203,6 +205,8 @@ class AsyncSampler(threading.Thread, SamplerInput):
                 queue_putter(item)
 
     def get_data(self):
+        print("in sampler.AsyncSampler.get_data")
+
         if not self.is_alive():
             raise RuntimeError("Sampling thread has died")
         rollout = self.queue.get(timeout=600.0)
