@@ -509,7 +509,7 @@ def _process_observations(base_env, policies, batch_builder_pool,
 
     return active_envs, to_eval, outputs
 
-
+@pysnooper.snoop()
 def _do_policy_eval(tf_sess, to_eval, policies, active_episodes):
     """Call compute actions on observation batches to get next actions.
 
