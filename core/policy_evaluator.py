@@ -432,6 +432,7 @@ class PolicyEvaluator(EvaluatorInterface):
         Return:
             SampleBatch|MultiAgentBatch from evaluating the current policies.
         """
+        print("in policy evaluator, sample")
 
         if self._fake_sampler and self.last_batch is not None:
             return self.last_batch
@@ -439,6 +440,7 @@ class PolicyEvaluator(EvaluatorInterface):
         if log_once("sample_start"):
             logger.info("Generating sample batch of size {}".format(
                 self.sample_batch_size))
+        print("self.sample_batch_size,",self.sample_batch_size)
 
         batches = [self.input_reader.next()]
         steps_so_far = batches[0].count
