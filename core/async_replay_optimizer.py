@@ -209,6 +209,8 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             completed = list(self.sample_tasks.completed())
             counts = ray.get([c[1][1] for c in completed])
             print("judge completed tasks-----------------")
+
+            exit(0)
             for i, (ev, (sample_batch, count)) in enumerate(completed):
                 sample_timesteps += counts[i]
                 print("begin add_batch==================")
