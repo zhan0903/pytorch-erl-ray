@@ -25,11 +25,24 @@ from ray.rllib.utils.annotations import override
 from core.actors import TaskPool, create_colocated
 from ray.rllib.utils.timer import TimerStat
 from ray.rllib.utils.window_stat import WindowStat
-import pysnooper
+import logging
 
 SAMPLE_QUEUE_DEPTH = 2
 REPLAY_QUEUE_DEPTH = 4
 LEARNER_QUEUE_MAX_SIZE = 16
+
+# logging.basicConfig(level=logging.DEBUG,
+#                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+#                     datefmt='%m-%d %H:%M',
+#                     filename='./debug/%s_%s_%s' % (args.output, args.env_name, args.pop_size),
+#                     filemode='a+')
+console = logging.StreamHandler()
+console.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
+console.setFormatter(formatter)
+logging.getLogger('').addHandler(console)
+
+logger_main = logging.getLogger('Main')
 
 
 class AsyncReplayOptimizer(PolicyOptimizer):
@@ -272,6 +285,7 @@ class ReplayActor(object):
     # @pysnooper.snoop()
     def add_batch(self, batch):
         # Handle everything as if multiagent
+        print("come here in add_batch!!")
         if isinstance(batch, SampleBatch):
             batch = MultiAgentBatch({DEFAULT_POLICY_ID: batch}, batch.count)
         with self.add_batch_timer:
