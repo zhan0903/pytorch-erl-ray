@@ -417,6 +417,8 @@ class PolicyEvaluator(EvaluatorInterface):
                 soft_horizon=soft_horizon)
 
         self.input_reader = input_creator(self.io_context)
+        print("in policy evaluator, self.input_reader,",self.input_reader)
+
         assert isinstance(self.input_reader, InputReader), self.input_reader
         self.output_writer = output_creator(self.io_context)
         assert isinstance(self.output_writer, OutputWriter), self.output_writer
