@@ -440,9 +440,10 @@ class PolicyEvaluator(EvaluatorInterface):
         if log_once("sample_start"):
             logger.info("Generating sample batch of size {}".format(
                 self.sample_batch_size))
-        print("self.sample_batch_size,",self.sample_batch_size)
+        print("self.sample_batch_size,", self.sample_batch_size)
 
         batches = [self.input_reader.next()]
+        print("in policy evaluator sample, batches,", batches)
         steps_so_far = batches[0].count
 
         # In truncate_episodes mode, never pull more than 1 batch per env.
