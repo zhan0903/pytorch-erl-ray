@@ -60,6 +60,7 @@ class SamplerInput(InputReader):
     def next(self):
         print("in sampler, SamplerInput.next")
         batches = [self.get_data()]
+        print("in sampler.SamplerInput, len of batches,",len(batches))
         batches.extend(self.get_extra_batches())
         if len(batches) > 1:
             return batches[0].concat_samples(batches)
