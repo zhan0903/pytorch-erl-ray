@@ -176,7 +176,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
         return dict(PolicyOptimizer.stats(self), **stats)
 
     # For https://github.com/ray-project/ray/issues/2541 only
-    @pysnooper.snoop()
+    # @pysnooper.snoop()
     def _set_evaluators(self, remote_evaluators):
         self.remote_evaluators = remote_evaluators
         weights = self.local_evaluator.get_weights()
@@ -186,7 +186,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             for _ in range(SAMPLE_QUEUE_DEPTH):
                 self.sample_tasks.add(ev, ev.sample_with_count.remote())
 
-    @pysnooper.snoop(depth=2)
+    # @pysnooper.snoop(depth=2)
     def _step(self):
         sample_timesteps, train_timesteps = 0, 0
         weights = None
