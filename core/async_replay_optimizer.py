@@ -47,7 +47,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
     "td_error" array in the info return of compute_gradients(). This error
     term will be used for sample prioritization."""
 
-    @pysnooper.snoop(depth=2)
+    # @pysnooper.snoop(depth=2)
     def __init__(self,
                  local_evaluator,
                  remote_evaluators,
@@ -176,6 +176,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
         return dict(PolicyOptimizer.stats(self), **stats)
 
     # For https://github.com/ray-project/ray/issues/2541 only
+    @pysnooper.snoop()
     def _set_evaluators(self, remote_evaluators):
         self.remote_evaluators = remote_evaluators
         weights = self.local_evaluator.get_weights()
@@ -281,6 +282,7 @@ class ReplayActor(object):
                         row["new_obs"], row["dones"], row["weights"])
         self.num_added += batch.count
 
+    @pysnooper.snoop()
     def replay(self):
         if self.num_added < self.replay_starts:
             return None
