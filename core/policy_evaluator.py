@@ -492,6 +492,7 @@ class PolicyEvaluator(EvaluatorInterface):
         """Same as sample() but returns the count as a separate future."""
         print("in policy_evaluator, sample_with_count")
         batch = self.sample()
+        print("in policy_evaluator,batch,batch.count,",batch, batch.count)
         return batch, batch.count
 
     @override(EvaluatorInterface)
