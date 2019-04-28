@@ -186,7 +186,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             for _ in range(SAMPLE_QUEUE_DEPTH):
                 self.sample_tasks.add(ev, ev.sample_with_count.remote())
 
-    # @pysnooper.snoop(depth=3)
+    @pysnooper.snoop(depth=2)
     def _step(self):
         sample_timesteps, train_timesteps = 0, 0
         weights = None
@@ -269,7 +269,7 @@ class ReplayActor(object):
     def get_host(self):
         return os.uname()[1]
 
-    @pysnooper.snoop()
+    # @pysnooper.snoop()
     def add_batch(self, batch):
         # Handle everything as if multiagent
         if isinstance(batch, SampleBatch):
@@ -282,8 +282,9 @@ class ReplayActor(object):
                         row["new_obs"], row["dones"], row["weights"])
         self.num_added += batch.count
 
-    @pysnooper.snoop()
+    # @pysnooper.snoop()
     def replay(self):
+        print("self.num_added,",self.num_added)
         if self.num_added < self.replay_starts:
             return None
 
