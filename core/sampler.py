@@ -318,7 +318,7 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
                 "episode": episode,
             })
 
-        print("sampler._env_runner.new_episode, episode,",episode)
+        print("sampler._env_runner.new_episode, episode,", episode)
         return episode
 
     active_episodes = defaultdict(new_episode)
@@ -342,7 +342,7 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
 
         # Process observations and prepare for policy evaluation
         t1 = time.time()
-        print("sampler._env_runner, come here 0")
+        # print("sampler._env_runner, come here 0")
 
         active_envs, to_eval, outputs = _process_observations(
             base_env, policies, batch_builder_pool, active_episodes,
@@ -350,13 +350,13 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
             preprocessors, obs_filters, unroll_length, pack, callbacks,
             soft_horizon)
 
-        print("sampler._env_runner, come here 1")
+        # print("sampler._env_runner, come here 1")
 
         perf_stats.processing_time += time.time() - t1
         for o in outputs:
             yield o
 
-        print("sampler._env_runner, come here 2")
+        # print("sampler._env_runner, come here 2")
 
 
         # Do batched policy eval
@@ -365,7 +365,7 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
                                        active_episodes)
         perf_stats.inference_time += time.time() - t2
 
-        print("sampler._env_runner, come here 3")
+        # print("sampler._env_runner, come here 3")
 
         # Process results and update episode state
         t3 = time.time()
@@ -374,12 +374,12 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
             off_policy_actions, policies, clip_actions)
         perf_stats.processing_time += time.time() - t3
 
-        print("sampler._env_runner, come here 4")
+        # print("sampler._env_runner, come here 4")
 
         # Return computed actions to ready envs. We also send to envs that have
         # taken off-policy actions; those envs are free to ignore the action.
         t4 = time.time()
-        print("sampler._env_runner,actions_to_send,", actions_to_send)
+        print("#sampler._env_runner,actions_to_send,", actions_to_send)
         base_env.send_actions(actions_to_send)
         perf_stats.env_wait_time += time.time() - t4
 
@@ -646,10 +646,10 @@ def _process_policy_eval_results(to_eval, eval_results, active_episodes,
             else:
                 actions_to_send[env_id][agent_id] = action
             episode = active_episodes[env_id]
-            # episode._set_rnn_state(agent_id, [c[i] for c in rnn_out_cols])
-            # episode._set_last_pi_info(
-            #     agent_id, {k: v[i]
-            #                for k, v in pi_info_cols.items()})
+            episode._set_rnn_state(agent_id, [c[i] for c in rnn_out_cols])
+            episode._set_last_pi_info(
+                agent_id, {k: v[i]
+                           for k, v in pi_info_cols.items()})
             if env_id in off_policy_actions and \
                     agent_id in off_policy_actions[env_id]:
                 episode._set_last_action(agent_id,
