@@ -155,6 +155,7 @@ class MultiAgentEpisode(object):
 
         print("#episode,agent_id,", agent_id)
         print("#episode,_DUMMY_AGENT_ID,", _DUMMY_AGENT_ID)
+        print("#episode,self._agent_to_last_pi_info,", self._agent_to_last_pi_info)
 
         return self._agent_to_last_pi_info[agent_id]
 
