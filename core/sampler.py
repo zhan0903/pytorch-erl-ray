@@ -617,16 +617,16 @@ def _process_policy_eval_results(to_eval, eval_results, active_episodes,
         actions_to_send[env_id] = {}  # at minimum send empty dict
 
     for policy_id, eval_data in to_eval.items():
-        # rnn_in_cols = _to_column_format([t.rnn_state for t in eval_data])
+        rnn_in_cols = _to_column_format([t.rnn_state for t in eval_data])
         actions = eval_results[policy_id]
-        # if len(rnn_in_cols) != len(rnn_out_cols):
-        #     raise ValueError("Length of RNN in did not match RNN out, got: "
-        #                      "{} vs {}".format(rnn_in_cols, rnn_out_cols))
-        # # Add RNN state info
-        # for f_i, column in enumerate(rnn_in_cols):
-        #     pi_info_cols["state_in_{}".format(f_i)] = column
-        # for f_i, column in enumerate(rnn_out_cols):
-        #     pi_info_cols["state_out_{}".format(f_i)] = column
+        if len(rnn_in_cols) != len(rnn_out_cols):
+            raise ValueError("Length of RNN in did not match RNN out, got: "
+                             "{} vs {}".format(rnn_in_cols, rnn_out_cols))
+        # Add RNN state info
+        for f_i, column in enumerate(rnn_in_cols):
+            pi_info_cols["state_in_{}".format(f_i)] = column
+        for f_i, column in enumerate(rnn_out_cols):
+            pi_info_cols["state_out_{}".format(f_i)] = column
         # Save output rows
         actions = _unbatch_tuple_actions(actions)
         policy = _get_or_raise(policies, policy_id)
