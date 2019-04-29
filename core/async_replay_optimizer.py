@@ -205,7 +205,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
         weights = None
 
         with self.timers["sample_processing"]:
-            time.sleep(3)
+            # time.sleep(3)
             completed = list(self.sample_tasks.completed())
             counts = ray.get([c[1][1] for c in completed])
             print("judge completed tasks-----------------")

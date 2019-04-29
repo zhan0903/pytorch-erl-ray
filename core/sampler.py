@@ -342,14 +342,22 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
 
         # Process observations and prepare for policy evaluation
         t1 = time.time()
+        print("sampler._env_runner, come here 0")
+
         active_envs, to_eval, outputs = _process_observations(
             base_env, policies, batch_builder_pool, active_episodes,
             unfiltered_obs, rewards, dones, infos, off_policy_actions, horizon,
             preprocessors, obs_filters, unroll_length, pack, callbacks,
             soft_horizon)
+
+        print("sampler._env_runner, come here 1")
+
         perf_stats.processing_time += time.time() - t1
         for o in outputs:
             yield o
+
+        print("sampler._env_runner, come here 2")
+
 
         # Do batched policy eval
         t2 = time.time()
