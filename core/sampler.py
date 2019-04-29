@@ -576,12 +576,15 @@ def _do_policy_eval(tf_sess, to_eval, policies, active_episodes):
         if builder and (policy.compute_actions.__code__ is
                         TFPolicyGraph.compute_actions.__code__):
             # TODO(ekl): how can we make info batch available to TF code?
+            print("#sampler._do_policy_eval, come here 0")
             pending_fetches[policy_id] = policy._build_compute_actions(
                 builder, [t.obs for t in eval_data],
                 rnn_in_cols,
                 prev_action_batch=[t.prev_action for t in eval_data],
                 prev_reward_batch=[t.prev_reward for t in eval_data])
         else:
+            print("#sampler._do_policy_eval, come here 1")
+
             eval_results[policy_id] = policy.compute_actions(
                 [t.obs for t in eval_data],
                 rnn_in_cols,
