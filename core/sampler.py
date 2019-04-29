@@ -365,12 +365,16 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
                                        active_episodes)
         perf_stats.inference_time += time.time() - t2
 
+        print("sampler._env_runner, come here 3")
+
         # Process results and update episode state
         t3 = time.time()
         actions_to_send = _process_policy_eval_results(
             to_eval, eval_results, active_episodes, active_envs,
             off_policy_actions, policies, clip_actions)
         perf_stats.processing_time += time.time() - t3
+
+        print("sampler._env_runner, come here 4")
 
         # Return computed actions to ready envs. We also send to envs that have
         # taken off-policy actions; those envs are free to ignore the action.
