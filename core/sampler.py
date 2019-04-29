@@ -69,7 +69,6 @@ class SamplerInput(InputReader):
 
     @override(InputReader)
     def next(self):
-        print("in sampler, SamplerInput.next")
         batches = [self.get_data()]
         print("in sampler.SamplerInput, len of batches,",len(batches))
         batches.extend(self.get_extra_batches())
@@ -109,14 +108,14 @@ class SyncSampler(SamplerInput):
             self.preprocessors, self.obs_filters, clip_rewards, clip_actions,
             pack, callbacks, tf_sess, self.perf_stats, soft_horizon)
         self.metrics_queue = queue.Queue()
-        print("in sampler, SyncSampler")
+        # print("in sampler, SyncSampler")
 
     def get_data(self):
-        print("#sampler.SyncSampler.get_data")
+        # print("#sampler.SyncSampler.get_data")
 
         while True:
             item = next(self.rollout_provider)
-            print("#sampler.SyncSampler.get_data,item,", item)
+            # print("#sampler.SyncSampler.get_data,item,", item)
             if isinstance(item, RolloutMetrics):
                 self.metrics_queue.put(item)
             else:
@@ -285,13 +284,13 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
             terminal condition, and other fields as dictated by `policy`.
     """
 
-    print("_env_runner++++++++++++++")
+    # print("_env_runner++++++++++++++")
 
     try:
         if not horizon:
             horizon = (base_env.get_unwrapped()[0].spec.max_episode_steps)
             logger.debug("horizon:{}".format(horizon))
-            print("#sampler._env_runner horizon,", horizon)
+            # print("#sampler._env_runner horizon,", horizon)
     except Exception:
         logger.debug("no episode horizon specified, assuming inf")
     if not horizon:
@@ -318,11 +317,11 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
                 "episode": episode,
             })
 
-        print("sampler._env_runner.new_episode, episode,", episode)
+        # print("sampler._env_runner.new_episode, episode,", episode)
         return episode
 
     active_episodes = defaultdict(new_episode)
-    print("sampler._env_runner, active_episodes,", active_episodes)
+    # print("sampler._env_runner, active_episodes,", active_episodes)
 
     while True:
         perf_stats.iters += 1
@@ -331,7 +330,7 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
         unfiltered_obs, rewards, dones, infos, off_policy_actions = \
             base_env.poll()
 
-        print("sampler._env_runner, rewards:{0}, dones:{1}".format(rewards, dones))
+        # print("sampler._env_runner, rewards:{0}, dones:{1}".format(rewards, dones))
 
         perf_stats.env_wait_time += time.time() - t0
 
@@ -342,7 +341,6 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
 
         # Process observations and prepare for policy evaluation
         t1 = time.time()
-        # print("sampler._env_runner, come here 0")
 
         active_envs, to_eval, outputs = _process_observations(
             base_env, policies, batch_builder_pool, active_episodes,
@@ -350,22 +348,15 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
             preprocessors, obs_filters, unroll_length, pack, callbacks,
             soft_horizon)
 
-        # print("sampler._env_runner, come here 1")
-
         perf_stats.processing_time += time.time() - t1
         for o in outputs:
             yield o
-
-        # print("sampler._env_runner, come here 2")
-
 
         # Do batched policy eval
         t2 = time.time()
         eval_results = _do_policy_eval(tf_sess, to_eval, policies,
                                        active_episodes)
         perf_stats.inference_time += time.time() - t2
-
-        # print("sampler._env_runner, come here 3")
 
         # Process results and update episode state
         t3 = time.time()
@@ -379,7 +370,7 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
         # Return computed actions to ready envs. We also send to envs that have
         # taken off-policy actions; those envs are free to ignore the action.
         t4 = time.time()
-        print("#sampler._env_runner,actions_to_send,", actions_to_send)
+        # print("#sampler._env_runner,actions_to_send,", actions_to_send)
         base_env.send_actions(actions_to_send)
         perf_stats.env_wait_time += time.time() - t4
 
@@ -550,7 +541,7 @@ def _process_observations(base_env, policies, batch_builder_pool,
 
     return active_envs, to_eval, outputs
 
-# @pysnooper.snoop()
+
 def _do_policy_eval(tf_sess, to_eval, policies, active_episodes):
     """Call compute actions on observation batches to get next actions.
 
@@ -601,7 +592,7 @@ def _do_policy_eval(tf_sess, to_eval, policies, active_episodes):
 
     return eval_results
 
-# @pysnooper.snoop()
+
 def _process_policy_eval_results(to_eval, eval_results, active_episodes,
                                  active_envs, off_policy_actions, policies,
                                  clip_actions):
@@ -613,8 +604,7 @@ def _process_policy_eval_results(to_eval, eval_results, active_episodes,
     Returns:
         actions_to_send: nested dict of env id -> agent id -> agent replies.
     """
-    print("#sampler._process_policy_eval_results,eval_results,", eval_results)
-
+    # print("#sampler._process_policy_eval_results,eval_results,", eval_results)
     actions_to_send = defaultdict(dict)
     for env_id in active_envs:
         actions_to_send[env_id] = {}  # at minimum send empty dict

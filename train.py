@@ -55,7 +55,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=2e3, type=int)
     parser.add_argument("--eval_freq", default=5e3, type=float)
-    parser.add_argument("--max_timesteps", default=1e6, type=float)
+    parser.add_argument("--max_timesteps", default=1e5, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
     parser.add_argument("--discount", default=0.99, type=float)
     parser.add_argument("--tau", default=0.005, type=float)
@@ -102,10 +102,9 @@ if __name__ == "__main__":
     print("len of remote_evaluators,", len(remote_evaluators))
     optimizer = AsyncReplayOptimizer(local_evaluator, remote_evaluators, buffer_size=2000000, debug=True, train_batch_size=100)
     
-    while True:
+    while optimizer.num_steps_trained < args.max_timesteps:
         optimizer.step()
-        # time.sleep(3)
-        # exit(0)
+
 
 
 

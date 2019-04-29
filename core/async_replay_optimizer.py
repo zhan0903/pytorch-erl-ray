@@ -36,13 +36,13 @@ LEARNER_QUEUE_MAX_SIZE = 16
 #                     datefmt='%m-%d %H:%M',
 #                     filename='./debug/%s_%s_%s' % (args.output, args.env_name, args.pop_size),
 #                     filemode='a+')
-console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
-console.setFormatter(formatter)
-logging.getLogger('').addHandler(console)
+# console = logging.StreamHandler()
+# console.setLevel(logging.DEBUG)
+# formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
+# console.setFormatter(formatter)
+# logging.getLogger('').addHandler(console)
 
-logger_main = logging.getLogger('Main')
+logger_optimizer = logging.getLogger(__name__)
 
 
 class AsyncReplayOptimizer(PolicyOptimizer):
@@ -145,6 +145,8 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             self.timers["train"].push_units_processed(train_timesteps)
         self.num_steps_sampled += sample_timesteps
         self.num_steps_trained += train_timesteps
+        logger_optimizer.info("num_steps_sampled:{},num_steps_trained:{}".
+                              format(self.num_steps_sampled,self.num_steps_trained))
 
     @override(PolicyOptimizer)
     def stop(self):
@@ -208,12 +210,11 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             # time.sleep(3)
             completed = list(self.sample_tasks.completed())
             counts = ray.get([c[1][1] for c in completed])
-            print("judge completed tasks-----------------")
-
+            # print("judge completed tasks-----------------")
             # exit(0)
             for i, (ev, (sample_batch, count)) in enumerate(completed):
                 sample_timesteps += counts[i]
-                print("begin add_batch==================")
+                # print("begin add_batch==================")
 
                 # Send the data to the replay buffer
                 random.choice(
