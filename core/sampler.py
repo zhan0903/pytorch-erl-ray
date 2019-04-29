@@ -331,6 +331,8 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
         unfiltered_obs, rewards, dones, infos, off_policy_actions = \
             base_env.poll()
 
+        print("sampler._env_runner, rewards, dones,", rewards, dones)
+
         perf_stats.env_wait_time += time.time() - t0
 
         if log_once("env_returns"):
@@ -365,7 +367,7 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
         # Return computed actions to ready envs. We also send to envs that have
         # taken off-policy actions; those envs are free to ignore the action.
         t4 = time.time()
-        print("sampler._env_runner,actions_to_send,",actions_to_send)
+        print("sampler._env_runner,actions_to_send,", actions_to_send)
         base_env.send_actions(actions_to_send)
         perf_stats.env_wait_time += time.time() - t4
 
