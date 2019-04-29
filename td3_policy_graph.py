@@ -184,7 +184,7 @@ class TD3PolicyGraph(PolicyGraph):
                         episodes=None,
                         **kwargs):
         print("#td3_poilicy_graph,len of obs_batch,", len(obs_batch))
-        print("#td3_poilicy_graph,obs_batch,", obs_batch)
+        # print("#td3_poilicy_graph,obs_batch,", obs_batch)
         with self.lock:
             with torch.no_grad():
                 ob = torch.from_numpy(np.array(obs_batch)) \
