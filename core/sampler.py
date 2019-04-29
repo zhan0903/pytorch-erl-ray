@@ -445,6 +445,7 @@ def _process_observations(base_env, policies, batch_builder_pool,
 
         # For each agent in the environment
         for agent_id, raw_obs in agent_obs.items():
+            print("#sampler._process_observations,agent_id:{0},raw_obs:{1}".format(agent_id,raw_obs))
             policy_id = episode.policy_for(agent_id)
             prep_obs = _get_or_raise(preprocessors,
                                      policy_id).transform(raw_obs)
