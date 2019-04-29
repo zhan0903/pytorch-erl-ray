@@ -620,7 +620,7 @@ def _process_policy_eval_results(to_eval, eval_results, active_episodes,
         actions_to_send[env_id] = {}  # at minimum send empty dict
 
     for policy_id, eval_data in to_eval.items():
-        print("#sampler._process_policy_eval_results,policy_id:{0}, eval_data:{1}".format(policy_id, eval_data))
+        # print("#sampler._process_policy_eval_results,policy_id:{0}, eval_data:{1}".format(policy_id, eval_data))
         rnn_in_cols = _to_column_format([t.rnn_state for t in eval_data])
         actions, rnn_out_cols, pi_info_cols = eval_results[policy_id]
         if len(rnn_in_cols) != len(rnn_out_cols):
