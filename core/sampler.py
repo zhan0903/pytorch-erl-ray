@@ -9,7 +9,7 @@ import six.moves.queue as queue
 import threading
 import time
 
-from ray.rllib.evaluation.episode import MultiAgentEpisode, _flatten_action
+from core.episode import MultiAgentEpisode, _flatten_action
 from ray.rllib.evaluation.sample_batch_builder import \
     MultiAgentSampleBatchBuilder
 from ray.rllib.evaluation.tf_policy_graph import TFPolicyGraph
