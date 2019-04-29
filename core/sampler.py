@@ -331,7 +331,7 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
         unfiltered_obs, rewards, dones, infos, off_policy_actions = \
             base_env.poll()
 
-        print("sampler._env_runner, rewards, dones,", rewards, dones)
+        print("sampler._env_runner, rewards:{0}, dones:{1}".format(rewards, dones))
 
         perf_stats.env_wait_time += time.time() - t0
 
