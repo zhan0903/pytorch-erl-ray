@@ -9,12 +9,12 @@ import tensorflow as tf
 
 import ray
 from ray.rllib.env.atari_wrappers import wrap_deepmind, is_atari
-from ray.rllib.env.base_env import BaseEnv
+from core.base_env import BaseEnv
 from ray.rllib.env.env_context import EnvContext
 from ray.rllib.env.external_env import ExternalEnv
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from ray.rllib.env.external_multi_agent_env import ExternalMultiAgentEnv
-from ray.rllib.env.vector_env import VectorEnv
+from core.vector_env import VectorEnv
 from ray.rllib.evaluation.interface import EvaluatorInterface
 from ray.rllib.evaluation.sample_batch import MultiAgentBatch, \
     DEFAULT_POLICY_ID
