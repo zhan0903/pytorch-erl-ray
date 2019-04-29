@@ -195,8 +195,17 @@ class TD3PolicyGraph(PolicyGraph):
                 actions = model_out
                 # action_dist = self._action_dist_cls(logits)
                 # actions = action_dist.sample()
-                return actions.cpu().data.numpy().flatten()
+                return (actions.cpu().numpy(),
+                        [],
+                        self.extra_action_out(model_out))
 
+
+    def extra_action_out(self, model_out):
+        """Returns dict of extra info to include in experience batch.
+
+        Arguments:
+            model_out (list): Outputs of the policy model module."""
+        return {}
     # def compute_td_error(self):
     #     pass
 
