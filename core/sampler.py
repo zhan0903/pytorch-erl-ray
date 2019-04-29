@@ -595,6 +595,7 @@ def _do_policy_eval(tf_sess, to_eval, policies, active_episodes):
     if log_once("compute_actions_result"):
         logger.info("Outputs of compute_actions():\n\n{}\n".format(
             summarize(eval_results)))
+    print("#sampler._do_policy_eval,eval_results,",eval_results)
 
     return eval_results
 
@@ -610,7 +611,7 @@ def _process_policy_eval_results(to_eval, eval_results, active_episodes,
     Returns:
         actions_to_send: nested dict of env id -> agent id -> agent replies.
     """
-    print("eval_results in _process_policy_eval_results,", eval_results)
+    print("#sampler._process_policy_eval_results,eval_results,", eval_results)
 
     actions_to_send = defaultdict(dict)
     for env_id in active_envs:
