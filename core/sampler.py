@@ -33,7 +33,7 @@ import pysnooper
 # formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
 # console.setFormatter(formatter)
 # logging.getLogger('').addHandler(console)
-logging.basicConfig(format='%(asctime)s %(message)s')
+# logging.basicConfig(format='%(asctime)s %(message)s')
 logger = logging.getLogger(__name__)
 
 RolloutMetrics = namedtuple("RolloutMetrics", [
@@ -317,6 +317,8 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
                 "policy": policies,
                 "episode": episode,
             })
+
+        print("sampler._env_runner.new_episode, episode,",episode)
         return episode
 
     active_episodes = defaultdict(new_episode)
