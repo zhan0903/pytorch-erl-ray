@@ -183,8 +183,8 @@ class TD3PolicyGraph(PolicyGraph):
                         info_batch=None,
                         episodes=None,
                         **kwargs):
-        print("in graph,len of obs_batch,", len(obs_batch))
-        print("in graph,obs_batch,", obs_batch)
+        # print("in graph,len of obs_batch,", len(obs_batch))
+        # print("in graph,obs_batch,", obs_batch)
 
         with self.lock:
             with torch.no_grad():
