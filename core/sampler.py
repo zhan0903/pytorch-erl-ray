@@ -33,6 +33,7 @@ import pysnooper
 # formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
 # console.setFormatter(formatter)
 # logging.getLogger('').addHandler(console)
+logging.basicConfig(format='%(asctime)s %(message)s')
 logger = logging.getLogger(__name__)
 
 RolloutMetrics = namedtuple("RolloutMetrics", [
