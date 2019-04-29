@@ -64,7 +64,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     parser.add_argument("--save_models", action="store_true")
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
-    parser.add_argument("--pop_size", default=4, type=int)
+    parser.add_argument("--pop_size", default=10, type=int)
     parser.add_argument("--crossover_prob", default=0.0, type=float)
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)
@@ -104,8 +104,8 @@ if __name__ == "__main__":
     
     while True:
         optimizer.step()
-        time.sleep(3)
-        exit(0)
+        # time.sleep(3)
+        # exit(0)
 
 
 
