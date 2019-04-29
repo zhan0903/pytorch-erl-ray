@@ -24,11 +24,15 @@ from ray.rllib.evaluation.policy_graph import clip_action
 import pysnooper
 
 
-console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
-console.setFormatter(formatter)
-logging.getLogger('').addHandler(console)
+# logging.basicConfig(level=logging.DEBUG,
+#                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+#                     datefmt='%m-%d %H:%M'
+#                     )
+# console = logging.StreamHandler()
+# console.setLevel(logging.DEBUG)
+# formatter = logging.Formatter('%(name)-4s: %(levelname)-8s %(message)s')
+# console.setFormatter(formatter)
+# logging.getLogger('').addHandler(console)
 logger = logging.getLogger(__name__)
 
 RolloutMetrics = namedtuple("RolloutMetrics", [
@@ -285,7 +289,7 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
     try:
         if not horizon:
             horizon = (base_env.get_unwrapped()[0].spec.max_episode_steps)
-            logger.info("horizon:{}".format(horizon))
+            logger.debug("horizon:{}".format(horizon))
             print("#sampler._env_runner horizon,",horizon)
     except Exception:
         logger.debug("no episode horizon specified, assuming inf")
