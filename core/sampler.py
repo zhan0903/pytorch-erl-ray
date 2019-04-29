@@ -322,6 +322,7 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
         return episode
 
     active_episodes = defaultdict(new_episode)
+    print("sampler._env_runner, active_episodes,", active_episodes)
 
     while True:
         perf_stats.iters += 1
