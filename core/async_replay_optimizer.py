@@ -146,7 +146,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             self.timers["train"].push_units_processed(train_timesteps)
         self.num_steps_sampled += sample_timesteps
         self.num_steps_trained += train_timesteps
-        logger_optimizer.info("num_steps_sampled:{},num_steps_trained:{}".
+        logger_optimizer.debug("num_steps_sampled:{},num_steps_trained:{}".
                               format(self.num_steps_sampled,self.num_steps_trained))
 
     @override(PolicyOptimizer)
