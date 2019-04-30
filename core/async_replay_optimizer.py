@@ -292,7 +292,7 @@ class ReplayActor(object):
     def add_batch(self, batch):
         # Handle everything as if multiagent
         # print("come here in add_batch!!")
-        logger_optimizer.debug("should come here in add_batch")
+        logger_optimizer.debug("should come here in add_batch---------------------------")
         if isinstance(batch, SampleBatch):
             logger_optimizer.debug("batch in add_batch:{}".format(batch))
             batch = MultiAgentBatch({DEFAULT_POLICY_ID: batch}, batch.count)
