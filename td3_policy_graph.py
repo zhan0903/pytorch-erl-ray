@@ -187,7 +187,7 @@ class TD3PolicyGraph(PolicyGraph):
                         info_batch=None,
                         episodes=None,
                         **kwargs):
-        logger.debug("len of obs_batch:{}".format(len(obs_batch)))
+        # logger.debug("len of obs_batch:{}".format(len(obs_batch)))
         with self.lock:
             with torch.no_grad():
                 ob = torch.from_numpy(np.array(obs_batch)) \
@@ -212,6 +212,8 @@ class TD3PolicyGraph(PolicyGraph):
 
     def learn_on_batch(self, samples):
         # Sample replay buffer
+        logger.info("learn on batch in td3 graph, do nothing")
+        exit(0)
         x, y, u, r, d = replay_buffer.sample(batch_size)
         state = torch.FloatTensor(x).to(device)
         action = torch.FloatTensor(u).to(device)
