@@ -146,8 +146,9 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             self.timers["train"].push_units_processed(train_timesteps)
         self.num_steps_sampled += sample_timesteps
         self.num_steps_trained += train_timesteps
-        logger_optimizer.debug("num_steps_sampled:{},num_steps_trained:{}".
-                              format(self.num_steps_sampled,self.num_steps_trained))
+        if self.num_steps_trained != 0:
+            logger_optimizer.debug("num_steps_sampled:{},num_steps_trained:{}".
+                              format(self.num_steps_sampled, self.num_steps_trained))
 
     @override(PolicyOptimizer)
     def stop(self):
@@ -215,7 +216,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             # exit(0)
             for i, (ev, (sample_batch, count)) in enumerate(completed):
                 sample_timesteps += counts[i]
-
+                logger_optimizer.debug("begin to add batch")
                 # Send the data to the replay buffer
                 random.choice(
                     self.replay_actors).add_batch.remote(sample_batch)
