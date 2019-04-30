@@ -293,9 +293,11 @@ class ReplayActor(object):
         # Handle everything as if multiagent
         # print("come here in add_batch!!")
         if isinstance(batch, SampleBatch):
+            logger_optimizer.debug("batch in add_batch:{}".format(batch))
             batch = MultiAgentBatch({DEFAULT_POLICY_ID: batch}, batch.count)
         with self.add_batch_timer:
             for policy_id, s in batch.policy_batches.items():
+                logger_optimizer.debug("s in add_batch:{}".format(s))
                 for row in s.rows():
                     self.replay_buffers[policy_id].add(
                         row["obs"], row["actions"], row["rewards"],
