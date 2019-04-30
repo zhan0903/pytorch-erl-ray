@@ -32,8 +32,9 @@ from ray.rllib.utils.debug import disable_log_once_globally, log_once, \
     summarize, enable_periodic_logging
 from ray.rllib.utils.filter import get_filter
 from ray.rllib.utils.tf_run_builder import TFRunBuilder
-import pysnooper
 
+
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Handle to the current evaluator, which will be set to the most recently
@@ -585,6 +586,7 @@ class PolicyEvaluator(EvaluatorInterface):
                 if pid not in self.policies_to_train:
                     continue
                 policy = self.policy_map[pid]
+                logger.debug("policy_map:{}, pid:{}".format(self.policy_map,pid))
                 if builder and hasattr(policy, "_build_learn_on_batch"):
                     to_fetch[pid] = policy._build_learn_on_batch(
                         builder, batch)
