@@ -562,7 +562,7 @@ def _do_policy_eval(tf_sess, to_eval, policies, active_episodes):
             summarize(to_eval)))
 
     for policy_id, eval_data in to_eval.items():
-        print("#sampler._do_policy_eval,policy_id:{0}, eval_data:{1}".format(policy_id, eval_data))
+        # print("#sampler._do_policy_eval,policy_id:{0}, eval_data:{1}".format(policy_id, eval_data))
         rnn_in_cols = _to_column_format([t.rnn_state for t in eval_data])
         policy = _get_or_raise(policies, policy_id)
         if builder and (policy.compute_actions.__code__ is
@@ -588,7 +588,7 @@ def _do_policy_eval(tf_sess, to_eval, policies, active_episodes):
     if log_once("compute_actions_result"):
         logger.info("Outputs of compute_actions():\n\n{}\n".format(
             summarize(eval_results)))
-    print("#sampler._do_policy_eval,eval_results,", eval_results)
+    # print("#sampler._do_policy_eval,eval_results,", eval_results)
 
     return eval_results
 

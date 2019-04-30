@@ -445,7 +445,8 @@ class PolicyEvaluator(EvaluatorInterface):
         print("self.sample_batch_size,", self.sample_batch_size)
 
         batches = [self.input_reader.next()]
-        print("in policy evaluator sample, batches,", batches)
+        print("in policy evaluator sample, len of batches,", len(batches))
+
         steps_so_far = batches[0].count
 
         # In truncate_episodes mode, never pull more than 1 batch per env.
@@ -495,9 +496,9 @@ class PolicyEvaluator(EvaluatorInterface):
     @ray.method(num_return_vals=2)
     def sample_with_count(self):
         """Same as sample() but returns the count as a separate future."""
-        print("in policy_evaluator, sample_with_count")
+        # print("in policy_evaluator, sample_with_count")
         batch = self.sample()
-        print("in policy_evaluator,batch,batch.count,",batch, batch.count)
+        # print("in policy_evaluator,batch,batch.count,",batch, batch.count)
         return batch, batch.count
 
     @override(EvaluatorInterface)
