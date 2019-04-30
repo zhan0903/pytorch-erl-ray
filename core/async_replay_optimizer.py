@@ -193,7 +193,6 @@ class AsyncReplayOptimizer(PolicyOptimizer):
         return dict(PolicyOptimizer.stats(self), **stats)
 
     # For https://github.com/ray-project/ray/issues/2541 only
-    # @pysnooper.snoop()
     def _set_evaluators(self, remote_evaluators):
         self.remote_evaluators = remote_evaluators
         weights = self.local_evaluator.get_weights()
@@ -294,13 +293,14 @@ class ReplayActor(object):
         # Handle everything as if multiagent
 
         # logger_optimizer.info("should come here in ReplayActor.add_batch---------------------------")
-        print("should come here in ReplayActor.add_batch++++++++++++++++++++++++++++++")
+        # print("should come here in ReplayActor.add_batch++++++++++++++++++++++++++++++")
+        # print("")
         if isinstance(batch, SampleBatch):
-            print("batch in add_batch:{}".format(batch))
+            # print("batch in add_batch:{}".format(batch))
             batch = MultiAgentBatch({DEFAULT_POLICY_ID: batch}, batch.count)
         with self.add_batch_timer:
             for policy_id, s in batch.policy_batches.items():
-                print("s in add_batch:{}".format(s))
+                # print("s in add_batch:{}".format(s))
                 for row in s.rows():
                     self.replay_buffers[policy_id].add(
                         row["obs"], row["actions"], row["rewards"],
