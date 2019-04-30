@@ -217,6 +217,9 @@ class AsyncReplayOptimizer(PolicyOptimizer):
                 sample_timesteps += counts[i]
                 logger_optimizer.debug("begin to add batch")
                 # Send the data to the replay buffer
+                # here sample_batch is the input of add_batch
+                logger_optimizer.debug("sample_batch finished, before use it")
+
                 random.choice(
                     self.replay_actors).add_batch.remote(sample_batch)
 
