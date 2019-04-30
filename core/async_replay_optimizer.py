@@ -75,7 +75,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
                  sample_batch_size=50,
                  num_replay_buffer_shards=1,
                  max_weight_sync_delay=400,
-                 debug=False,
+                 debug=True,
                  batch_replay=False):
         PolicyOptimizer.__init__(self, local_evaluator, remote_evaluators)
 
@@ -293,14 +293,14 @@ class ReplayActor(object):
     def add_batch(self, batch):
         # Handle everything as if multiagent
 
-        logger_optimizer.info("should come here in ReplayActor.add_batch---------------------------")
+        # logger_optimizer.info("should come here in ReplayActor.add_batch---------------------------")
         print("should come here in ReplayActor.add_batch++++++++++++++++++++++++++++++")
         if isinstance(batch, SampleBatch):
-            logger_optimizer.debug("batch in add_batch:{}".format(batch))
+            print("batch in add_batch:{}".format(batch))
             batch = MultiAgentBatch({DEFAULT_POLICY_ID: batch}, batch.count)
         with self.add_batch_timer:
             for policy_id, s in batch.policy_batches.items():
-                logger_optimizer.debug("s in add_batch:{}".format(s))
+                print("s in add_batch:{}".format(s))
                 for row in s.rows():
                     self.replay_buffers[policy_id].add(
                         row["obs"], row["actions"], row["rewards"],
