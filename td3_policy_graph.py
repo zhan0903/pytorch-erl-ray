@@ -8,8 +8,12 @@ from utils import to_numpy
 from copy import deepcopy
 import pysnooper
 from threading import Lock
+import logging
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class Actor(nn.Module):
@@ -183,7 +187,7 @@ class TD3PolicyGraph(PolicyGraph):
                         info_batch=None,
                         episodes=None,
                         **kwargs):
-        print("#td3_poilicy_graph,len of obs_batch,", len(obs_batch))
+        logger.debug("len of obs_batch,", len(obs_batch))
         # print("#td3_poilicy_graph,obs_batch,", obs_batch)
         with self.lock:
             with torch.no_grad():
@@ -197,7 +201,6 @@ class TD3PolicyGraph(PolicyGraph):
                 return (actions.cpu().numpy(),
                         [],
                         self.extra_action_out(model_out))
-
 
     def extra_action_out(self, model_out):
         """Returns dict of extra info to include in experience batch.

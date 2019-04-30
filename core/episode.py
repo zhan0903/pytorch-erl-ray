@@ -9,7 +9,10 @@ import numpy as np
 
 from ray.rllib.env.base_env import _DUMMY_AGENT_ID
 from ray.rllib.utils.annotations import DeveloperAPI
+import logging
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @DeveloperAPI
 class MultiAgentEpisode(object):
@@ -153,9 +156,9 @@ class MultiAgentEpisode(object):
     def last_pi_info_for(self, agent_id=_DUMMY_AGENT_ID):
         """Returns the last info object for the specified agent."""
 
-        print("#episode,agent_id,", agent_id)
-        print("#episode,_DUMMY_AGENT_ID,", _DUMMY_AGENT_ID)
-        print("#episode,self._agent_to_last_pi_info,", self._agent_to_last_pi_info)
+        # print("#episode,agent_id,", agent_id)
+        # print("#episode,_DUMMY_AGENT_ID,", _DUMMY_AGENT_ID)
+        # print("#episode,self._agent_to_last_pi_info,", self._agent_to_last_pi_info)
 
         return self._agent_to_last_pi_info[agent_id]
 
