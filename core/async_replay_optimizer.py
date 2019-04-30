@@ -43,7 +43,7 @@ LEARNER_QUEUE_MAX_SIZE = 16
 # logging.getLogger('').addHandler(console)
 
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger_optimizer = logging.getLogger(__name__)
 
 
 class AsyncReplayOptimizer(PolicyOptimizer):
