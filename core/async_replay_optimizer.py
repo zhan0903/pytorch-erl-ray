@@ -292,8 +292,8 @@ class ReplayActor(object):
     # @pysnooper.snoop()
     def add_batch(self, batch):
         # Handle everything as if multiagent
-        # print("come here in add_batch!!")
-        logger_optimizer.debug("should come here in add_batch---------------------------")
+
+        logger_optimizer.info("should come here in ReplayActor.add_batch---------------------------")
         if isinstance(batch, SampleBatch):
             logger_optimizer.debug("batch in add_batch:{}".format(batch))
             batch = MultiAgentBatch({DEFAULT_POLICY_ID: batch}, batch.count)
@@ -379,6 +379,8 @@ class BatchReplayActor(object):
     # @pysnooper.snoop()
     def add_batch(self, batch):
         # Handle everything as if multiagent
+        logger_optimizer.debug("should come here in BatchReplayActor---------------------------")
+
         if isinstance(batch, SampleBatch):
             batch = MultiAgentBatch({DEFAULT_POLICY_ID: batch}, batch.count)
         self.buffer.append(batch)
