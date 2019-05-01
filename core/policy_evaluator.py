@@ -32,6 +32,7 @@ from ray.rllib.utils.debug import disable_log_once_globally, log_once, \
     summarize, enable_periodic_logging
 from ray.rllib.utils.filter import get_filter
 from ray.rllib.utils.tf_run_builder import TFRunBuilder
+import pysnooper
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -428,7 +429,7 @@ class PolicyEvaluator(EvaluatorInterface):
             self.async_env, self.env, self.policy_map))
 
     @override(EvaluatorInterface)
-    # @pysnooper.snoop(depth=2, prefix="in policy_evaluator")
+    @pysnooper.snoop(depth=2, prefix="in policy_evaluator")
     def sample(self):
         """Evaluate the current policies and return a batch of experiences.
 
