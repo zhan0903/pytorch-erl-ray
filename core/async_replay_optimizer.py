@@ -305,12 +305,13 @@ class ReplayActor(object):
             for policy_id, s in batch.policy_batches.items():
                 # print("s in add_batch:{}".format(s))
                 for row in s.rows():
+                    print("use batch succeed before ~~~~~~~~~~~~~~~~~~++++++++++++++++++")
+
                     self.replay_buffers[policy_id].add(
                         row["obs"], row["actions"], row["rewards"],
                         row["new_obs"], row["dones"], row["weights"])
-                    print("use batch succeed~~~~~~~~~~~~~~~~~~++++++++++++++++++")
+                    print("use batch succeed after ~~~~~~~~~~~~~~~~~~++++++++++++++++++")
 
-                    exit(0)
         self.num_added += batch.count
 
     # @pysnooper.snoop()
