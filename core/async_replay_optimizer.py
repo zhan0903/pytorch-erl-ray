@@ -308,6 +308,8 @@ class ReplayActor(object):
                     self.replay_buffers[policy_id].add(
                         row["obs"], row["actions"], row["rewards"],
                         row["new_obs"], row["dones"], row["weights"])
+
+                exit(0)
         self.num_added += batch.count
 
     # @pysnooper.snoop()
