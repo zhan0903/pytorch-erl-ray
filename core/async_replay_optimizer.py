@@ -299,7 +299,7 @@ class ReplayActor(object):
         # print("should come here in ReplayActor.add_batch++++++++++++++++++++++++++++++")
         # print("")
         if isinstance(batch, SampleBatch):
-            print("type batch in add_batch:{}".format(type(batch)))
+            print("type batch in add_batch~~~~~~~~~~~~~~~~~~++++++++++++++++++:{}".format(type(batch)))
             batch = MultiAgentBatch({DEFAULT_POLICY_ID: batch}, batch.count)
         with self.add_batch_timer:
             for policy_id, s in batch.policy_batches.items():
