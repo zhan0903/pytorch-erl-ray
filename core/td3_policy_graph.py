@@ -242,19 +242,19 @@ class TD3PolicyGraph(TD3Postprocessing,PolicyGraph):
         return self.actor(obs).cpu().data.numpy().flatten()
 
 
-    def compute_td_error(self, obs_t, act_t, rew_t, obs_tp1, done_mask,
-                         importance_weights):
-        td_err = self.sess.run(
-            self.loss.td_error,
-            feed_dict={
-                self.obs_t: [np.array(ob) for ob in obs_t],
-                self.act_t: act_t,
-                self.rew_t: rew_t,
-                self.obs_tp1: [np.array(ob) for ob in obs_tp1],
-                self.done_mask: done_mask,
-                self.importance_weights: importance_weights
-            })
-        return td_err
+    # # def compute_td_error(self, obs_t, act_t, rew_t, obs_tp1, done_mask,
+    #                      importance_weights):
+    #     td_err = self.sess.run(
+    #         self.loss.td_error,
+    #         feed_dict={
+    #             self.obs_t: [np.array(ob) for ob in obs_t],
+    #             self.act_t: act_t,
+    #             self.rew_t: rew_t,
+    #             self.obs_tp1: [np.array(ob) for ob in obs_tp1],
+    #             self.done_mask: done_mask,
+    #             self.importance_weights: importance_weights
+    #         })
+    #     return td_err
 
     # @pysnooper.snoop()
     def compute_actions(self,
