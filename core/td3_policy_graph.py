@@ -170,7 +170,7 @@ def _postprocess_dqn(policy_graph, batch):
         batch[PRIO_WEIGHTS] = np.ones_like(batch[SampleBatch.REWARDS])
 
     # Prioritize on the worker side
-    if batch.count > 0 and policy_graph.config["worker_side_prioritization"]:
+    if batch.count > 0 and True: # policy_graph.config["worker_side_prioritization"] == True:
         td_errors = policy_graph.compute_td_error(
             batch[SampleBatch.CUR_OBS], batch[SampleBatch.ACTIONS],
             batch[SampleBatch.REWARDS], batch[SampleBatch.NEXT_OBS],

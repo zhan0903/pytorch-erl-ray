@@ -82,7 +82,7 @@ if __name__ == "__main__":
     # action_dim = env.action_space
     max_action = float(env.action_space.high[0])
     # args.max_action = max_action
-    config = {"max_action": max_action,"parameter_noise": False}
+    config = {"max_action": max_action,"parameter_noise": False,"prioritized_replay_eps":1e-6}
 
 
     policy = TD3PolicyGraph(env.observation_space, env.action_space, config)
