@@ -154,7 +154,40 @@ class Critic(nn.Module):
         return x1
 
 
-class TD3PolicyGraph(PolicyGraph):
+class TD3Postprocessing(object):
+    @override(PolicyGraph)
+    def postprocess_trajectory(self,
+                               sample_batch,
+                               other_agent_batches=None,
+                               episode=None):
+        if self.config["parameter_noise"]:
+            # adjust the sigma of parameter space noise
+            states, noisy_actions = [
+                list(x) for x in sample_batch.columns(
+                    [SampleBatch.CUR_OBS, SampleBatch.ACTIONS])
+            ]
+            self.sess.run(self.remove_noise_op)
+            clean_actions = self.sess.run(
+                self.output_actions,
+                feed_dict={
+                    self.cur_observations: states,
+                    self.stochastic: False,
+                    self.eps: .0
+                })
+            distance_in_action_space = np.sqrt(
+                np.mean(np.square(clean_actions - noisy_actions)))
+            self.pi_distance = distance_in_action_space
+            if distance_in_action_space < self.config["exploration_sigma"]:
+                self.parameter_noise_sigma_val *= 1.01
+            else:
+                self.parameter_noise_sigma_val /= 1.01
+            self.parameter_noise_sigma.load(
+                self.parameter_noise_sigma_val, session=self.sess)
+
+        return _postprocess_dqn(self, sample_batch)
+
+
+class TD3PolicyGraph(TD3Postprocessing,PolicyGraph):
     # @pysnooper.snoop()
     def __init__(self, state_dim, action_dim, config):
         PolicyGraph.__init__(self, state_dim, action_dim, config)
