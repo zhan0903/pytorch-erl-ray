@@ -169,6 +169,8 @@ def _postprocess_dqn(policy_graph, batch):
     if PRIO_WEIGHTS not in batch:
         batch[PRIO_WEIGHTS] = np.ones_like(batch[SampleBatch.REWARDS])
 
+    logger.debug("shape of batch[PRIO_WEIGHTS]:{}".format(batch[PRIO_WEIGHTS].shape))
+
     # Prioritize on the worker side
     if batch.count > 0 and True: # policy_graph.config["worker_side_prioritization"] == True:
         td_errors = policy_graph.compute_td_error(
@@ -238,6 +240,21 @@ class TD3PolicyGraph(TD3Postprocessing,PolicyGraph):
     def compute_single_action(self, obs):
         obs = torch.FloatTensor(obs.reshape(1, -1)).to(device)
         return self.actor(obs).cpu().data.numpy().flatten()
+
+
+    def compute_td_error(self, obs_t, act_t, rew_t, obs_tp1, done_mask,
+                         importance_weights):
+        td_err = self.sess.run(
+            self.loss.td_error,
+            feed_dict={
+                self.obs_t: [np.array(ob) for ob in obs_t],
+                self.act_t: act_t,
+                self.rew_t: rew_t,
+                self.obs_tp1: [np.array(ob) for ob in obs_tp1],
+                self.done_mask: done_mask,
+                self.importance_weights: importance_weights
+            })
+        return td_err
 
     # @pysnooper.snoop()
     def compute_actions(self,
