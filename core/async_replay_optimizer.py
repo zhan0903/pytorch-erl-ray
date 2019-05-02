@@ -67,7 +67,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
                  remote_evaluators,
                  learning_starts=1000,
                  buffer_size=10000,
-                 prioritized_replay=True,
+                 prioritized_replay=False,
                  prioritized_replay_alpha=0.6,
                  prioritized_replay_beta=0.4,
                  prioritized_replay_eps=1e-6,
