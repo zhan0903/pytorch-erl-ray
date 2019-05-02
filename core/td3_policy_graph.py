@@ -288,11 +288,11 @@ class TD3PolicyGraph(TD3Postprocessing,PolicyGraph):
     # def compute_td_error(self):
     #     pass
 
-    def learn_on_batch(self, samples):
+    def learn_on_batch(self, samples,discount=0.99, tau=0.005, policy_noise=0.2, noise_clip=0.5, policy_freq=2):
         # Sample replay buffer
-        logger.info("learn on batch in td3 graph, do nothing")
-        exit(0)
-        x, y, u, r, d = replay_buffer.sample(batch_size)
+        logger.info("learn on batch in td3 graph")
+        # exit(0)
+        x, y, u, r, d = samples["obs"],samples["new_obs"],samples["actions"], samples["rewards"],samples["dones"]# replay_buffer.sample(batch_size)
         state = torch.FloatTensor(x).to(device)
         action = torch.FloatTensor(u).to(device)
         next_state = torch.FloatTensor(y).to(device)
