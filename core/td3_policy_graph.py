@@ -292,7 +292,9 @@ class TD3PolicyGraph(TD3Postprocessing,PolicyGraph):
         # Sample replay buffer
         logger.info("learn on batch in td3 graph")
         # exit(0)
-        
+
+        logger.debug("len of samples:{}".format(len(samples)))
+
         x, y, u, r, d = samples["obs"],samples["new_obs"],samples["actions"], samples["rewards"],samples["dones"]# replay_buffer.sample(batch_size)
         state = torch.FloatTensor(x).to(device)
         action = torch.FloatTensor(u).to(device)

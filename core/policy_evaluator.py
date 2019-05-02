@@ -584,14 +584,17 @@ class PolicyEvaluator(EvaluatorInterface):
             else:
                 builder = None
             for pid, batch in samples.policy_batches.items():
+                logger.debug("in policy_evaluator.learn_on_batch, pid:{}".format(pid))
                 if pid not in self.policies_to_train:
                     continue
                 policy = self.policy_map[pid]
                 logger.debug("policy_map:{}, pid:{}".format(self.policy_map,pid))
                 if builder and hasattr(policy, "_build_learn_on_batch"):
+                    logger.debug("come policy _build_learn_on_batch")
                     to_fetch[pid] = policy._build_learn_on_batch(
                         builder, batch)
                 else:
+                    logger.debug("come policy learn_on_batch")
                     info_out[pid] = policy.learn_on_batch(batch)
             info_out.update({k: builder.get(v) for k, v in to_fetch.items()})
         else:
