@@ -161,7 +161,7 @@ class TD3Postprocessing(object):
                                sample_batch,
                                other_agent_batches=None,
                                episode=None):
-        if self.config["parameter_noise"]:
+        if False:#self.config["parameter_noise"]:
             # adjust the sigma of parameter space noise
             states, noisy_actions = [
                 list(x) for x in sample_batch.columns(
