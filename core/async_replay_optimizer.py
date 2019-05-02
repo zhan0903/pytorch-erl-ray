@@ -445,7 +445,7 @@ class LearnerThread(threading.Thread):
         if replay is not None:
             prio_dict = {}
             with self.grad_timer:
-                logger_optimizer.debug("in learner, step, len of replay:{}".format(len(replay)))
+                # logger_optimizer.debug("in learner, step, len of replay:{}".format(len(replay)))
                 grad_out = self.local_evaluator.learn_on_batch(replay)
                 for pid, info in grad_out.items():
                     prio_dict[pid] = (
