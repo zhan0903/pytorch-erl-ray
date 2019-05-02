@@ -112,16 +112,15 @@ class SyncSampler(SamplerInput):
         # print("in sampler, SyncSampler")
 
     def get_data(self):
-        print("#-------------sampler.SyncSampler.get_data begin-------------")
+        # print("#-------------sampler.SyncSampler.get_data begin-------------")
         while True:
             item = next(self.rollout_provider)
             if isinstance(item, RolloutMetrics):
-                print("#type of item if,", type(item))
+                # print("#type of item if,", type(item))
                 self.metrics_queue.put(item)
             else:
-                print("#type of item else,", type(item))
-
-                print("#-------------sampler.SyncSampler.get_data end-------------")
+                # print("#type of item else,", type(item))
+                # print("#-------------sampler.SyncSampler.get_data end-------------")
                 return item
 
     def get_metrics(self):

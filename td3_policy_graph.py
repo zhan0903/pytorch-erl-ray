@@ -192,7 +192,7 @@ class TD3PolicyGraph(TD3Postprocessing,PolicyGraph):
     # @pysnooper.snoop()
     def __init__(self, state_dim, action_dim, config):
         PolicyGraph.__init__(self, state_dim, action_dim, config)
-        # self.config = config
+        self.config = config
         self.max_action = config["max_action"]
         self.actor = Actor(state_dim.shape[0], action_dim.shape[0], self.max_action).to(device)
         self.actor_target = Actor(state_dim.shape[0], action_dim.shape[0], self.max_action).to(device)

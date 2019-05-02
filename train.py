@@ -82,7 +82,8 @@ if __name__ == "__main__":
     # action_dim = env.action_space
     max_action = float(env.action_space.high[0])
     # args.max_action = max_action
-    config = {"max_action": max_action}
+    config = {"max_action": max_action,"parameter_noise": False}
+
 
     policy = TD3PolicyGraph(env.observation_space, env.action_space, config)
     local_evaluator = PolicyEvaluator(env_creator=lambda _: gym.make(args.env_name),
