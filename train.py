@@ -16,7 +16,7 @@ import pyarrow as pa
 
 from core.async_replay_optimizer import AsyncReplayOptimizer
 from ray.rllib.evaluation import PolicyGraph, SampleBatch
-from td3_policy_graph import TD3PolicyGraph
+from core.td3_policy_graph import TD3PolicyGraph
 from ray import tune
 import pysnooper
 from core.policy_evaluator import PolicyEvaluator
