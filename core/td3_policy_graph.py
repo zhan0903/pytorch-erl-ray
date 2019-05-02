@@ -10,8 +10,7 @@ import pysnooper
 from threading import Lock
 import logging
 from ray.rllib.utils.annotations import override
-from ray.rllib.agents.dqn.dqn_policy_graph import (
-    _huber_loss, _minimize_and_clip, _scope_vars, _postprocess_dqn)
+from ray.rllib.evaluation.sample_batch import SampleBatch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
