@@ -15,6 +15,9 @@ from ray.rllib.agents.dqn.dqn_policy_graph import (
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# Importance sampling weights for prioritized replay
+PRIO_WEIGHTS = "weights"
+
 # logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -155,6 +158,29 @@ class Critic(nn.Module):
         x1 = F.leaky_relu(self.l2(x1))
         x1 = self.l3(x1)
         return x1
+
+def _postprocess_dqn(policy_graph, batch):
+    # # N-step Q adjustments
+    # if policy_graph.config["n_step"] > 1:
+    #     _adjust_nstep(policy_graph.config["n_step"],
+    #                   policy_graph.config["gamma"], batch[SampleBatch.CUR_OBS],
+    #                   batch[SampleBatch.ACTIONS], batch[SampleBatch.REWARDS],
+    #                   batch[SampleBatch.NEXT_OBS], batch[SampleBatch.DONES])
+
+    if PRIO_WEIGHTS not in batch:
+        batch[PRIO_WEIGHTS] = np.ones_like(batch[SampleBatch.REWARDS])
+
+    # Prioritize on the worker side
+    if batch.count > 0 and policy_graph.config["worker_side_prioritization"]:
+        td_errors = policy_graph.compute_td_error(
+            batch[SampleBatch.CUR_OBS], batch[SampleBatch.ACTIONS],
+            batch[SampleBatch.REWARDS], batch[SampleBatch.NEXT_OBS],
+            batch[SampleBatch.DONES], batch[PRIO_WEIGHTS])
+        new_priorities = (
+            np.abs(td_errors) + policy_graph.config["prioritized_replay_eps"])
+        batch.data[PRIO_WEIGHTS] = new_priorities
+
+    return batch
 
 
 class TD3Postprocessing(object):
