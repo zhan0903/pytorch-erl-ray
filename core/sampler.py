@@ -10,7 +10,7 @@ import threading
 import time
 
 from core.episode import MultiAgentEpisode, _flatten_action
-from ray.rllib.evaluation.sample_batch_builder import \
+from core.sample_batch_builder import \
     MultiAgentSampleBatchBuilder
 from ray.rllib.evaluation.tf_policy_graph import TFPolicyGraph
 from core.base_env import BaseEnv, ASYNC_RESET_RETURN
@@ -287,7 +287,7 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
             terminal condition, and other fields as dictated by `policy`.
     """
 
-    # print("_env_runner++++++++++++++")
+    print("_env_runner++++++++++++++")
 
     try:
         if not horizon:
