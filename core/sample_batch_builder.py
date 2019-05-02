@@ -10,7 +10,7 @@ from ray.rllib.evaluation.sample_batch import SampleBatch, MultiAgentBatch
 from ray.rllib.utils.annotations import PublicAPI, DeveloperAPI
 from ray.rllib.utils.debug import log_once, summarize
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 
 def to_float_array(v):
@@ -39,6 +39,7 @@ class SampleBatchBuilder(object):
         """Add the given dictionary (row) of values to this batch."""
 
         for k, v in values.items():
+            logger.debug{"key in add_value:{}".format(k)}
             self.buffers[k].append(v)
         self.count += 1
 
