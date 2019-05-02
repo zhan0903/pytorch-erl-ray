@@ -39,7 +39,7 @@ class SampleBatchBuilder(object):
         """Add the given dictionary (row) of values to this batch."""
 
         for k, v in values.items():
-            logger.debug{"key in add_value:{}".format(k)}
+            logger.debug("key in add_value:{}".format(k))
             self.buffers[k].append(v)
         self.count += 1
 
