@@ -449,7 +449,7 @@ class LearnerThread(threading.Thread):
                 grad_out = self.local_evaluator.learn_on_batch(replay)
                 for pid, info in grad_out.items():
                     prio_dict[pid] = (
-                        replay.policy_batches[pid].data.get("batch_indexes"),
+                        replay.policy_batches[pid].data.get("batch_indexes"))
                         # info.get("td_error"))
                     self.stats[pid] = get_learner_stats(info)
             self.outqueue.put((ra, prio_dict, replay.count))
