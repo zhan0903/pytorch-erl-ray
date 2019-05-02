@@ -10,8 +10,7 @@ from ray.rllib.evaluation.sample_batch import SampleBatch, MultiAgentBatch
 from ray.rllib.utils.annotations import PublicAPI, DeveloperAPI
 from ray.rllib.utils.debug import log_once, summarize
 
-logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
-
+logger = logging.getLogger(__name__)
 
 def to_float_array(v):
     arr = np.array(v)
