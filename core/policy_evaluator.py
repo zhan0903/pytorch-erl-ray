@@ -114,7 +114,7 @@ class PolicyEvaluator(EvaluatorInterface):
             num_cpus=num_cpus, num_gpus=num_gpus, resources=resources)(cls)
 
     @DeveloperAPI
-    @pysnooper.snoop()
+    # @pysnooper.snoop()
     def __init__(self,
                  env_creator,
                  policy_graph,
