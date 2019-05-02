@@ -254,7 +254,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
         with self.timers["update_priorities"]:
             while not self.learner.outqueue.empty():
                 ra, prio_dict, count = self.learner.outqueue.get()
-                ra.update_priorities.remote(prio_dict)
+                # ra.update_priorities.remote(prio_dict)
                 train_timesteps += count
 
         return sample_timesteps, train_timesteps
@@ -441,7 +441,7 @@ class LearnerThread(threading.Thread):
 
     def step(self):
         with self.queue_timer:
-            ra, replay = self.inqueue.get()
+            ra, replay = self.inqueue.get() # ra, samples and samples.copy()
         if replay is not None:
             prio_dict = {}
             with self.grad_timer:
@@ -450,7 +450,7 @@ class LearnerThread(threading.Thread):
                 for pid, info in grad_out.items():
                     prio_dict[pid] = (
                         replay.policy_batches[pid].data.get("batch_indexes"),
-                        info.get("td_error"))
+                        # info.get("td_error"))
                     self.stats[pid] = get_learner_stats(info)
             self.outqueue.put((ra, prio_dict, replay.count))
         self.learner_queue_size.push(self.inqueue.qsize())
