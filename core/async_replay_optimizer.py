@@ -451,7 +451,7 @@ class LearnerThread(threading.Thread):
                     prio_dict[pid] = (
                         replay.policy_batches[pid].data.get("batch_indexes"))
                         # info.get("td_error"))
-                    self.stats[pid] = get_learner_stats(info)
+                    # self.stats[pid] = get_learner_stats(info)
             self.outqueue.put((ra, prio_dict, replay.count))
         self.learner_queue_size.push(self.inqueue.qsize())
         self.weights_updated = True
