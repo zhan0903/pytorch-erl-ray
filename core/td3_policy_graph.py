@@ -292,6 +292,7 @@ class TD3PolicyGraph(TD3Postprocessing,PolicyGraph):
         # Sample replay buffer
         logger.info("learn on batch in td3 graph")
         # exit(0)
+        
         x, y, u, r, d = samples["obs"],samples["new_obs"],samples["actions"], samples["rewards"],samples["dones"]# replay_buffer.sample(batch_size)
         state = torch.FloatTensor(x).to(device)
         action = torch.FloatTensor(u).to(device)
@@ -321,22 +322,22 @@ class TD3PolicyGraph(TD3Postprocessing,PolicyGraph):
         self.critic_optimizer.step()
 
         # Delayed policy updates
-        if it % policy_freq == 0:
+        # if it % policy_freq == 0:
 
             # Compute actor loss
-            actor_loss = -self.critic.Q1(state, self.actor(state)).mean()
+        actor_loss = -self.critic.Q1(state, self.actor(state)).mean()
 
-            # Optimize the actor
-            self.actor_optimizer.zero_grad()
-            actor_loss.backward()
-            self.actor_optimizer.step()
+        # Optimize the actor
+        self.actor_optimizer.zero_grad()
+        actor_loss.backward()
+        self.actor_optimizer.step()
 
-            # Update the frozen target models
-            for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
-                target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
+        # Update the frozen target models
+        for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
+            target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
-            for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
-                target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
+        for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
+            target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
     # def compute_apply(self):
     #     print("compute_apply")
