@@ -114,7 +114,7 @@ class PolicyEvaluator(EvaluatorInterface):
             num_cpus=num_cpus, num_gpus=num_gpus, resources=resources)(cls)
 
     @DeveloperAPI
-    # @pysnooper.snoop()
+    @pysnooper.snoop()
     def __init__(self,
                  env_creator,
                  policy_graph,
@@ -429,7 +429,7 @@ class PolicyEvaluator(EvaluatorInterface):
             self.async_env, self.env, self.policy_map))
 
     @override(EvaluatorInterface)
-    @pysnooper.snoop(depth=2, prefix="#policy_evaluator,sample")
+    # @pysnooper.snoop(depth=2, prefix="#policy_evaluator,sample")
     def sample(self):
         """Evaluate the current policies and return a batch of experiences.
 

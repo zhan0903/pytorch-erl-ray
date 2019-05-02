@@ -112,8 +112,7 @@ class SyncSampler(SamplerInput):
         # print("in sampler, SyncSampler")
 
     def get_data(self):
-        # print("#sampler.SyncSampler.get_data")
-
+        print("#sampler.SyncSampler.get_data")
         while True:
             item = next(self.rollout_provider)
             # print("#sampler.SyncSampler.get_data,item,", item)

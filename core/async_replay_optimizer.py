@@ -303,7 +303,7 @@ class ReplayActor(object):
             batch = MultiAgentBatch({DEFAULT_POLICY_ID: batch}, batch.count)
         with self.add_batch_timer:
             for policy_id, s in batch.policy_batches.items():
-                # print("s in add_batch:{}".format(s))
+                print("s type:{}".format(type(s)))
                 for row in s.rows():
                     print("use batch succeed before ~~~~~~~~~~~~~~~~~~++++++++++++++++++")
 
