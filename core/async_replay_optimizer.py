@@ -299,18 +299,18 @@ class ReplayActor(object):
         # print("should come here in ReplayActor.add_batch++++++++++++++++++++++++++++++")
         # print("")
         if isinstance(batch, SampleBatch):
-            print("type batch in add_batch~~~~~~~~~~~~~~~~~~++++++++++++++++++:{}".format(type(batch)))
+            # print("type batch in add_batch~~~~~~~~~~~~~~~~~~++++++++++++++++++:{}".format(type(batch)))
             batch = MultiAgentBatch({DEFAULT_POLICY_ID: batch}, batch.count)
         with self.add_batch_timer:
             for policy_id, s in batch.policy_batches.items():
                 print("s type:{}".format(type(s)))
                 for row in s.rows():
-                    print("use batch succeed before ~~~~~~~~~~~~~~~~~~++++++++++++++++++")
+                    # print("use batch succeed before ~~~~~~~~~~~~~~~~~~++++++++++++++++++")
 
                     self.replay_buffers[policy_id].add(
                         row["obs"], row["actions"], row["rewards"],
                         row["new_obs"], row["dones"], row["weights"])
-                    print("use batch succeed after ~~~~~~~~~~~~~~~~~~++++++++++++++++++")
+                    # print("use batch succeed after ~~~~~~~~~~~~~~~~~~++++++++++++++++++")
 
         self.num_added += batch.count
 
