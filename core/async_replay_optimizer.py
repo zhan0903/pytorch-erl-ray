@@ -214,11 +214,12 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             # print("judge completed tasks-----------------")
             # exit(0)
             for i, (ev, (sample_batch, count)) in enumerate(completed):
+                logger_optimizer.debug("sample_timesteps every step:{}".format(counts[i]))
                 sample_timesteps += counts[i]
-                logger_optimizer.debug("begin to add batch")
+                # logger_optimizer.debug("begin to add batch")
                 # Send the data to the replay buffer
                 # here sample_batch is the input of add_batch
-                logger_optimizer.debug("sample_batch finished, before use it")
+                # logger_optimizer.debug("sample_batch finished, before use it")
 
                 random.choice(
                     self.replay_actors).add_batch.remote(sample_batch)
@@ -447,6 +448,7 @@ class LearnerThread(threading.Thread):
             with self.grad_timer:
                 # logger_optimizer.debug("in learner, step, len of replay:{}".format(len(replay)))
                 grad_out = self.local_evaluator.learn_on_batch(replay)
+                logger_optimizer.debug("replay.count every step:{}".format(replay.count))
                 for pid, info in grad_out.items():
                     prio_dict[pid] = (
                         replay.policy_batches[pid].data.get("batch_indexes"))
