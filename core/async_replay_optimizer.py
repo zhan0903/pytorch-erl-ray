@@ -42,7 +42,7 @@ LEARNER_QUEUE_MAX_SIZE = 16
 # console.setFormatter(formatter)
 # logging.getLogger('').addHandler(console)
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 logger_optimizer = logging.getLogger(__name__)
 
 
@@ -147,7 +147,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
         self.num_steps_sampled += sample_timesteps
         self.num_steps_trained += train_timesteps
         if self.num_steps_trained != 0:
-            logger_optimizer.debug("num_steps_sampled:{},num_steps_trained:{}".
+            logger_optimizer.info("num_steps_sampled:{},num_steps_trained:{}".
                               format(self.num_steps_sampled, self.num_steps_trained))
 
     @override(PolicyOptimizer)
@@ -303,7 +303,7 @@ class ReplayActor(object):
             batch = MultiAgentBatch({DEFAULT_POLICY_ID: batch}, batch.count)
         with self.add_batch_timer:
             for policy_id, s in batch.policy_batches.items():
-                print("s type:{}".format(type(s)))
+                # print("s type:{}".format(type(s)))
                 for row in s.rows():
                     # print("use batch succeed before ~~~~~~~~~~~~~~~~~~++++++++++++++++++")
 

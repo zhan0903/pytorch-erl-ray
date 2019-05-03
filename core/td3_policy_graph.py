@@ -290,7 +290,7 @@ class TD3PolicyGraph(TD3Postprocessing,PolicyGraph):
 
     def learn_on_batch(self, samples,discount=0.99, tau=0.005, policy_noise=0.2, noise_clip=0.5, policy_freq=2):
         # Sample replay buffer
-        logger.info("learn on batch in td3 graph")
+        logger.debug("learn on batch in td3 graph")
         # exit(0)
 
         # logger.debug("len of samples:{}".format(len(samples)))

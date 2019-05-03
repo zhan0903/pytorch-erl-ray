@@ -21,7 +21,6 @@ from ray.rllib.utils.annotations import override
 from ray.rllib.utils.debug import log_once, summarize
 from ray.rllib.utils.tf_run_builder import TFRunBuilder
 from ray.rllib.evaluation.policy_graph import clip_action
-import pysnooper
 
 
 # logging.basicConfig(level=logging.DEBUG,
@@ -71,7 +70,7 @@ class SamplerInput(InputReader):
     @override(InputReader)
     def next(self):
         batches = [self.get_data()]
-        print("in sampler.SamplerInput, len of batches,",len(batches))
+        # print("in sampler.SamplerInput, len of batches,",len(batches))
         batches.extend(self.get_extra_batches())
         if len(batches) > 1:
             return batches[0].concat_samples(batches)
