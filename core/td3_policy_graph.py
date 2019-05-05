@@ -218,7 +218,6 @@ class TD3Postprocessing(object):
 
 
 class TD3PolicyGraph(TD3Postprocessing,PolicyGraph):
-    # @pysnooper.snoop()
     def __init__(self, state_dim, action_dim, config):
         PolicyGraph.__init__(self, state_dim, action_dim, config)
         self.config = config
@@ -233,10 +232,8 @@ class TD3PolicyGraph(TD3Postprocessing,PolicyGraph):
         self.critic_target.load_state_dict(self.critic.state_dict())
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
         self.lock = Lock()
-
         # self.max_action = config["max_action"]
 
-    # @pysnooper.snoop()
     def compute_single_action(self, obs):
         obs = torch.FloatTensor(obs.reshape(1, -1)).to(device)
         return self.actor(obs).cpu().data.numpy().flatten()

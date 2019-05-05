@@ -136,6 +136,7 @@ class AsyncReplayOptimizer(PolicyOptimizer):
         assert len(self.remote_evaluators) > 0
         start = time.time()
         sample_timesteps, train_timesteps = self._step()
+        # logger_optimizer.debug("sample_")
         time_delta = time.time() - start
         self.timers["sample"].push(time_delta)
         self.timers["sample"].push_units_processed(sample_timesteps)
@@ -146,9 +147,9 @@ class AsyncReplayOptimizer(PolicyOptimizer):
             self.timers["train"].push_units_processed(train_timesteps)
         self.num_steps_sampled += sample_timesteps
         self.num_steps_trained += train_timesteps
-        if self.num_steps_trained != 0:
-            logger_optimizer.info("num_steps_sampled:{},num_steps_trained:{}".
-                              format(self.num_steps_sampled, self.num_steps_trained))
+        # if self.num_steps_trained != 0:
+        #     logger_optimizer.info("num_steps_sampled:{},num_steps_trained:{}".
+        #                       format(self.num_steps_sampled, self.num_steps_trained))
 
     @override(PolicyOptimizer)
     def stop(self):

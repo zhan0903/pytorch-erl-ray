@@ -248,7 +248,7 @@ class AsyncSampler(threading.Thread, SamplerInput):
                 break
         return extra
 
-
+#TODO use GPUs more 
 def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
                 unroll_length, horizon, preprocessors, obs_filters,
                 clip_rewards, clip_actions, pack, callbacks, tf_sess,
@@ -284,9 +284,6 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
         rollout (SampleBatch): Object containing state, action, reward,
             terminal condition, and other fields as dictated by `policy`.
     """
-
-    print("_env_runner++++++++++++++")
-
     try:
         if not horizon:
             horizon = (base_env.get_unwrapped()[0].spec.max_episode_steps)

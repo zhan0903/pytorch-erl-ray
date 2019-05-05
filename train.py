@@ -45,6 +45,25 @@ from core.policy_evaluator import PolicyEvaluator
 #
 # def make_remote_evaluators(env_creator, policy_graph, size):
 #     pass
+# Runs policy for X episodes and returns average reward
+def evaluate_policy(policy, eval_episodes=5):
+	avg_reward = 0.
+	for _ in range(eval_episodes):
+		obs = env.reset()
+		done = False
+		while not done:
+			action = policy.compute_single_action(np.array(obs))
+			obs, reward, done, _ = env.step(action)
+			avg_reward += reward
+
+	avg_reward /= eval_episodes
+
+	print("---------------------------------------")
+	print("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
+	print("---------------------------------------")
+	return avg_reward
+
+
 
 
 if __name__ == "__main__":
@@ -55,7 +74,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", default=0, type=int)
     parser.add_argument("--start_timesteps", default=2e3, type=int)
     parser.add_argument("--eval_freq", default=5e3, type=float)
-    parser.add_argument("--max_timesteps", default=1e5, type=float)
+    parser.add_argument("--max_timesteps", default=2e5, type=float)
     parser.add_argument("--batch_size", default=100, type=int)
     parser.add_argument("--discount", default=0.99, type=float)
     parser.add_argument("--tau", default=0.005, type=float)
@@ -102,9 +121,16 @@ if __name__ == "__main__":
     # @pysnooper.snoop()
     print("len of remote_evaluators,", len(remote_evaluators))
     optimizer = AsyncReplayOptimizer(local_evaluator, remote_evaluators, buffer_size=2000000, debug=True, train_batch_size=100)
-    
-    while optimizer.num_steps_trained < args.max_timesteps:
+    evaluate_steps = 0
+
+    while optimizer.num_steps_sampled < args.max_timesteps:
         optimizer.step()
+        #evalute the agent's score every 5000 steps
+        if optimizer.num_steps_sampled // 5000  > evaluate_steps:
+            evaluate_steps += 1
+            evaluate_policy(policy,eval_episodes=5)
+            print("all sample steps,",optimizer.num_steps_sampled)
+        
 
 
 
