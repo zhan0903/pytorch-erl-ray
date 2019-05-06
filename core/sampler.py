@@ -22,6 +22,9 @@ from ray.rllib.utils.debug import log_once, summarize
 from ray.rllib.utils.tf_run_builder import TFRunBuilder
 from ray.rllib.evaluation.policy_graph import clip_action
 
+# import ptvsd
+# ptvsd.debug_this_thread()
+
 
 # logging.basicConfig(level=logging.DEBUG,
 #                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -111,7 +114,6 @@ class SyncSampler(SamplerInput):
         # print("in sampler, SyncSampler")
 
     def get_data(self):
-        # print("#-------------sampler.SyncSampler.get_data begin-------------")
         while True:
             item = next(self.rollout_provider)
             if isinstance(item, RolloutMetrics):
@@ -363,8 +365,6 @@ def _env_runner(base_env, extra_batch_callback, policies, policy_mapping_fn,
             off_policy_actions, policies, clip_actions)
         perf_stats.processing_time += time.time() - t3
 
-        # print("sampler._env_runner, come here 4")
-
         # Return computed actions to ready envs. We also send to envs that have
         # taken off-policy actions; those envs are free to ignore the action.
         t4 = time.time()
@@ -549,39 +549,23 @@ def _do_policy_eval(tf_sess, to_eval, policies, active_episodes):
 
     eval_results = {}
 
-    if tf_sess:
-        builder = TFRunBuilder(tf_sess, "policy_eval")
-        pending_fetches = {}
-    else:
-        builder = None
+    builder = None
 
     if log_once("compute_actions_input"):
         logger.info("Inputs to compute_actions():\n\n{}\n".format(
             summarize(to_eval)))
 
     for policy_id, eval_data in to_eval.items():
-        # print("#sampler._do_policy_eval,policy_id:{0}, eval_data:{1}".format(policy_id, eval_data))
         rnn_in_cols = _to_column_format([t.rnn_state for t in eval_data])
         policy = _get_or_raise(policies, policy_id)
-        if builder and (policy.compute_actions.__code__ is
-                        TFPolicyGraph.compute_actions.__code__):
-            # TODO(ekl): how can we make info batch available to TF code?
-            pending_fetches[policy_id] = policy._build_compute_actions(
-                builder, [t.obs for t in eval_data],
-                rnn_in_cols,
-                prev_action_batch=[t.prev_action for t in eval_data],
-                prev_reward_batch=[t.prev_reward for t in eval_data])
-        else:
-            eval_results[policy_id] = policy.compute_actions(
+
+        eval_results[policy_id] = policy.compute_actions(
                 [t.obs for t in eval_data],
                 rnn_in_cols,
                 prev_action_batch=[t.prev_action for t in eval_data],
                 prev_reward_batch=[t.prev_reward for t in eval_data],
                 info_batch=[t.info for t in eval_data],
                 episodes=[active_episodes[t.env_id] for t in eval_data])
-    if builder:
-        for k, v in pending_fetches.items():
-            eval_results[k] = builder.get(v)
 
     if log_once("compute_actions_result"):
         logger.info("Outputs of compute_actions():\n\n{}\n".format(

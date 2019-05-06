@@ -723,7 +723,7 @@ class PolicyEvaluator(EvaluatorInterface):
         policy_map = {}
         preprocessors = {}
         for name, (cls, obs_space, act_space,
-                   conf) in sorted(policy_dict.items()):
+                   max_action, conf) in sorted(policy_dict.items()):
             logger.debug("Creating policy graph for {}".format(name))
             merged_conf = merge_dicts(policy_config, conf)
             if self.preprocessing_enabled:
@@ -740,7 +740,7 @@ class PolicyEvaluator(EvaluatorInterface):
                     "Please preprocess these observations with a "
                     "Tuple|DictFlatteningPreprocessor.")
             with tf.variable_scope(name):
-                policy_map[name] = cls(obs_space, act_space, merged_conf)
+                policy_map[name] = cls(obs_space, act_space, max_action, merged_conf)
         if self.worker_index == 0:
             logger.info("Built policy map: {}".format(policy_map))
             logger.info("Built preprocessor map: {}".format(preprocessors))
@@ -765,8 +765,9 @@ def _validate_and_canonicalize(policy_graph, env):
                 "MultiAgentEnv must have observation_space defined if run "
                 "in a single-agent configuration.")
         return {
+            # come here
             DEFAULT_POLICY_ID: (policy_graph, env.observation_space,
-                                env.action_space, {"max_action":float(env.action_space.high[0])})
+                                env.action_space, float(env.action_space.high[0]),{})
         }
 
 
@@ -818,7 +819,7 @@ def _monitor(env, path):
 
 
 def _has_tensorflow_graph(policy_dict):
-    for policy, _, _, _ in policy_dict.values():
+    for policy, _, _, _,_ in policy_dict.values():
         if issubclass(policy, TFPolicyGraph):
             return True
     return False

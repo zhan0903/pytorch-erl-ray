@@ -19,7 +19,7 @@ import ray
 from ray.rllib.evaluation.metrics import get_learner_stats
 from ray.rllib.evaluation.sample_batch import SampleBatch, DEFAULT_POLICY_ID, \
     MultiAgentBatch
-from ray.rllib.optimizers.policy_optimizer import PolicyOptimizer
+from core.policy_optimizer import PolicyOptimizer
 from ray.rllib.optimizers.replay_buffer import PrioritizedReplayBuffer
 from ray.rllib.utils.annotations import override
 from core.actors import TaskPool, create_colocated

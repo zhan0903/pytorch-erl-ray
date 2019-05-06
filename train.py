@@ -14,12 +14,17 @@ from copy import deepcopy
 import pyarrow as pa
 # from ray.rllib.optimizers.async_replay_optimizer import AsyncReplayOptimizer
 
+# from ray.rllib.optimizers.async_replay_optimizer import AsyncReplayOptimizer
 from core.async_replay_optimizer import AsyncReplayOptimizer
+
 from ray.rllib.evaluation import PolicyGraph, SampleBatch
 from core.td3_policy_graph import TD3PolicyGraph
 from ray import tune
-import pysnooper
+# import pysnooper
+# from ray.rllib.evaluation.policy_evaluator import PolicyEvaluator
 from core.policy_evaluator import PolicyEvaluator
+
+
 
 #
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -83,7 +88,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     parser.add_argument("--save_models", action="store_true")
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
-    parser.add_argument("--pop_size", default=4, type=int)
+    parser.add_argument("--pop_size", default=2, type=int)
     parser.add_argument("--crossover_prob", default=0.0, type=float)
     parser.add_argument("--mutation_prob", default=0.9, type=float)
     parser.add_argument("--elite_fraction", default=0.1, type=float)
@@ -101,10 +106,10 @@ if __name__ == "__main__":
     # action_dim = env.action_space
     max_action = float(env.action_space.high[0])
     # args.max_action = max_action
-    config = {"max_action": max_action,"parameter_noise": False,"prioritized_replay_eps":1e-6}
+    config = {"parameter_noise": False,"prioritized_replay_eps":1e-6}
 
 
-    policy = TD3PolicyGraph(env.observation_space, env.action_space, config)
+    policy = TD3PolicyGraph(env.observation_space, env.action_space, max_action, config)
     local_evaluator = PolicyEvaluator(env_creator=lambda _: gym.make(args.env_name),
                                       policy_graph=TD3PolicyGraph)
 
